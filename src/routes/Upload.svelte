@@ -1,15 +1,19 @@
 <script lang="ts">
 	import { jsonDataStore } from '$lib/store';
 
-	let fileinput:HTMLInputElement;
+    export let initiateBinder:Function
+	let fileinput:HTMLInputElement
+    
+
 	const invite:string = 'Choose a KeyCloak config json file'
 	
 	const onFileSelected = (e:any)=>{
-		let image = e.target.files[0];
+		let jsonFile = e.target.files[0];
 		let reader = new FileReader();
-		reader.readAsText(image);
+		reader.readAsText(jsonFile);
 		reader.onload = e => {
 			jsonDataStore.set(e.target?.result as string)
+            initiateBinder()
 		};
 	}
 	

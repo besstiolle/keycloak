@@ -1,6 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
 	import { jsonDataStore } from '$lib/store';
+    import { invalid_attribute_name_character } from 'svelte/internal';
 	import FilterBlock from './FilterBlock.svelte'
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
@@ -36,11 +37,14 @@
 				}[]; 
 			}[] = []
 	
-	if($jsonDataStore.length > 100){
-		royaumes = JSON.parse($jsonDataStore) 
-		updateFilters()
-		updateCounters()
-	} 
+	
+	function initiate(){
+		if($jsonDataStore.length > 100){
+			royaumes = JSON.parse($jsonDataStore) 
+			updateFilters()
+			updateCounters()
+		}
+	}
 
 	function updateFilters(){
 		fRoyaumes = []
@@ -123,6 +127,9 @@
 		console.info(mapCounter)
 	}
 
+	// Initiate var.
+	initiate()
+
 </script>
 
 <svelte:head>
@@ -181,7 +188,7 @@
 		{/if}
 	</data>
 	{:else}
-		<Upload />
+		<Upload initiateBinder={initiate}/>
 	{/if}
 	{/if}
 </content>
