@@ -56,6 +56,7 @@ export module SearchEngine{
 						clientId.envs.forEach((env) => {
 							
 							env.show = (map.get(ID_ENVS)?.get(env.env) === true)
+							//console.info("env.env = " + env.env + " env.show = " + env.show)
 							if(env.redirectUris){
 								env.redirectUris.forEach((uri) => {
 								})
@@ -84,7 +85,7 @@ export module SearchEngine{
 							console.debug(royaume.royaume + ' was found matching (royaume)')
 						} else {
 							royaume.subs.forEach((sub) => {
-								oneClientIdWasFound=false
+								oneClientIdWasFound = false
 								if(sub.show !== false){
 									
 									if(sub.sub.indexOf(currentSearchValue) !== -1){
@@ -109,7 +110,7 @@ export module SearchEngine{
 																env.redirectUris.forEach((uri) => {
 																	if(uri.indexOf(currentSearchValue) !== -1){
 																		console.debug(uri + ' was found matching (uri)')
-																		oneUriWasFound=true
+																		oneUriWasFound = true
 																	}
 																})
 																env.show = oneUriWasFound
@@ -134,27 +135,33 @@ export module SearchEngine{
 				})
 			}
 
+
 			//Propagation to Parents if all children's nodes are hidden
 			let OneRoyaumesisShow = false
 			let OneSubRoyaumesisShow = false
 			let OneClientIdisShow = false
 			let OneEnvisShow = false
+			
 			royaumes.forEach((royaume) => {
 				if(royaume.show !== false){
+					OneSubRoyaumesisShow = false
 					royaume.subs.forEach((sub) => {
-
+						
 						if(sub.show !== false){
+							OneClientIdisShow = false
 							sub.clientIds.forEach((clientId) => {
 								
 								if(clientId.show !== false){
+									OneEnvisShow = false
 									clientId.envs.forEach((env) => {
 
-										/*if(env.show !== false){
+										
+										if(env.show !== false){
 											if(env.redirectUris){
 												env.redirectUris.forEach((uri) => {
 												})
 											}
-										}*/
+										}
 										OneEnvisShow = OneEnvisShow || env.show
 									})
 									if(clientId.clientId.indexOf(currentSearchValue) !== -1){

@@ -123,8 +123,6 @@
 			mapCounter.set(royaume.royaume, clientIdCounter)
 		})
 		mapCounter.set(ID_ALL, allClientIdCounter)	
-
-		console.info(mapCounter)
 	}
 
 	// Initiate var.
