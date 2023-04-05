@@ -1,64 +1,49 @@
+import type { instance } from "$lib/struct"
+
 export module SearchEngine{
     
 
-	export const ID_ROYAUMES = 'royaumes'
-	export const ID_SUBROYAUMES = 'subRoyaumes'
+	export const ID_INSTANCES = 'instances'
+	export const ID_ROYAUMES = 'subRoyaumes'
 	export const ID_PROTOCOLES = 'protocoles'
 	export const ID_ENVS = 'envs'
 
     export let HIDE_ALL = false
     
-    export function render(royaumes:{ 
-        royaume: string;
-        show: boolean; 
-        subs: { 
-            sub: string; 
-            show: boolean;
-            clientIds: { 
-                protocol: string; 
-                show: boolean;
-                clientId: string;
-                envs: { 
-                    env: string; 
-                    show: boolean;
-                    redirectUris: string[]; 
-                }[]; 
-            }[]; 
-        }[]; 
-    }[], currentSearchValue:string, rawData:string ){
+    export function render(instances:typeof instance[], currentSearchValue:string, rawData:string ){
 		let start = new Date()
 		HIDE_ALL = false
 		//Raw search inside the json directly
 		if(currentSearchValue !== undefined && !rawData.includes(currentSearchValue)){
-			royaumes.forEach((royaume) => {
-				royaume.show = false
+			instances.forEach((instance) => {
+				instance.show = false
 			})
 			HIDE_ALL = true
 		} else {
 			//Filtering with side applet
 			let map = new Map<string,Map<string,boolean>>()
+			map.set(ID_INSTANCES, getStateOfFilters(ID_INSTANCES))
 			map.set(ID_ROYAUMES, getStateOfFilters(ID_ROYAUMES))
-			map.set(ID_SUBROYAUMES, getStateOfFilters(ID_SUBROYAUMES))
 			map.set(ID_PROTOCOLES, getStateOfFilters(ID_PROTOCOLES))
 			map.set(ID_ENVS, getStateOfFilters(ID_ENVS))
 	
 			
-			royaumes.forEach((royaume) => {
+			instances.forEach((instance) => {
 				
-				royaume.show = (map.get(ID_ROYAUMES)?.get(royaume.royaume) === true)
-				royaume.subs.forEach((sub) => {
+				instance.show = (map.get(ID_INSTANCES)?.get(instance.label) === true)
+				instance.royaumes.forEach((royaume) => {
 					
-					sub.show = (map.get(ID_SUBROYAUMES)?.get(sub.sub) === true)
-					sub.clientIds.forEach((clientId) => {
+					royaume.show = (map.get(ID_ROYAUMES)?.get(royaume.label) === true)
+					royaume.clientIds.forEach((clientId) => {
 						
 						
 						clientId.show = (map.get(ID_PROTOCOLES)?.get(clientId.protocol) === true)
 						clientId.envs.forEach((env) => {
 							
-							env.show = (map.get(ID_ENVS)?.get(env.env) === true)
+							env.show = (map.get(ID_ENVS)?.get(env.label) === true)
 							//console.info("env.env = " + env.env + " env.show = " + env.show)
-							if(env.redirectUris){
-								env.redirectUris.forEach((uri) => {
+							if(env.uris){
+								env.uris.forEach((uri) => {
 								})
 							}
 						})
@@ -66,7 +51,7 @@ export module SearchEngine{
 				});
 			});
 
-			let oneRoyaumeWasFound = false
+			let oneInstanceWasFound = false
 			let oneSubWasFound = false
 			let oneClientIdWasFound = false
 			let oneEnvWasFound = false
@@ -74,40 +59,40 @@ export module SearchEngine{
 
 			if(currentSearchValue !== undefined && currentSearchValue !== ""){
 				//Filtering with text content
-				royaumes.forEach((royaume) => {
+				instances.forEach((instance) => {
 					
 					oneSubWasFound = false
-					if(royaume.show !== false){
+					if(instance.show !== false){
 						
-						if(royaume.royaume.indexOf(currentSearchValue) !== -1){
-							royaume.show = true
-							oneRoyaumeWasFound = true
-							console.debug(royaume.royaume + ' was found matching (royaume)')
+						if(instance.label.indexOf(currentSearchValue) !== -1){
+							instance.show = true
+							oneInstanceWasFound = true
+							console.debug(instance.label + ' was found matching (instance)')
 						} else {
-							royaume.subs.forEach((sub) => {
+							instance.royaumes.forEach((royaume) => {
 								oneClientIdWasFound = false
-								if(sub.show !== false){
+								if(royaume.show !== false){
 									
-									if(sub.sub.indexOf(currentSearchValue) !== -1){
-										sub.show = true
+									if(royaume.label.indexOf(currentSearchValue) !== -1){
+										royaume.show = true
 										oneSubWasFound = true
-										console.debug(sub.sub + ' was found matching (sub)')
+										console.debug(royaume.label + ' was found matching (sub)')
 									} else {
-										sub.clientIds.forEach((clientId) => {
+										royaume.clientIds.forEach((clientId) => {
 											oneEnvWasFound = false
 											if(clientId.show !== false){
 												
-												if(clientId.clientId.indexOf(currentSearchValue) !== -1){
+												if(clientId.label.indexOf(currentSearchValue) !== -1){
 													clientId.show = true
 													oneClientIdWasFound = true
-													console.debug(clientId.clientId + ' was found matching (clientId)')
+													console.debug(clientId.label + ' was found matching (clientId)')
 												} else {
 													clientId.envs.forEach((env) => {
 														oneUriWasFound = false
 														if(env.show !== false){
 
-															if(env.redirectUris){
-																env.redirectUris.forEach((uri) => {
+															if(env.uris){
+																env.uris.forEach((uri) => {
 																	if(uri.indexOf(currentSearchValue) !== -1){
 																		console.debug(uri + ' was found matching (uri)')
 																		oneUriWasFound = true
@@ -123,13 +108,13 @@ export module SearchEngine{
 												}
 											}
 										})
-										sub.show = oneClientIdWasFound
+										royaume.show = oneClientIdWasFound
 										oneSubWasFound = oneSubWasFound || oneClientIdWasFound
 									}
 								}
 							})
-							royaume.show = oneSubWasFound
-							oneRoyaumeWasFound = oneRoyaumeWasFound || oneSubWasFound
+							instance.show = oneSubWasFound
+							oneInstanceWasFound = oneInstanceWasFound || oneSubWasFound
 						}
 					}
 				})
@@ -137,19 +122,19 @@ export module SearchEngine{
 
 
 			//Propagation to Parents if all children's nodes are hidden
-			let OneRoyaumesisShow = false
+			let OneInstanceisShow = false
 			let OneSubRoyaumesisShow = false
 			let OneClientIdisShow = false
 			let OneEnvisShow = false
 			
-			royaumes.forEach((royaume) => {
-				if(royaume.show !== false){
+			instances.forEach((instance) => {
+				if(instance.show !== false){
 					OneSubRoyaumesisShow = false
-					royaume.subs.forEach((sub) => {
+					instance.royaumes.forEach((royaume) => {
 						
-						if(sub.show !== false){
+						if(royaume.show !== false){
 							OneClientIdisShow = false
-							sub.clientIds.forEach((clientId) => {
+							royaume.clientIds.forEach((clientId) => {
 								
 								if(clientId.show !== false){
 									OneEnvisShow = false
@@ -157,14 +142,14 @@ export module SearchEngine{
 
 										
 										if(env.show !== false){
-											if(env.redirectUris){
-												env.redirectUris.forEach((uri) => {
+											if(env.uris){
+												env.uris.forEach((uri) => {
 												})
 											}
 										}
 										OneEnvisShow = OneEnvisShow || env.show
 									})
-									if(clientId.clientId.indexOf(currentSearchValue) !== -1){
+									if(clientId.label.indexOf(currentSearchValue) !== -1){
 										clientId.show = true
 									} else if(!OneEnvisShow){
 										clientId.show = false
@@ -172,32 +157,32 @@ export module SearchEngine{
 								}
 								OneClientIdisShow = OneClientIdisShow || clientId.show
 							})
-							if(sub.sub.indexOf(currentSearchValue) !== -1){
-								sub.show = true
+							if(royaume.label.indexOf(currentSearchValue) !== -1){
+								royaume.show = true
 							} else if(!OneClientIdisShow){
-								sub.show = false
+								royaume.show = false
 							}
 						}
-						OneSubRoyaumesisShow = OneSubRoyaumesisShow || sub.show
+						OneSubRoyaumesisShow = OneSubRoyaumesisShow || royaume.show
 					})
 
-					if(royaume.royaume.indexOf(currentSearchValue) !== -1){
-						royaume.show = true
+					if(instance.label.indexOf(currentSearchValue) !== -1){
+						instance.show = true
 					} else if(!OneSubRoyaumesisShow){
-						royaume.show = false
+						instance.show = false
 					}
 				}
 				
-				OneRoyaumesisShow = OneRoyaumesisShow || royaume.show
+				OneInstanceisShow = OneInstanceisShow || instance.show
 			})
 
-			HIDE_ALL = !OneRoyaumesisShow
+			HIDE_ALL = !OneInstanceisShow
 
 		}
 
 		
 		console.info("rendering ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
-		return royaumes
+		return instances
 			
 	}
 

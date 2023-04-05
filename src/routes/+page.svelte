@@ -1,14 +1,14 @@
 <script lang="ts">
     import { browser } from '$app/environment';
 	import { jsonDataStore } from '$lib/store';
-    import { invalid_attribute_name_character } from 'svelte/internal';
+    import type { commit, instance } from '$lib/struct';
 	import FilterBlock from './FilterBlock.svelte'
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
 
 	//Filters
+	let fInstances:string[] = []
 	let fRoyaumes:string[] = []
-	let fSubs:string[] = []
 	let fProtocols:string[] = []
 	let fEnvs:string[] = []
 	let hideAll:boolean = false //Set to true if nothing is to be shown
@@ -17,50 +17,33 @@
     const ID_ALL = 'id_all'
     let mapCounter = new Map<string, number>()
 
-	//Representation of the JSON data structure
-	let royaumes:{ 
-				royaume: string;
-				show: boolean; 
-				subs: { 
-					sub: string; 
-					show: boolean;
-					clientIds: { 
-						protocol: string; 
-						show: boolean;
-						clientId: string;
-						envs: { 
-							env: string; 
-							show: boolean;
-							redirectUris: string[]; 
-						}[]; 
-					}[]; 
-				}[]; 
-			}[] = []
-	
+
+	let instances:typeof instance[] = []
 	
 	function initiate(){
 		if($jsonDataStore.length > 100){
-			royaumes = JSON.parse($jsonDataStore) 
+			let allCommit:typeof commit[] = JSON.parse($jsonDataStore) 			
+			instances = allCommit[0].instances
 			updateFilters()
 			updateCounters()
 		}
 	}
 
 	function updateFilters(){
-		fRoyaumes = []
-		royaumes.forEach((royaume) => {
-			fRoyaumes.push(royaume.royaume)
-			royaume.subs.forEach((sub) => {
-				fSubs.push(sub.sub)
-				sub.clientIds.forEach((clientId) => {
+		fInstances = []
+		instances.forEach((instance) => {
+			fInstances.push(instance.label)
+			instance.royaumes.forEach((royaume) => {
+				fRoyaumes.push(royaume.label)
+				royaume.clientIds.forEach((clientId) => {
 					fProtocols.push(clientId.protocol)
 					clientId.envs.forEach((env) => {
-						fEnvs.push(env.env)
-						/*if(env.redirectUris){
-							env.redirectUris.forEach((uri) => {
+						fEnvs.push(env.label)
+						if(env.uris){
+							env.uris.forEach((uri) => {
 
 							})
-						}*/
+						}
 						
 					})
 				})
@@ -68,8 +51,8 @@
 		});
 
 		//Remove dupplicat
+		fInstances = fInstances.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fRoyaumes = fRoyaumes.filter((value, index, array) => array.indexOf(value) === index).sort()
-		fSubs = fSubs.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
 	}
@@ -88,7 +71,7 @@
 
 	function render(){
 		//Refresh state of store
-		royaumes = SearchEngine.render(royaumes, currentSearchValue, $jsonDataStore)
+		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
 		hideAll = SearchEngine.HIDE_ALL
 		updateCounters()
 	}
@@ -104,13 +87,13 @@
 		let clientIdCounter = 0
 		let allClientIdCounter = 0
 
-		royaumes.forEach((royaume) => {
+		instances.forEach((instance) => {
 			clientIdCounter=0
-			if(royaume.show !== false){
-				royaume.subs.forEach((sub) => {
+			if(instance.show !== false){
+				instance.royaumes.forEach((royaume) => {
 
-					if(sub.show !== false){
-						sub.clientIds.forEach((clientId) => {
+					if(royaume.show !== false){
+						royaume.clientIds.forEach((clientId) => {
 							
 							if(clientId.show !== false){
 								clientIdCounter++
@@ -120,7 +103,7 @@
 					}
 				})
 			}
-			mapCounter.set(royaume.royaume, clientIdCounter)
+			mapCounter.set(instance.label, clientIdCounter)
 		})
 		mapCounter.set(ID_ALL, allClientIdCounter)	
 	}
@@ -143,8 +126,8 @@
 	<side>
 		<h2>Filtres</h2>
 
+		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  render={render} />
 		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  render={render} />
-		<FilterBlock filterCode={SearchEngine.ID_SUBROYAUMES} filterTitre='Sous-Royaumes' filterList={fSubs}  render={render} />
 		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  render={render} />
 		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  render={render} />
 		<button on:click="{() => $jsonDataStore = ''}">clear localStorage</button>
@@ -154,19 +137,19 @@
 		<h2>Data</h2>
 
 		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={renderSearch} on:keyup={renderSearch} on:change={renderSearch}/>
-		{#if royaumes.length > 0 }
-		{#key royaumes}{mapCounter.get(ID_ALL)} IdClients affichés{/key}
+		{#if instances.length > 0 }
+		{#key instances}{mapCounter.get(ID_ALL)} IdClients affichés{/key}
 		
-			{#each royaumes as royaume}
-				<div class:hide={royaume.show !== null && royaume.show === false}><h3>{@html markerHtml(royaume.royaume)} - {mapCounter.get(royaume.royaume)}</h3><ul>
-						{#each royaume.subs as sub}
-						<li class:hide={sub.show !== null && sub.show === false}>{@html markerHtml(sub.sub)}<ul>
-								{#each sub.clientIds as clientId}
-								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.clientId)}<span class='protocole {clientId.protocol}'>{clientId.protocol}</span><ul>
+			{#each instances as instance}
+				<div class:hide={instance.show !== null && instance.show === false}><h3>{@html markerHtml(instance.label)} - {mapCounter.get(instance.label)}</h3><ul>
+						{#each instance.royaumes as royaume}
+						<li class:hide={royaume.show !== null && royaume.show === false}>{@html markerHtml(royaume.label)}<ul>
+								{#each royaume.clientIds as clientId}
+								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='protocole {clientId.protocol}'>{clientId.protocol}</span><ul>
 										{#each clientId.envs as env}
-										<li class:hide={env.show !== null && env.show === false}>{env.env}<ul>
-												{#if env.redirectUris}
-													{#each env.redirectUris as uri}
+										<li class:hide={env.show !== null && env.show === false}>{env.label}<ul>
+												{#if env.uris}
+													{#each env.uris as uri}
 														<li>{@html markerHtml(uri)}</li>
 													{/each}
 												{/if}
