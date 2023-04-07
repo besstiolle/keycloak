@@ -9,20 +9,28 @@ export let instance:{
     show: boolean 
     royaumes:typeof royaume[]
 }
-export let royaume: { 
-    label: string; 
-    show: boolean;
+let royaume: { 
+    label: string
+    show: boolean
     clientIds:typeof clientId[]
 }
             
-export let clientId: { 
+let clientId: { 
     protocol: string 
     show: boolean
     label: string
     envs:typeof env[]
 }
-export let env: { 
+let env: { 
     label: string
     show: boolean
     uris: string[]
 }
+//Représentation on visual rendering
+export let visualCommit:{
+    hash:string
+    date:string
+    //message:string
+    //author:string
+    //link:string
+}|undefined

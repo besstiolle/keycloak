@@ -3,8 +3,10 @@
 	import { jsonDataStore } from '$lib/store';
     import type { commit, instance } from '$lib/struct';
 	import FilterBlock from './FilterBlock.svelte'
+    import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
+	import { onMount } from 'svelte';
 
 	//Filters
 	let fInstances:string[] = []
@@ -12,6 +14,7 @@
 	let fProtocols:string[] = []
 	let fEnvs:string[] = []
 	let hideAll:boolean = false //Set to true if nothing is to be shown
+	export let allCommits:typeof commit[] = []
 
 	//Counter of ClientIds
     const ID_ALL = 'id_all'
@@ -19,13 +22,20 @@
 
 
 	let instances:typeof instance[] = []
-	
-	function initiate(){
+
+	function initiateJson(){
 		if($jsonDataStore.length > 100){
-			let allCommit:typeof commit[] = JSON.parse($jsonDataStore) 			
-			instances = allCommit[0].instances
+			allCommits = JSON.parse($jsonDataStore)
+			instances = allCommits[0].instances
+			initiateRendering()
+		}
+	}
+	
+	
+	function initiateRendering(){
+		if(allCommits.length > 0){
+			instances = instances
 			updateFilters()
-			updateCounters()
 		}
 	}
 
@@ -55,11 +65,16 @@
 		fRoyaumes = fRoyaumes.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
+		
+		render()
 	}
 
 	let currentSearchValue:string
-	function renderSearch(event:Event){
+	function renderSearch(event?:Event){
 
+		//Quick reset of the visiblity value
+		instances = allCommits[0].instances
+		
 		let searchValue = (document.getElementById('search') as HTMLInputElement)?.value
 		searchValue = searchValue.trim()
 		if(currentSearchValue == searchValue){
@@ -71,7 +86,10 @@
 
 	function render(){
 		//Refresh state of store
+		console.info("SHOW1 : " + instances[0].royaumes[0].show)
 		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
+
+		console.info("SHOW9 : " + instances[0].royaumes[0].show)
 		hideAll = SearchEngine.HIDE_ALL
 		updateCounters()
 	}
@@ -105,12 +123,11 @@
 			}
 			mapCounter.set(instance.label, clientIdCounter)
 		})
-		mapCounter.set(ID_ALL, allClientIdCounter)	
+		mapCounter.set(ID_ALL, allClientIdCounter)
 	}
 
 	// Initiate var.
-	initiate()
-
+	initiateJson()
 </script>
 
 <svelte:head>
@@ -134,11 +151,15 @@
 	</side>
 
 	<data>
-		<h2>Data</h2>
 
+		<!--History initiateBinder={initiateRendering} allCommits={allCommits} bind:instances={instances}/-->
+
+		<h2>Data</h2>
+		
 		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={renderSearch} on:keyup={renderSearch} on:change={renderSearch}/>
+	
 		{#if instances.length > 0 }
-		{#key instances}{mapCounter.get(ID_ALL)} IdClients affichés{/key}
+			{#key instances}<div>{mapCounter.get(ID_ALL)} IdClients affichés</div>{/key}			
 		
 			{#each instances as instance}
 				<div class:hide={instance.show !== null && instance.show === false}><h3>{@html markerHtml(instance.label)} - {mapCounter.get(instance.label)}</h3><ul>
@@ -165,13 +186,13 @@
 		{/if}
 
 		{#if hideAll }
-			Aucun résultat ne correspond à votre recherche
+			<div>Aucun résultat ne correspond à votre recherche</div>
 		{/if}
 	</data>
 	{:else}
-		<Upload initiateBinder={initiate}/>
+		<Upload initiateBinder={initiateJson}/>
 	{/if}
-	{/if}
+{/if}
 </content>
 
 <style>
