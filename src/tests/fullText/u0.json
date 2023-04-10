@@ -1,0 +1,238 @@
+[
+    {
+       "label":"i0",
+       
+       "royaumes":[
+          {
+             "label":"i0r0",
+             
+             "clientIds":[
+                {
+                   "label":"i0r0c0",
+                   "protocol":"saml",
+                   
+                   "envs":[
+                      {
+                         "label":"dev",
+                         
+                         "uris":[
+                            "i0r0c0e0ux",
+                            "i0r0c0e0u1",
+                            "i0r0c0e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i0r0c0e1ux",
+                            "i0r0c0e1u1",
+                            "i0r0c0e1u2"
+                         ]
+                      }
+                   ]
+                },
+                {
+                   "label":"i0r0c1",
+                   "protocol":"open",
+                   
+                   "envs":[
+                      {
+                         "label":"recette",
+                         
+                         "uris":[
+                            "i0r0c1e0u0",
+                            "i0r0c1e0u1",
+                            "i0r0c1e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i0r0c1e1u0",
+                            "i0r0c1e1u1",
+                            "i0r0c1e1u2"
+                         ]
+                      }
+                   ]
+                }
+             ]
+          },
+          {
+             "label":"i0r1",
+             
+             "clientIds":[
+                {
+                   "label":"i0r1c0",
+                   "protocol":"saml",
+                   
+                   "envs":[
+                      {
+                         "label":"recette",
+                         
+                         "uris":[
+                            "i0r1c0e0u0",
+                            "i0r1c0e0u1",
+                            "i0r1c0e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i0r1c0e1u0",
+                            "i0r1c0e1u1",
+                            "i0r1c0e1u2"
+                         ]
+                      }
+                   ]
+                },
+                {
+                   "label":"i0r1c1",
+                   "protocol":"saml",
+                   
+                   "envs":[
+                      {
+                         "label":"recette",
+                         
+                         "uris":[
+                            "i0r1c1e0u0",
+                            "i0r1c1e0u1",
+                            "i0r1c1e0u2"
+                         ]
+                      },
+                      {
+                         "label":"preprod",
+                         
+                         "uris":[
+                            "i0r1c1e1u0",
+                            "i0r1c1e1u1",
+                            "i0r1c1e1u2"
+                         ]
+                      }
+                   ]
+                }
+             ]
+          }
+       ]
+    },
+    {
+       "label":"ii",
+       
+       "royaumes":[
+          {
+             "label":"i1r0",
+             
+             "clientIds":[
+                {
+                   "label":"i1r0c0",
+                   "protocol":"saml",
+                   
+                   "envs":[
+                      {
+                         "label":"recette",
+                         
+                         "uris":[
+                            "i1r0c0e0u0",
+                            "i1r0c0e0u1",
+                            "i1r0c0e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i1r0c0e1u0",
+                            "i1r0c0e1u1",
+                            "i1r0c0e1u2"
+                         ]
+                      }
+                   ]
+                },
+                {
+                   "label":"i1r0c1",
+                   "protocol":"saml",
+                   
+                   "envs":[
+                      {
+                         "label":"preproduction",
+                         
+                         "uris":[
+                            "i1r0c1e0u0",
+                            "i1r0c1e0u1",
+                            "i1r0c1e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i1r0c1e1u0",
+                            "i1r0c1e1u1",
+                            "i1r0c1e1u2"
+                         ]
+                      }
+                   ]
+                }
+             ]
+          },
+          {
+             "label":"i1r1",
+             
+             "clientIds":[
+                {
+                   "label":"i1r1c0",
+                   "protocol":"open",
+                   
+                   "envs":[
+                      {
+                         "label":"recette",
+                         
+                         "uris":[
+                            "i1r1c0e0u0",
+                            "i1r1c0e0u1",
+                            "i1r1c0e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i1r1c0e1u0",
+                            "i1r1c0e1u1",
+                            "i1r1c0e1u2"
+                         ]
+                      }
+                   ]
+                },
+                {
+                   "label":"i1r1c1",
+                   "protocol":"open",
+                   
+                   "envs":[
+                      {
+                         "label":"dev",
+                         
+                         "uris":[
+                            "i1r1c1e0ux",
+                            "i1r1c1e0u1",
+                            "i1r1c1e0u2"
+                         ]
+                      },
+                      {
+                         "label":"prod",
+                         
+                         "uris":[
+                            "i1r1c1e1ux",
+                            "i1r1c1e1u1",
+                            "i1r1c1e1u2"
+                         ]
+                      }
+                   ]
+                }
+             ]
+          }
+       ]
+    }
+ ]

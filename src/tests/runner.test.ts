@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as defaultjson from './struct.json';
-import type { instance } from '$lib/struct';
+import type { clientId, env, instance, royaume,  } from '$lib/struct';
 import { SearchEngine } from '../routes/searchEngine';
 import { StateOfFilters } from '../routes/StateOfFilters';
 
@@ -44,6 +44,80 @@ describe('state mocking function', () => {
     })
 
 })
+
+
+export function deepComparatorInterfaces(o1:typeof instance[],o2:typeof instance[]){
+    
+    if(o1.length !== o2.length){return false}
+
+    for(let i = 0; i<o1.length; i++){
+        if(deepComparatorInterface(o1[i], o2[i]) == false){
+            return false
+        }
+    }
+
+    return true
+}
+function deepComparatorInterface(o1:typeof instance,o2:typeof instance){
+
+    if(o1.label !== o2.label){return false}
+    if(o1.show !== o2.show){return false}
+    if(o1.royaumes.length !== o2.royaumes.length){return false}
+    
+    for(let i = 0; i<o1.royaumes.length; i++){
+        if(deepComparatorRoyaume(o1.royaumes[i], o2.royaumes[i]) == false){
+            return false
+        }
+    }
+
+    return true
+}
+function deepComparatorRoyaume(o1:typeof royaume,o2:typeof royaume){
+
+    if(o1.label !== o2.label){return false}
+    if(o1.show !== o2.show){return false}
+    if(o1.clientIds.length !== o2.clientIds.length){return false}
+    
+    for(let i = 0; i<o1.clientIds.length; i++){
+        if(deepComparatorClientId(o1.clientIds[i], o2.clientIds[i]) == false){
+            return false
+        }
+    }
+
+    return true
+}
+
+function deepComparatorClientId(o1:typeof clientId,o2:typeof clientId){
+
+    if(o1.label !== o2.label){return false}
+    if(o1.show !== o2.show){return false}
+    if(o1.protocol !== o2.protocol){return false}
+    if(o1.envs.length !== o2.envs.length){return false}
+    
+    for(let i = 0; i<o1.envs.length; i++){
+        if(deepComparatorEnv(o1.envs[i], o2.envs[i]) == false){
+            return false
+        }
+    }
+
+    return true
+}
+
+function deepComparatorEnv(o1:typeof env,o2:typeof env){
+
+    if(o1.label !== o2.label){return false}
+    if(o1.show !== o2.show){return false}
+    if(o1.uris.length !== o2.uris.length){return false}
+    
+    for(let i = 0; i<o1.uris.length; i++){
+        if(o1.uris[i] !== o2.uris[i]){
+            return false
+        }
+    }
+
+    return true
+}
+
 
 
 export function getFakeDate():typeof instance[]{
