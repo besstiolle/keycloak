@@ -6,6 +6,7 @@
     import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
+    import DebugVisibility from './DebugVisibility.svelte';
 	import { onMount } from 'svelte';
 
 	//Filters
@@ -26,7 +27,7 @@
 	function initiateJson(){
 		if($jsonDataStore.length > 100){
 			allCommits = JSON.parse($jsonDataStore)
-			instances = allCommits[0].instances
+			instances = (JSON.parse($jsonDataStore))[0].instances
 			initiateRendering()
 		}
 	}
@@ -71,9 +72,6 @@
 
 	let currentSearchValue:string
 	function renderSearch(event?:Event){
-
-		//Quick reset of the visiblity value
-		instances = allCommits[0].instances
 		
 		let searchValue = (document.getElementById('search') as HTMLInputElement)?.value
 		searchValue = searchValue.trim()
@@ -85,11 +83,21 @@
 	}
 
 	function render(){
+
+		//console.info("titre1 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
+		//Quick reset of the visiblity value
+		instances = (JSON.parse($jsonDataStore))[0].instances
+		//console.info("titre2 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
+
+		//Test
+		//instances[0].label="toto"
+		//console.info("titre3 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
+
 		//Refresh state of store
-		console.info("SHOW1 : " + instances[0].royaumes[0].show)
+		console.info("SHOW1 : " + instances[0].show)
 		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
 
-		console.info("SHOW9 : " + instances[0].royaumes[0].show)
+		console.info("SHOW9 : " + instances[0].show)
 		hideAll = SearchEngine.HIDE_ALL
 		updateCounters()
 	}
@@ -151,13 +159,14 @@
 	</side>
 
 	<data>
-
 		<!--History initiateBinder={initiateRendering} allCommits={allCommits} bind:instances={instances}/-->
 
 		<h2>Data</h2>
 		
 		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={renderSearch} on:keyup={renderSearch} on:change={renderSearch}/>
 	
+		<!--{#key SearchEngine.mapVisibility}<DebugVisibility instances={SearchEngine.mapVisibility} />{/key}-->
+
 		{#if instances.length > 0 }
 			{#key instances}<div>{mapCounter.get(ID_ALL)} IdClients affichés</div>{/key}			
 		

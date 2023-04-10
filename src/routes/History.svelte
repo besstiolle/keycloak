@@ -24,7 +24,7 @@
         currentCommit = toVisualCommit(allCommits[historyPosition])
         nextCommit = toVisualCommit(allCommits[historyPosition-1])
 
-        instances = allCommits[historyPosition].instances
+        instances = Array.from(allCommits[historyPosition].instances)
     }
 
 
