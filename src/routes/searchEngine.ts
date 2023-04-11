@@ -86,68 +86,44 @@ export module SearchEngine{
 	}
 	
 	export function filteringByFullText(instances:typeof instance[], currentSearchValue:string){
-		let oneInstanceWasFound = false
-		let oneSubWasFound = false
-		let oneClientIdWasFound = false
-		let oneEnvWasFound = false
-		let oneUriWasFound = false
-
-		//Filtering with text content
-		instances.forEach((instance) => {
-			
-			oneSubWasFound = false
+		
+		//Flag foundings to "show-true", everything else must be set to "show=false"
+		instances.forEach((instance) => {			
 			if(instance.show !== false){
 				if(instance.label.indexOf(currentSearchValue) !== -1){
 					instance.show = true
-					oneInstanceWasFound = true
-					console.debug(instance.label + ' was found matching (instance)')
 				} else {
+					instance.show = false
 					instance.royaumes.forEach((royaume) => {
-						oneClientIdWasFound = false
 						if(royaume.show !== false){
-							
 							if(royaume.label.indexOf(currentSearchValue) !== -1){
 								royaume.show = true
-								oneSubWasFound = true
-								console.debug(royaume.label + ' was found matching (sub)')
 							} else {
+								royaume.show = false
 								royaume.clientIds.forEach((clientId) => {
-									oneEnvWasFound = false
 									if(clientId.show !== false){
-										
 										if(clientId.label.indexOf(currentSearchValue) !== -1){
 											clientId.show = true
-											oneClientIdWasFound = true
-											console.debug(clientId.label + ' was found matching (clientId)')
 										} else {
+											clientId.show = false
 											clientId.envs.forEach((env) => {
-												oneUriWasFound = false
 												if(env.show !== false){
-
+													env.show = false //By default
 													if(env.uris){
 														env.uris.forEach((uri) => {
 															if(uri.indexOf(currentSearchValue) !== -1){
-																console.debug(uri + ' was found matching (uri)')
-																oneUriWasFound = true
+																env.show = true
 															}
 														})
-														env.show = oneUriWasFound
-														oneEnvWasFound = oneUriWasFound
 													}
 												}
 											})
-											clientId.show = oneEnvWasFound
-											oneClientIdWasFound = oneClientIdWasFound || oneEnvWasFound
 										}
 									}
 								})
-								royaume.show = oneClientIdWasFound
-								oneSubWasFound = oneSubWasFound || oneClientIdWasFound
 							}
 						}
 					})
-					instance.show = oneSubWasFound
-					oneInstanceWasFound = oneInstanceWasFound || oneSubWasFound
 				}
 			}
 		})
@@ -169,6 +145,29 @@ export module SearchEngine{
 					})
 				})
 			})
+		})
+
+		let oneSubWasFound = false
+		let oneClientIdWasFound = false
+		let oneEnvWasFound = false
+
+		//In the last part we can put the "true" value to the parent
+		instances.forEach((instance) => {			
+			oneSubWasFound = false
+			instance.royaumes.forEach((royaume) => {
+				oneClientIdWasFound = false							
+				royaume.clientIds.forEach((clientId) => {
+					oneEnvWasFound = false
+					clientId.envs.forEach((env) => {
+						oneEnvWasFound = oneEnvWasFound || env.show
+					})
+					clientId.show = clientId.show || oneEnvWasFound
+					oneClientIdWasFound = oneClientIdWasFound || oneEnvWasFound || clientId.show
+				})
+				royaume.show = royaume.show || oneClientIdWasFound
+				oneSubWasFound = oneSubWasFound || oneClientIdWasFound || royaume.show
+			})
+			instance.show = instance.show || oneSubWasFound
 		})
 	}
 
