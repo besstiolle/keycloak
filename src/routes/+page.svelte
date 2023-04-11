@@ -15,6 +15,7 @@
 	let fProtocols:string[] = []
 	let fEnvs:string[] = []
 	let hideAll:boolean = false //Set to true if nothing is to be shown
+	let currentSearchValue:string
 	export let allCommits:typeof commit[] = []
 
 	//Counter of ClientIds
@@ -26,11 +27,15 @@
 	let instances:typeof instance[] = []
 
 	function initiateJson(){
+		
+		let start = new Date()
 		if($jsonDataStore.length > 100){
 			allCommits = JSON.parse($jsonDataStore)
 			instances = (JSON.parse($jsonDataStore))[0].instances
+			console.info("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 			initiateRendering()
 		}
+		console.info("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	
 	
@@ -68,11 +73,15 @@
 		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
 		
-		render()
+		_render()
 	}
 
-	let currentSearchValue:string
-	function renderSearch(event?:Event){
+	function filterSearchAction(event?:Event){
+		_render()
+	}
+
+	function textSearchAction(event?:Event){
+		let start = new Date()
 		
 		let searchValue = (document.getElementById('search') as HTMLInputElement)?.value
 		searchValue = searchValue.trim()
@@ -80,29 +89,17 @@
 			return
 		}
 		currentSearchValue = searchValue
-		render()
+		_render()
+
+		console.info("textSearchAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 
-	function render(){
-
+	function _render(){
 		//Quick reset of the visiblity value
 		instances = (JSON.parse($jsonDataStore))[0].instances
 		//Refresh state of store
-		console.info("SHOW1 : " + instances[0].show)
 		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
-
-		console.info("SHOW9 : " + instances[0].show)
 		hideAll = SearchEngine.HIDE_ALL
-		updateCounters()
-	}
-
-
-	function markerHtml(source:string){
-		return source.replace(currentSearchValue, '<span class="found">' + currentSearchValue + '</span>') 
-	}
-
-
-	function updateCounters(){
 
 		let clientIdCounter = 0
 		let allClientIdCounter = 0
@@ -127,6 +124,11 @@
 		})
 		mapCounter.set(ID_ALL, allClientIdCounter)
 	}
+	
+	function markerHtml(source:string){
+		return source.replace(currentSearchValue, '<span class="found">' + currentSearchValue + '</span>') 
+	}
+
 
 	// Initiate var.
 	initiateJson()
@@ -145,10 +147,10 @@
 	<side>
 		<h2>Filtres</h2>
 
-		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  render={render} />
-		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  render={render} />
-		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  render={render} />
-		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  render={render} />
+		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={filterSearchAction} />
+		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} />
+		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction} />
+		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction} />
 		<button on:click="{() => $jsonDataStore = ''}">clear localStorage</button>
 	</side>
 
@@ -157,12 +159,12 @@
 
 		<h2>Data</h2>
 		
-		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={renderSearch} on:keyup={renderSearch} on:change={renderSearch}/>
+		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={textSearchAction} on:keyup={textSearchAction} on:change={textSearchAction}/>
 	
 		<!--{#key SearchEngine.mapVisibility}<DebugVisibility instances={SearchEngine.mapVisibility} />{/key}-->
 
 		{#if instances.length > 0 && mapCounter.get(ID_ALL) !== 0}
-			{#key instances}<div>{mapCounter.get(ID_ALL)} clientId{#if mapCounter.get(ID_ALL) !== 1}s{/if} affiché{#if mapCounter.get(ID_ALL) !== 1}s{/if}</div>{/key}			
+			{#key instances}<h4>{mapCounter.get(ID_ALL)} clientId{#if mapCounter.get(ID_ALL) !== 1}s{/if} affiché{#if mapCounter.get(ID_ALL) !== 1}s{/if}</h4>{/key}			
 		
 			{#each instances as instance}
 				<div class:hide={instance.show !== null && instance.show === false}><h3>{@html markerHtml(instance.label)} - {mapCounter.get(instance.label)}</h3><ul>

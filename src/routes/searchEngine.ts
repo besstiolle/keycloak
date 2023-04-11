@@ -14,8 +14,6 @@ export module SearchEngine{
 	let isSearchwithFullText:boolean
     
     export function render(instances:typeof instance[], currentSearchValue:string, rawData:string ){
-
-		let start = new Date()
 		HIDE_ALL = false
 		isSearchwithFullText = currentSearchValue !== undefined && currentSearchValue !== ""
 
@@ -25,7 +23,6 @@ export module SearchEngine{
 				instance.show = false
 			})
 			HIDE_ALL = true
-			console.info("HIDE_ALL = true")
 		} else {
 			
 			filteringBySideApplet(instances)
@@ -34,13 +31,9 @@ export module SearchEngine{
 				filteringByFullText(instances, currentSearchValue)
 			}
 			
-			console.info("SHOW4 : " + instances[0].show)
 			HIDE_ALL = !propagationToParents(instances)
 
 		}
-
-		
-		console.info("rendering ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 		return instances
 			
 	}
@@ -177,8 +170,6 @@ export module SearchEngine{
 		let OneSubRoyaumesisShow = false
 		let OneClientIdisShow = false
 		let OneEnvisShow = false
-
-		console.info(instances[2].royaumes[0].clientIds[1])
 		
 		instances.forEach((instance) => {
 			if(instance.show !== false){
