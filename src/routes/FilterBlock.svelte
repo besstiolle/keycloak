@@ -3,6 +3,7 @@
     export let filterCode:string
     export let filterList:string[]
 	export let action:Function
+	export let action2:Function
 
 	const setAllAction = function(event: Event, value:boolean=true){
 		let start = new Date()
@@ -15,6 +16,7 @@
 				(item as HTMLInputElement).checked=value
 			}
 			action()
+			action2()		
 		}
 		
 		console.info("setAllAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
@@ -27,6 +29,7 @@
 	const checkboxAction = function(event?:Event){
 		let start = new Date()
 		action(event)
+		action2()		
 		console.info("checkboxAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	

@@ -20,7 +20,7 @@ export module StateOfFilters{
 		return map
 	}
 
-	function getStateOfFilters(id:string):Map<string,boolean>|null{
+	export function getStateOfFilters(id:string):Map<string,boolean>|null{
 		let map = new Map<string, boolean>()
 		let inputs = document.getElementById('filterFor'+id)?.getElementsByTagName("input") 
 		

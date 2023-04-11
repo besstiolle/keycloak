@@ -8,12 +8,14 @@
     import Upload from './Upload.svelte';
     import DebugVisibility from './DebugVisibility.svelte';
 	import { onMount } from 'svelte';
+	import {StateOfFilters} from './StateOfFilters'
 
 	//Filters
 	let fInstances:string[] = []
 	let fRoyaumes:string[] = []
 	let fProtocols:string[] = []
 	let fEnvs:string[] = []
+	let royaumeToInstance = new Map<String,String>()
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
 	export let allCommits:typeof commit[] = []
@@ -52,6 +54,7 @@
 			fInstances.push(instance.label)
 			instance.royaumes.forEach((royaume) => {
 				fRoyaumes.push(royaume.label)
+				royaumeToInstance.set(royaume.label, instance.label)
 				royaume.clientIds.forEach((clientId) => {
 					fProtocols.push(clientId.protocol)
 					clientId.envs.forEach((env) => {
@@ -74,6 +77,29 @@
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
 		
 		_render()
+	}
+
+	function disabelingFilter(){
+		let bool = null
+		let map:Map<string,boolean>|null = StateOfFilters.getStateOfFilters(StateOfFilters.ID_INSTANCES)
+		if(map !== null){
+			let inputsRoyaumes = document.getElementById('filterFor'+StateOfFilters.ID_ROYAUMES)?.getElementsByTagName("input") 
+			if(inputsRoyaumes !== undefined){
+				for(let item of inputsRoyaumes){
+					if(royaumeToInstance.get(item.value) !== undefined && map.get(royaumeToInstance.get(item.value) as string) !== undefined){
+						bool = map.get(royaumeToInstance.get(item.value) as string)
+						if(bool){
+							item.removeAttribute("disabled")
+						} else {
+							item.setAttribute("disabled","disabled")
+						}
+					}
+					
+					
+				}
+				return map
+			} 
+		}
 	}
 
 	function filterSearchAction(event?:Event){
@@ -147,10 +173,10 @@
 	<side>
 		<h2>Filtres</h2>
 
-		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={filterSearchAction} />
-		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} />
-		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction} />
-		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction} />
+		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={filterSearchAction} action2={disabelingFilter}/>
+		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} action2={()=>{}}/>
+		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction}  action2={()=>{}}/>
+		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction}  action2={()=>{}}/>
 		<button on:click="{() => $jsonDataStore = ''}">clear localStorage</button>
 	</side>
 
