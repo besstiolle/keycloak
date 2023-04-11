@@ -20,6 +20,7 @@
 	//Counter of ClientIds
     const ID_ALL = 'id_all'
     let mapCounter = new Map<string, number>()
+	mapCounter.set(ID_ALL, 0)
 
 
 	let instances:typeof instance[] = []
@@ -84,15 +85,8 @@
 
 	function render(){
 
-		//console.info("titre1 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
 		//Quick reset of the visiblity value
 		instances = (JSON.parse($jsonDataStore))[0].instances
-		//console.info("titre2 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
-
-		//Test
-		//instances[0].label="toto"
-		//console.info("titre3 : " + instances[0].label + " vs " + allCommits[0].instances[0].label)
-
 		//Refresh state of store
 		console.info("SHOW1 : " + instances[0].show)
 		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
@@ -139,11 +133,11 @@
 </script>
 
 <svelte:head>
-	<title>KeyCloak</title>
+	<title>Keycloak</title>
 	<meta name="description" content="Keycloak demo app"/>
 </svelte:head>
 
-<section><h1>KeyCloak</h1></section>
+<section><h1>Keycloak</h1></section>
 
 <content>
 {#if browser}
@@ -167,8 +161,8 @@
 	
 		<!--{#key SearchEngine.mapVisibility}<DebugVisibility instances={SearchEngine.mapVisibility} />{/key}-->
 
-		{#if instances.length > 0 }
-			{#key instances}<div>{mapCounter.get(ID_ALL)} IdClients affichés</div>{/key}			
+		{#if instances.length > 0 && mapCounter.get(ID_ALL) !== 0}
+			{#key instances}<div>{mapCounter.get(ID_ALL)} clientId{#if mapCounter.get(ID_ALL) !== 1}s{/if} affiché{#if mapCounter.get(ID_ALL) !== 1}s{/if}</div>{/key}			
 		
 			{#each instances as instance}
 				<div class:hide={instance.show !== null && instance.show === false}><h3>{@html markerHtml(instance.label)} - {mapCounter.get(instance.label)}</h3><ul>
@@ -194,7 +188,7 @@
 		
 		{/if}
 
-		{#if hideAll }
+		{#if hideAll || mapCounter.get(ID_ALL) == 0}
 			<div>Aucun résultat ne correspond à votre recherche</div>
 		{/if}
 	</data>
