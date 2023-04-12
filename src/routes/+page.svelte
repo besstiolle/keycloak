@@ -6,8 +6,6 @@
     import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
-    import DebugVisibility from './DebugVisibility.svelte';
-	import { onMount } from 'svelte';
 	import {StateOfFilters} from './StateOfFilters'
 
 	//Filters
@@ -19,6 +17,7 @@
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
 	export let allCommits:typeof commit[] = []
+	let historyPosition = 0
 
 	//Counter of ClientIds
     const ID_ALL = 'id_all'
@@ -28,24 +27,28 @@
 
 	let instances:typeof instance[] = []
 
+	
 	function initiateJson(){
 		
 		let start = new Date()
 		if($jsonDataStore.length > 100){
 			allCommits = JSON.parse($jsonDataStore)
-			instances = (JSON.parse($jsonDataStore))[0].instances
-			console.info("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
-			initiateRendering()
+			instances = getInstancesByCurrentIndex()
+			console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+			if(allCommits.length > 0){
+				updateFilters()
+			}
 		}
-		console.info("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+	}
+
+	function getInstancesByCurrentIndex(){
+		return Array.from(allCommits[historyPosition].instances)
 	}
 	
-	
-	function initiateRendering(){
-		if(allCommits.length > 0){
-			instances = instances
-			updateFilters()
-		}
+	function switchIndex(index:number){
+		historyPosition = index
+		_render()
 	}
 
 	function updateFilters(){
@@ -108,21 +111,16 @@
 
 	function textSearchAction(event?:Event){
 		let start = new Date()
-		
-		let searchValue = (document.getElementById('search') as HTMLInputElement)?.value
-		searchValue = searchValue.trim()
-		if(currentSearchValue == searchValue){
-			return
-		}
-		currentSearchValue = searchValue
+
+		currentSearchValue = (document.getElementById('search') as HTMLInputElement)?.value.trim()
 		_render()
 
-		console.info("textSearchAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("textSearchAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 
 	function _render(){
 		//Quick reset of the visiblity value
-		instances = (JSON.parse($jsonDataStore))[0].instances
+		instances = getInstancesByCurrentIndex()
 		//Refresh state of store
 		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
 		hideAll = SearchEngine.HIDE_ALL
@@ -181,7 +179,7 @@
 	</side>
 
 	<data>
-		<!--History initiateBinder={initiateRendering} allCommits={allCommits} bind:instances={instances}/-->
+		<History switchIndexBinder={switchIndex} allCommits={allCommits} />
 
 		<h2>Data</h2>
 		
