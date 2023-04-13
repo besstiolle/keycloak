@@ -43,7 +43,9 @@
 	}
 
 	function getInstancesByCurrentIndex(){
-		return Array.from(allCommits[historyPosition].instances)
+		
+		return structuredClone(allCommits[historyPosition].instances)
+		
 	}
 	
 	function switchIndex(index:number){
