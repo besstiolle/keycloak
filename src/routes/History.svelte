@@ -19,7 +19,6 @@
         currentCommit = toVisualCommit(allCommits[historyPosition])
         nextCommit = toVisualCommit(allCommits[historyPosition-1])
     }
-
     function toVisualCommit(aCommit: typeof commit){
         if(aCommit == undefined){
             return undefined
@@ -30,7 +29,6 @@
         }
         return aVisualCommit
     }
-
 	function previousHistory(){
 		historyPosition++
 		if(historyPosition > MaxHistoryPosition){
@@ -77,7 +75,7 @@
     }
 
     .commit{
-        background-image: url('./git.png');
+        background-image: url('/git.png');
         background-repeat: no-repeat;
         display: inline-block;
         padding:10px;
