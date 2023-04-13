@@ -19,7 +19,7 @@
 			action2()		
 		}
 		
-		console.info("setAllAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("setAllAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 
 	const setNoneAction = function(event: Event){
@@ -30,7 +30,7 @@
 		let start = new Date()
 		action(event)
 		action2()		
-		console.info("checkboxAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("checkboxAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	
 </script>
