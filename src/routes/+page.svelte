@@ -205,9 +205,9 @@
 						<li class:hide={royaume.show !== null && royaume.show === false}>{@html markerHtml(royaume.label)}<ul>
 								{#if royaume && royaume.clientIds}
 								{#each royaume.clientIds as clientId}
-								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='protocole {clientId.protocol}'>{clientId.protocol}</span><ul>
+								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='tag {clientId.protocol}'>{clientId.protocol}</span><ul>
 										{#each clientId.envs as env}
-										<li class:hide={env.show !== null && env.show === false}>{env.label}<ul>
+										<li class:hide={env.show !== null && env.show === false}>{env.label}{#if env.mapper !== ''}<span class='tag mapper'>{env.mapper}</span>{/if}<ul>
 												{#if env.uris}
 													{#each env.uris as uri}
 														<li>{@html markerHtml(uri)}</li>
@@ -260,7 +260,7 @@ data{
 :global(.found){
 	background-color: yellow;
 }
-.protocole{
+.tag{
 	background-color: #5f3838;
 	color:#FFF;
 	padding: 3px 10px;
@@ -271,5 +271,9 @@ data{
 }
 .saml{
 	background-color: #555;
+}
+.mapper{
+	background-color: #ca5050;
+	
 }
 </style>
