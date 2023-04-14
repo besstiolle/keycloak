@@ -34,8 +34,8 @@ export let env: {
 export let visualCommit:{
     hash:string
     date:string
-    //message:string
-    //author:string
+    message:string
+    author:string
     //link:string
 }|undefined
 

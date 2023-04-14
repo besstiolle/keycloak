@@ -1,6 +1,7 @@
 
 <script lang="ts">
     import type { commit, visualCommit } from "$lib/struct";
+    import Bulle from "./Bulle.svelte";
 
     export let switchIndexBinder:Function
     export let allCommits:typeof commit[]
@@ -25,7 +26,9 @@
         }
         let aVisualCommit:typeof visualCommit = {
             hash: aCommit.hash,
-            date: new Date(aCommit.ts * 1000).toLocaleDateString('FR-fr', { weekday:"short", year:"numeric", month:"short", day:"numeric"})
+            date: new Date(aCommit.ts * 1000).toLocaleDateString('FR-fr', { weekday:"short", year:"numeric", month:"short", day:"numeric"}),
+            message:aCommit.message,
+            author:aCommit.author[0]
         }
         return aVisualCommit
     }
@@ -53,15 +56,24 @@
 <div class='gits'>
 {#key previousCommit}
     {#if previousCommit}
-    <div class='commit left' on:click={previousHistory} on:keydown={nextHistory}>Précédent<div class='bulle'>#{previousCommit.hash.substring(0,6)}<br/>{previousCommit.date}</div></div>
+    <div class='commitWrapper left'>
+        <div class='commit' on:click={previousHistory} on:keydown={nextHistory}>Précédent</div>
+        <Bulle commit={previousCommit}/>
+    </div>
     {/if}
 {/key}
 {#key currentCommit}
-    <div class='commit middle'>#{currentCommit?.hash.substring(0,6)} - {currentCommit?.date}<div class='bulle'>:)</div></div>
+    <div class='commitWrapper middle'>
+        <div class='commit'>#{currentCommit?.hash.substring(0,6)} - {currentCommit?.date}</div>
+        <Bulle commit={currentCommit}/>
+    </div>
 {/key}
 {#key nextCommit}
     {#if nextCommit}
-        <div class='commit right' on:click={nextHistory} on:keydown={nextHistory}>Suivant<div class='bulle'>#{nextCommit.hash.substring(0,6)}<br/>{nextCommit.date}</div></div>
+        <div class='commitWrapper right'>
+            <div class='commit' on:click={nextHistory} on:keydown={nextHistory}>Suivant</div>
+            <Bulle commit={nextCommit}/>
+            </div>
     {/if}
 {/key}
 </div>
@@ -74,40 +86,50 @@
         user-select: none; 
     }
 
-    .commit{
-        background-image: url('/git.png');
-        background-repeat: no-repeat;
+    .commitWrapper{
         display: inline-block;
-        padding:10px;
-        cursor: pointer;
+
     }
-    .commit:hover{
+    .commitWrapper:hover{
         color: var(--color-theme-1);
     }
 
-    :global(.commit:hover .bulle){
+    :global(.commitWrapper:hover .bulle){
         display: block !important;
     }
 
-    .left{
+    .commit{
+        background-image: url('/git.png');
+        background-repeat: no-repeat;
+        cursor: pointer;
+        padding:10px;
+    }
+    
+    .left .commit{
         padding-left: 32px;
         background-position: 0 50%;
     }
+
     .middle{
-        background-image: none;
         width: 250px;
         position: absolute;
         left:calc((100% - 250px) / 2);
+    }
+
+    .middle .commit{
+        background-image: none;
         text-align: center;
     }
     .right{
-        padding-right: 32px;
-        background-position: 100% 50%;
         position:absolute;
         right: 0;
     }
+    .right .commit{
+        background-position: 100% 50%;
+        padding-right: 32px;
+    }
 
-    .bulle{
+    :global(.bulle){
         display: none;
         position: absolute;
         background-color: var(--color-bg-1);
@@ -119,10 +141,11 @@
         width: 150px;
     }
 
-    .middle .bulle{
+    :global(.middle .bulle){
         left:calc((100% - 150px) / 2);
+        text-align: left;
     }
-    .right .bulle{
+    :global(.right .bulle){
         right: 32px;
     }
 
