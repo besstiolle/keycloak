@@ -31,6 +31,9 @@
 
 	
 	function initiateJson(){
+		if(!browser){
+			return
+		}
 		
 		let start = new Date()
 		if($jsonDataStore.length > 100){

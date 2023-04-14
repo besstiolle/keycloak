@@ -40,12 +40,10 @@
 
         //Padding to fix multi series of pie Charts
         Array.from(countersByInstance.keys()).map(row => {
-            
             labels.push(row + ' (' + (countersByInstance.get(row) as number) + ')')
         })
         Array.from(countersByInstance.keys()).map(() => values.push(0))
         Array.from(countersByInstance.keys()).map(() => colors.push("#000"))
-
 
         Array.from(countersByInstanceAndRoyaume.keys()).map(labelInstance => {
             
