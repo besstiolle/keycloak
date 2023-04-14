@@ -14,6 +14,7 @@
 	let fRoyaumes:string[] = []
 	let fProtocols:string[] = []
 	let fEnvs:string[] = []
+	let fMappers:string[] = []
 	let royaumeToInstance = new Map<String,String>()
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
@@ -68,6 +69,9 @@
 					fProtocols.push(clientId.protocol)
 					clientId.envs.forEach((env) => {
 						fEnvs.push(env.label)
+						if(env.mapper !== ''){
+							fMappers.push(env.mapper)
+						}
 						if(env.uris){
 							env.uris.forEach((uri) => {
 
@@ -84,6 +88,7 @@
 		fRoyaumes = fRoyaumes.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
+		fMappers = [StateOfFilters.VALUE_DEFAULT_NO_MAPPER].concat(fMappers.filter((value, index, array) => array.indexOf(value) === index).sort())
 		
 		_render()
 	}
@@ -103,8 +108,6 @@
 							item.setAttribute("disabled","disabled")
 						}
 					}
-					
-					
 				}
 				return map
 			} 
@@ -176,10 +179,11 @@
 	<side>
 		<h2>Filtres</h2>
 
-		<FilterBlock filterCode={SearchEngine.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={filterSearchAction} action2={disabelingFilter}/>
-		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} action2={()=>{}}/>
-		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction}  action2={()=>{}}/>
-		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction}  action2={()=>{}}/>
+		<FilterBlock filterCode={StateOfFilters.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={filterSearchAction} action2={disabelingFilter}/>
+		<FilterBlock filterCode={StateOfFilters.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} action2={()=>{}}/>
+		<FilterBlock filterCode={StateOfFilters.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction}  action2={()=>{}}/>
+		<FilterBlock filterCode={StateOfFilters.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction}  action2={()=>{}}/>
+		<FilterBlock filterCode={StateOfFilters.ID_MAPPERS} filterTitre='Mapper' filterList={fMappers}  action={filterSearchAction}  action2={()=>{}}/>
 		<button on:click="{() => {$jsonDataStore = ''; $jsonHashNodeDataStore = ''}}">clear localStorage</button>
 	</side>
 

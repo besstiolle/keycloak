@@ -1,5 +1,6 @@
-import type { instance } from "$lib/struct"
-import { SearchEngine } from "../routes/searchEngine"
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { clientId, instance } from "$lib/struct"
+import { StateOfFilters } from "../routes/StateOfFilters"
 
 
 export function testResult(instancesToTest:typeof instance[], shouldBeFalse: string[], shouldbeTrue:string[]){
@@ -10,8 +11,9 @@ export function testResult(instancesToTest:typeof instance[], shouldBeFalse: str
         i.royaumes.forEach(r => {
             
             //Test show value vs the label
-            itShouldBe(r.label, r.show, shouldBeFalse, shouldbeTrue)        
-            r.clientIds.forEach(c => {
+            itShouldBe(r.label, r.show, shouldBeFalse, shouldbeTrue);
+
+            (r.clientIds as typeof clientId[]).forEach(c => {
                 
                 //Test show value vs the label
                 itShouldBe(c.label, c.show, shouldBeFalse, shouldbeTrue)        
@@ -37,12 +39,14 @@ function itShouldBe(label:string, show:boolean, shouldBeFalse: string[], shouldb
         if(show !== false){
             console.error("error for label " + label + " : wasn't false", shouldBeFalse)
         }
+        expect(show).not.toBeUndefined()
         expect(show).toBeFalsy()
     } else if(shouldbeTrue.indexOf(label) > -1){
         if(show !== true){
             console.error("error for label " + label + " : wasn't true", shouldbeTrue)
         }
         
+        expect(show).not.toBeUndefined()
         expect(show).toBeTruthy()
     } else {
         if(show !== undefined){
@@ -76,10 +80,16 @@ export function stateOfFiltersAsMap(){
     map_ID_ENVS.set('preproduction',true)
     map_ID_ENVS.set('prod',true)
 
-    map.set(SearchEngine.ID_INSTANCES,map_ID_INSTANCES)
-    map.set(SearchEngine.ID_ROYAUMES,map_ID_ROYAUMES)
-    map.set(SearchEngine.ID_PROTOCOLES,map_ID_PROTOCOLES)
-    map.set(SearchEngine.ID_ENVS, map_ID_ENVS)
+    let map_ID_MAPPERS = new Map<string,boolean>()
+    map_ID_MAPPERS.set(StateOfFilters.VALUE_DEFAULT_NO_MAPPER, true)
+    map_ID_MAPPERS.set('m1', true)
+    map_ID_MAPPERS.set('m2', true)
+
+    map.set(StateOfFilters.ID_INSTANCES,map_ID_INSTANCES)
+    map.set(StateOfFilters.ID_ROYAUMES,map_ID_ROYAUMES)
+    map.set(StateOfFilters.ID_PROTOCOLES,map_ID_PROTOCOLES)
+    map.set(StateOfFilters.ID_ENVS, map_ID_ENVS)
+    map.set(StateOfFilters.ID_MAPPERS, map_ID_MAPPERS)
 
     return map
 }

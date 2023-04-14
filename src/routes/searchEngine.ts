@@ -3,12 +3,6 @@ import { StateOfFilters } from "./StateOfFilters"
 
 export module SearchEngine{
     
-
-	export const ID_INSTANCES = 'Instances'
-	export const ID_ROYAUMES = 'Royaumes'
-	export const ID_PROTOCOLES = 'Protocoles'
-	export const ID_ENVS = 'Envs'
-
     export let HIDE_ALL = false
 
 	let isSearchwithFullText:boolean
@@ -44,26 +38,38 @@ export module SearchEngine{
 		let map = getAllStatesOfFilteersProxy()
 
 		instances.forEach((instance) => {
-			if(map.get(ID_INSTANCES)?.get(instance.label) === false){
+			if(map.get(StateOfFilters.ID_INSTANCES)?.get(instance.label) === false){
 				//It can still be null (default) or true
 				instance.show=false 	
 			}
 			instance.royaumes.forEach((royaume) => {
-				if(map.get(ID_ROYAUMES)?.get(royaume.label) === false){
+				if(map.get(StateOfFilters.ID_ROYAUMES)?.get(royaume.label) === false){
 					//It can still be null (default) or true
 					royaume.show=false 	
 				}
-				royaume.clientIds.forEach((clientId) => {
-					if(map.get(ID_PROTOCOLES)?.get(clientId.protocol) === false){
+				royaume.clientIds?.forEach((clientId) => {
+					if(map.get(StateOfFilters.ID_PROTOCOLES)?.get(clientId.protocol) === false){
 						
 						//It can still be null (default) or true
 						clientId.show=false 	
 					}
 					clientId.envs.forEach((env) => {
-						if(map.get(ID_ENVS)?.get(env.label) === false){
+						if(map.get(StateOfFilters.ID_ENVS)?.get(env.label) === false){
 							//It can still be null (default) or true
 							env.show=false 	
 						}
+						if(env.mapper === ''){
+							if(map.get(StateOfFilters.ID_MAPPERS)?.get(StateOfFilters.VALUE_DEFAULT_NO_MAPPER) === false){
+								//It can still be null (default) or true
+								env.show=false
+							}
+						} else {
+							if(map.get(StateOfFilters.ID_MAPPERS)?.get(env.mapper) === false){
+								//It can still be null (default) or true
+								env.show=false 	
+							}
+						}
+						
 						if(env.uris){
 							env.uris.forEach((uri) => {
 							})
@@ -93,7 +99,7 @@ export module SearchEngine{
 								royaume.show = true
 							} else {
 								royaume.show = false
-								royaume.clientIds.forEach((clientId) => {
+								royaume.clientIds?.forEach((clientId) => {
 									if(clientId.show !== false){
 										if(clientId.label.indexOf(currentSearchValue) !== -1){
 											clientId.show = true
@@ -127,7 +133,7 @@ export module SearchEngine{
 				if(instance.show === true){
 					royaume.show = true
 				}
-				royaume.clientIds.forEach((clientId) => {
+				royaume.clientIds?.forEach((clientId) => {
 					if(royaume.show === true){
 						clientId.show = true
 					}
@@ -149,7 +155,7 @@ export module SearchEngine{
 			oneSubWasFound = false
 			instance.royaumes.forEach((royaume) => {
 				oneClientIdWasFound = false							
-				royaume.clientIds.forEach((clientId) => {
+				royaume.clientIds?.forEach((clientId) => {
 					oneEnvWasFound = false
 					clientId.envs.forEach((env) => {
 						oneEnvWasFound = oneEnvWasFound || env.show
@@ -179,7 +185,7 @@ export module SearchEngine{
 					if(royaume.show !== false){
 
 						OneClientIdisShow = false
-						royaume.clientIds.forEach((clientId) => {
+						royaume.clientIds?.forEach((clientId) => {
 							
 							if(clientId.show !== false){
 								OneEnvisShow = false

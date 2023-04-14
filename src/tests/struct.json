@@ -14,7 +14,7 @@
                    "envs":[
                       {
                          "label":"dev",
-                         
+                         "mapper":"m1",
                          "uris":[
                             "i0r0c0e0u0",
                             "i0r0c0e0u1",
@@ -23,7 +23,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"m2",
                          "uris":[
                             "i0r0c0e1u0",
                             "i0r0c0e1u1",
@@ -39,7 +39,7 @@
                    "envs":[
                       {
                          "label":"recette",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r0c1e0u0",
                             "i0r0c1e0u1",
@@ -48,7 +48,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r0c1e1u0",
                             "i0r0c1e1u1",
@@ -70,7 +70,7 @@
                    "envs":[
                       {
                          "label":"recette",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r1c0e0u0",
                             "i0r1c0e0u1",
@@ -79,7 +79,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r1c0e1u0",
                             "i0r1c0e1u1",
@@ -95,7 +95,7 @@
                    "envs":[
                       {
                          "label":"recette",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r1c1e0u0",
                             "i0r1c1e0u1",
@@ -104,7 +104,7 @@
                       },
                       {
                          "label":"preprod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i0r1c1e1u0",
                             "i0r1c1e1u1",
@@ -132,7 +132,7 @@
                    "envs":[
                       {
                          "label":"recette",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r0c0e0u0",
                             "i1r0c0e0u1",
@@ -141,7 +141,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r0c0e1u0",
                             "i1r0c0e1u1",
@@ -157,7 +157,7 @@
                    "envs":[
                       {
                          "label":"preproduction",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r0c1e0u0",
                             "i1r0c1e0u1",
@@ -166,7 +166,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r0c1e1u0",
                             "i1r0c1e1u1",
@@ -188,7 +188,7 @@
                    "envs":[
                       {
                          "label":"recette",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r1c0e0u0",
                             "i1r1c0e0u1",
@@ -197,7 +197,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r1c0e1u0",
                             "i1r1c0e1u1",
@@ -213,7 +213,7 @@
                    "envs":[
                       {
                          "label":"dev",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r1c1e0u0",
                             "i1r1c1e0u1",
@@ -222,7 +222,7 @@
                       },
                       {
                          "label":"prod",
-                         
+                         "mapper":"",
                          "uris":[
                             "i1r1c1e1u0",
                             "i1r1c1e1u1",

@@ -28,6 +28,7 @@ export let clientId: {
 export let env: { 
     label: string
     show: boolean
+    mapper:string
     uris: string[]
 }
 //Représentation on visual rendering
