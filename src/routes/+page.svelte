@@ -169,8 +169,9 @@
             return ''
         }
 		
-		let path = '/' + i.label + '/clients/' + r.label + '/' + c.label + '/' + e.label + '.json' 
-		let url = config.gitUrl2.replace('%hash%',allCommits[historyPosition].hash as string) + path
+		let path = i.label + '/clients/' + r.label + '/' + c.label + '/' + e.label + '.json' 
+		let url = config.gitUrl2.replace('%hash%',allCommits[historyPosition].hash as string) 
+		url = url.replace('%path%', path)
 
         return url
 
