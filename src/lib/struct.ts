@@ -44,3 +44,8 @@ export let hashNode:{
     md5:string
     clientId:typeof clientId
 }
+
+export let config:{
+    gitUrl1:string
+    gitUrl2:string
+}

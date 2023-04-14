@@ -1,13 +1,14 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
+	import { jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
 	import FilterBlock from './FilterBlock.svelte'
     import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
 	import {StateOfFilters} from './StateOfFilters'
-    import type { commit, instance } from '$lib/struct';
-    import { hydrate } from './HydratationUtils';
+
+    import { getConfigValue, hydrate } from './HydratationUtils';
+    import type { clientId, commit, env, instance, royaume } from '$lib/struct';
 
 	//Filters
 	let fInstances:string[] = []
@@ -162,6 +163,19 @@
 		return source.replace(currentSearchValue, '<span class="found">' + currentSearchValue + '</span>') 
 	}
 
+	function url(i:typeof instance, r:typeof royaume, c:typeof clientId, e:typeof env):string{
+        let config = getConfigValue($jsonConfigDataStore)
+		if(config.gitUrl2 === ''){
+            return ''
+        }
+		
+		let path = '/' + i.label + '/clients/' + r.label + '/' + c.label + '/' + e.label + '.json' 
+		let url = config.gitUrl2.replace('%hash%',allCommits[historyPosition].hash as string) + path
+
+        return url
+
+	}
+
 	// start scripting
 	initiateJson()
 </script>
@@ -194,8 +208,6 @@
 		<h2>Data</h2>
 		
 		<input type='text' id='search' placeholder='Start typing to filtering...' on:keydown={textSearchAction} on:keyup={textSearchAction} on:change={textSearchAction}/>
-	
-		<!--{#key SearchEngine.mapVisibility}<DebugVisibility instances={SearchEngine.mapVisibility} />{/key}-->
 
 		{#if instances.length > 0 && mapCounter.get(ID_ALL) !== 0}
 			{#key instances}<h4>{mapCounter.get(ID_ALL)} clientId{#if mapCounter.get(ID_ALL) !== 1}s{/if} affiché{#if mapCounter.get(ID_ALL) !== 1}s{/if}</h4>{/key}			
@@ -208,7 +220,11 @@
 								{#each royaume.clientIds as clientId}
 								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='tag {clientId.protocol}'>{clientId.protocol}</span><ul>
 										{#each clientId.envs as env}
-										<li class:hide={env.show !== null && env.show === false}>{env.label}{#if env.mapper !== ''}<span class='tag mapper'>{env.mapper}</span>{/if}<ul>
+										<li class:hide={env.show !== null && env.show === false}>
+											{env.label} 
+											{#if url(instance, royaume, clientId, env) !== ''}<span class='link'>(<a href={url(instance, royaume, clientId, env)}>link</a>)</span>{/if}
+											{#if env.mapper !== ''}<span class='tag mapper'>{env.mapper}</span>{/if}
+											<ul>
 												{#if env.uris}
 													{#each env.uris as uri}
 														<li>{@html markerHtml(uri)}</li>
@@ -305,6 +321,9 @@ data{
 	top:1px;
 }
 
+.link{
+	font-size: 0.8em;
+}
         
 
         

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
     import { jsonConfigDataStore } from '$lib/store';
+    import { getConfigValue } from '../HydratationUtils';
 	
 
     let gitUrl1:string = ''
@@ -9,19 +10,12 @@
     function init(){
         if(!browser){return}
 
-        let config = getConfigValue()
+        let config = getConfigValue($jsonConfigDataStore)
         
-        gitUrl1 = config['gitUrl1']
-        gitUrl2 = config['gitUrl2']
+        gitUrl1 = config.gitUrl1
+        gitUrl2 = config.gitUrl2
     }
 
-    export function getConfigValue(){
-        let json = $jsonConfigDataStore
-        if(json != null && json != ''){
-            return JSON.parse(json)
-        }
-        return {gitUrl1:'',gitUrl2:''}
-    }
 
     function save(){
         jsonConfigDataStore.set(JSON.stringify({
