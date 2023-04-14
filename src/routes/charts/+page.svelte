@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { jsonDataStore } from '$lib/store';
+	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
     import type { commit } from '$lib/struct';
+    import { hydrate } from '../HydratationUtils';
     import LineCountersAll from './LineCountersAll.svelte';
     import PieCountersByInstance from './PieCountersByInstance.svelte';
 
@@ -11,11 +12,11 @@
 		
 		let start = new Date()
 		if($jsonDataStore.length > 100){
-			allCommits = JSON.parse($jsonDataStore)
-			
+			allCommits = hydrate($jsonDataStore, $jsonHashNodeDataStore)
 		}
-		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")			
 		prepareData()
+		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	
 	let countersByInstance = new Map<string,number>()
@@ -24,7 +25,6 @@
 	let countersByTsMin = 100000000
 	let countersByTsMax = 0
 
-	initiateJson();
 
 	function prepareData(){
 		
@@ -44,11 +44,13 @@
 				countersByRoyaumeForInstance = new Map<string, number>()
 				instance.royaumes.forEach((royaume) => {
 					counterByRoyaumeForInstance = 0
-					royaume.clientIds.forEach((clientId) => {
-						counterByInstance++
-						counterByRoyaumeForInstance++
-						counter++
-					})
+					if(royaume.clientIds){
+						royaume.clientIds.forEach((clientId) => {
+							counterByInstance++
+							counterByRoyaumeForInstance++
+							counter++
+						})
+					}
 					countersByRoyaumeForInstance.set(royaume.label,counterByRoyaumeForInstance)
 				})
 				countersByInstance.set(instance.label, counterByInstance)
@@ -66,6 +68,8 @@
 		
 	}
 	
+	// start scripting
+	initiateJson();
 </script>
 
 <svelte:head>

@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { jsonDataStore } from '$lib/store';
+	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
+    import { dehydrate } from './HydratationUtils';
 
     export let initiateBinder:Function
 	let fileinput:HTMLInputElement
@@ -12,11 +13,18 @@
 		let reader = new FileReader();
 		reader.readAsText(jsonFile);
 		reader.onload = e => {
-			jsonDataStore.set(e.target?.result as string)
+            
+            //Reduce weight
+            const [commitJson, hashJson] = dehydrate(e.target?.result as string)
+            
+            //Saving the commit & hashnode data into localStorage
+            jsonDataStore.set(commitJson)
+            jsonHashNodeDataStore.set(hashJson)
+
             initiateBinder()
 		};
 	}
-	
+
 </script>
 
 
@@ -39,7 +47,7 @@
       cursor: pointer;
       padding: 5%;
     }
-    /*#box,*/
+
     #box input,
     #box button{
         display: none;

@@ -1,12 +1,13 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-	import { jsonDataStore } from '$lib/store';
-    import type { commit, instance } from '$lib/struct';
+	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
 	import FilterBlock from './FilterBlock.svelte'
     import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
 	import {StateOfFilters} from './StateOfFilters'
+    import type { commit, instance } from '$lib/struct';
+    import { hydrate } from './HydratationUtils';
 
 	//Filters
 	let fInstances:string[] = []
@@ -17,6 +18,7 @@
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
 	export let allCommits:typeof commit[] = []
+	
 	let historyPosition = 0
 
 	//Counter of ClientIds
@@ -32,7 +34,8 @@
 		
 		let start = new Date()
 		if($jsonDataStore.length > 100){
-			allCommits = JSON.parse($jsonDataStore)
+			allCommits = hydrate($jsonDataStore, $jsonHashNodeDataStore)
+
 			instances = getInstancesByCurrentIndex()
 			console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 			if(allCommits.length > 0){
@@ -43,9 +46,7 @@
 	}
 
 	function getInstancesByCurrentIndex(){
-		
 		return structuredClone(allCommits[historyPosition].instances)
-		
 	}
 	
 	function switchIndex(index:number){
@@ -60,7 +61,7 @@
 			instance.royaumes.forEach((royaume) => {
 				fRoyaumes.push(royaume.label)
 				royaumeToInstance.set(royaume.label, instance.label)
-				royaume.clientIds.forEach((clientId) => {
+				royaume.clientIds?.forEach((clientId) => {
 					fProtocols.push(clientId.protocol)
 					clientId.envs.forEach((env) => {
 						fEnvs.push(env.label)
@@ -136,7 +137,7 @@
 				instance.royaumes.forEach((royaume) => {
 
 					if(royaume.show !== false){
-						royaume.clientIds.forEach((clientId) => {
+						royaume.clientIds?.forEach((clientId) => {
 							
 							if(clientId.show !== false){
 								clientIdCounter++
@@ -155,8 +156,7 @@
 		return source.replace(currentSearchValue, '<span class="found">' + currentSearchValue + '</span>') 
 	}
 
-
-	// Initiate var.
+	// start scripting
 	initiateJson()
 </script>
 
@@ -177,7 +177,7 @@
 		<FilterBlock filterCode={SearchEngine.ID_ROYAUMES} filterTitre='Royaumes' filterList={fRoyaumes}  action={filterSearchAction} action2={()=>{}}/>
 		<FilterBlock filterCode={SearchEngine.ID_PROTOCOLES} filterTitre='Protocoles' filterList={fProtocols}  action={filterSearchAction}  action2={()=>{}}/>
 		<FilterBlock filterCode={SearchEngine.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction}  action2={()=>{}}/>
-		<button on:click="{() => $jsonDataStore = ''}">clear localStorage</button>
+		<button on:click="{() => {$jsonDataStore = ''; $jsonHashNodeDataStore = ''}}">clear localStorage</button>
 	</side>
 
 	<data>
@@ -196,6 +196,7 @@
 				<div class:hide={instance.show !== null && instance.show === false}><h3>{@html markerHtml(instance.label)} - {mapCounter.get(instance.label)}</h3><ul>
 						{#each instance.royaumes as royaume}
 						<li class:hide={royaume.show !== null && royaume.show === false}>{@html markerHtml(royaume.label)}<ul>
+								{#if royaume && royaume.clientIds}
 								{#each royaume.clientIds as clientId}
 								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='protocole {clientId.protocol}'>{clientId.protocol}</span><ul>
 										{#each clientId.envs as env}
@@ -208,7 +209,7 @@
 										</ul></li>
 										{/each}
 								</ul></li>
-								{/each}
+								{/each}{/if}
 						</ul></li>
 						{/each}
 				</ul></div>

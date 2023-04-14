@@ -2,7 +2,10 @@
 export let commit:{
     hash:string
     ts:number
+    log?:string[]
     instances:typeof instance[]
+    message:string
+    author:string[]
 }
 export let instance:{
     label: string
@@ -12,7 +15,8 @@ export let instance:{
 export let royaume: { 
     label: string
     show: boolean
-    clientIds:typeof clientId[]
+    clientIds?:typeof clientId[]
+    nodes:string[]
 }
             
 export let clientId: { 
@@ -34,3 +38,8 @@ export let visualCommit:{
     //author:string
     //link:string
 }|undefined
+
+export let hashNode:{
+    md5:string
+    clientId:typeof clientId
+}
