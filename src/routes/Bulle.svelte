@@ -3,7 +3,7 @@
     import type { visualCommit } from "$lib/struct";
     import { getConfigValue } from "./HydratationUtils";
 
-    export let commit:typeof visualCommit
+    export let commit:visualCommit
 
     function url():string{
         let config = getConfigValue($jsonConfigDataStore)

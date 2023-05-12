@@ -4,14 +4,14 @@
     import Bulle from "./Bulle.svelte";
 
     export let switchIndexBinder:Function
-    export let allCommits:typeof commit[]
+    export let allCommits:commit[]
 
     let historyPosition:number=0
 	let MaxHistoryPosition:number=0
 
-    let previousCommit: typeof visualCommit
-    let currentCommit: typeof visualCommit
-    let nextCommit: typeof visualCommit
+    let previousCommit:visualCommit|undefined
+    let currentCommit:visualCommit|undefined
+    let nextCommit:visualCommit|undefined
     MaxHistoryPosition = allCommits.length-1
     renderVisualCommit()
 
@@ -20,11 +20,11 @@
         currentCommit = toVisualCommit(allCommits[historyPosition])
         nextCommit = toVisualCommit(allCommits[historyPosition-1])
     }
-    function toVisualCommit(aCommit: typeof commit){
+    function toVisualCommit(aCommit:commit):visualCommit|undefined{
         if(aCommit == undefined){
             return undefined
         }
-        let aVisualCommit:typeof visualCommit = {
+        let aVisualCommit:visualCommit = {
             hash: aCommit.hash,
             date: new Date(aCommit.ts * 1000).toLocaleDateString('FR-fr', { weekday:"short", year:"numeric", month:"short", day:"numeric"}),
             message:aCommit.message,
@@ -63,10 +63,12 @@
     {/if}
 {/key}
 {#key currentCommit}
+    {#if currentCommit}
     <div class='commitWrapper middle'>
         <div class='commit'>#{currentCommit?.hash.substring(0,6)} - {currentCommit?.date}</div>
         <Bulle commit={currentCommit}/>
     </div>
+    {/if}
 {/key}
 {#key nextCommit}
     {#if nextCommit}

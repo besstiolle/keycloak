@@ -34,8 +34,8 @@ describe('test Filtering by Full Text', () => {
 
     it('if one instance was searched, all child node must be true and everything else should be false', () => {
 
-        let instances:typeof instance[] = JSON.parse(JSON.stringify((i0 as { [key: string]: any })['default']))
-        let expectedResults:typeof instance[] = JSON.parse(JSON.stringify((i0_result as { [key: string]: any })['default']))
+        let instances:instance[] = JSON.parse(JSON.stringify((i0 as { [key: string]: any })['default']))
+        let expectedResults:instance[] = JSON.parse(JSON.stringify((i0_result as { [key: string]: any })['default']))
 
         SearchEngine.filteringByFullText(instances, 'i0')
 
@@ -49,8 +49,8 @@ describe('test Filtering by Full Text', () => {
 
     it('if one royaume was searched, all child node must be true, its parent must be true and everything else should be false', () => {
 
-        let instances:typeof instance[] = JSON.parse(JSON.stringify((i0r1 as { [key: string]: any })['default']))
-        let expectedResults:typeof instance[] = JSON.parse(JSON.stringify((i0r1_result as { [key: string]: any })['default']))
+        let instances:instance[] = JSON.parse(JSON.stringify((i0r1 as { [key: string]: any })['default']))
+        let expectedResults:instance[] = JSON.parse(JSON.stringify((i0r1_result as { [key: string]: any })['default']))
 
         SearchEngine.filteringByFullText(instances, 'i0r1')
 
@@ -64,8 +64,8 @@ describe('test Filtering by Full Text', () => {
 
     it('if one clientId was searched by label, all child node must be true, its parent must be true and everything else should be false', () => {
 
-        let instances:typeof instance[] = JSON.parse(JSON.stringify((i0r1c1 as { [key: string]: any })['default']))
-        let expectedResults:typeof instance[] = JSON.parse(JSON.stringify((i0r1c1_result as { [key: string]: any })['default']))
+        let instances:instance[] = JSON.parse(JSON.stringify((i0r1c1 as { [key: string]: any })['default']))
+        let expectedResults:instance[] = JSON.parse(JSON.stringify((i0r1c1_result as { [key: string]: any })['default']))
 
         SearchEngine.filteringByFullText(instances, 'i0r1c1')
 
@@ -78,8 +78,8 @@ describe('test Filtering by Full Text', () => {
     
     it('if one env was searched by uri, its parent must be true and everything else should be false', () => {
 
-        let instances:typeof instance[] = JSON.parse(JSON.stringify((i0r1c0e0u0 as { [key: string]: any })['default']))
-        let expectedResults:typeof instance[] = JSON.parse(JSON.stringify((i0r1c0e0u0_result as { [key: string]: any })['default']))
+        let instances:instance[] = JSON.parse(JSON.stringify((i0r1c0e0u0 as { [key: string]: any })['default']))
+        let expectedResults:instance[] = JSON.parse(JSON.stringify((i0r1c0e0u0_result as { [key: string]: any })['default']))
 
         SearchEngine.filteringByFullText(instances, 'i0r1c0e0u0')
 
@@ -93,8 +93,8 @@ describe('test Filtering by Full Text', () => {
     
     it('if multiple env was searched by uri, their parent must be true and everything else should be false', () => {
 
-        let instances:typeof instance[] = JSON.parse(JSON.stringify((u0 as { [key: string]: any })['default']))
-        let expectedResults:typeof instance[] = JSON.parse(JSON.stringify((u0_result as { [key: string]: any })['default']))
+        let instances:instance[] = JSON.parse(JSON.stringify((u0 as { [key: string]: any })['default']))
+        let expectedResults:instance[] = JSON.parse(JSON.stringify((u0_result as { [key: string]: any })['default']))
 
         SearchEngine.filteringByFullText(instances, 'u0')
 

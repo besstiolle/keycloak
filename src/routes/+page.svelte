@@ -8,7 +8,7 @@
 	import {StateOfFilters} from './StateOfFilters'
 
     import { getConfigValue, hydrate } from './HydratationUtils';
-    import type { clientId, commit, env, instance, royaume } from '$lib/struct';
+    import type { clientId, env, instance, royaume, commit } from '$lib/struct';
 
 	//Filters
 	let fInstances:string[] = []
@@ -19,7 +19,7 @@
 	let royaumeToInstance = new Map<String,String>()
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
-	export let allCommits:typeof commit[] = []
+	export let allCommits: commit[] = []
 	
 	let historyPosition = 0
 
@@ -29,7 +29,7 @@
 	mapCounter.set(ID_ALL, 0)
 
 
-	let instances:typeof instance[] = []
+	let instances: instance[] = []
 
 	
 	function initiateJson(){
@@ -163,7 +163,7 @@
 		return source.replace(currentSearchValue, '<span class="found">' + currentSearchValue + '</span>') 
 	}
 
-	function url(i:typeof instance, r:typeof royaume, c:typeof clientId, e:typeof env):string{
+	function url(i:instance, r:royaume, c:clientId, e:env):string{
         let config = getConfigValue($jsonConfigDataStore)
 		if(config.gitUrl2 === ''){
             return ''

@@ -8,14 +8,14 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test": "vitest run src",
-		"test:watch": "vitest src"
+		"test:watch": "vitest src",
+		"coverage": "vitest run --coverage"
 	},
 	"devDependencies": {
 		"@fontsource/fira-mono": "^4.5.10",
-		"@neoconfetti/svelte": "^1.0.0",
+		
 		"@sveltejs/adapter-auto": "^2.0.0",
 		"@sveltejs/kit": "^1.5.0",
-		"@types/cookie": "^0.5.1",
 		"jsdom": "^21.1.1",
 		"svelte": "^3.54.0",
 		"svelte-check": "^3.0.1",

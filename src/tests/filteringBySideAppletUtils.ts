@@ -3,7 +3,7 @@ import type { clientId, instance } from "$lib/struct"
 import { StateOfFilters } from "../routes/StateOfFilters"
 
 
-export function testResult(instancesToTest:typeof instance[], shouldBeFalse: string[], shouldbeTrue:string[]){
+export function testResult(instancesToTest:instance[], shouldBeFalse: string[], shouldbeTrue:string[]){
     instancesToTest.forEach(i => {
         
         //Test show value vs the label

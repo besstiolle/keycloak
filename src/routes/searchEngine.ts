@@ -7,7 +7,7 @@ export module SearchEngine{
 
 	let isSearchwithFullText:boolean
     
-    export function render(instances:typeof instance[], currentSearchValue:string, rawData:string ){
+    export function render(instances:instance[], currentSearchValue:string, rawData:string ){
 		HIDE_ALL = false
 		isSearchwithFullText = currentSearchValue !== undefined && currentSearchValue !== ""
 
@@ -32,7 +32,7 @@ export module SearchEngine{
 			
 	}
 
-	export function filteringBySideApplet(instances:typeof instance[]){
+	export function filteringBySideApplet(instances:instance[]){
 
 		//Filtering with side applet
 		let map = getAllStatesOfFilteersProxy()
@@ -84,7 +84,7 @@ export module SearchEngine{
 		return StateOfFilters.getAllStatesOfFilteers()
 	}
 	
-	export function filteringByFullText(instances:typeof instance[], currentSearchValue:string){
+	export function filteringByFullText(instances:instance[], currentSearchValue:string){
 		
 		//Flag foundings to "show-true", everything else must be set to "show=false"
 		instances.forEach((instance) => {			
@@ -170,7 +170,7 @@ export module SearchEngine{
 		})
 	}
 
-	function propagationToParents(instances:typeof instance[]){
+	function propagationToParents(instances:instance[]){
 		//Propagation to Parents if all children's nodes are hidden
 		let OneInstanceisShow = false
 		let OneSubRoyaumesisShow = false

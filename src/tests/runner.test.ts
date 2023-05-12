@@ -9,7 +9,7 @@ import { StateOfFilters } from '../routes/StateOfFilters';
 
 describe('testJSONLoading', () => {
     it('basic test of loading fake JSON', () => {
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         expect((instances[0].royaumes[0].clientIds as typeof clientId[])[1].envs[0].label).toEqual('recette')
         expect((instances[0].royaumes[0].clientIds as typeof clientId[])[1].envs[0].show).toEqual(undefined)
     });
@@ -46,7 +46,7 @@ describe('state mocking function', () => {
 })
 
 
-export function deepComparatorInterfaces(o1:typeof instance[],o2:typeof instance[]){
+export function deepComparatorInterfaces(o1:instance[],o2:instance[]){
     
     if(o1.length !== o2.length){return false}
 
@@ -58,7 +58,7 @@ export function deepComparatorInterfaces(o1:typeof instance[],o2:typeof instance
 
     return true
 }
-function deepComparatorInterface(o1:typeof instance,o2:typeof instance){
+function deepComparatorInterface(o1:instance,o2:instance){
 
     if(o1.label !== o2.label){return false}
     if(o1.show !== o2.show){return false}
@@ -72,7 +72,7 @@ function deepComparatorInterface(o1:typeof instance,o2:typeof instance){
 
     return true
 }
-function deepComparatorRoyaume(o1:typeof royaume,o2:typeof royaume){
+function deepComparatorRoyaume(o1:royaume,o2:royaume){
 
     if(o1.label !== o2.label){return false}
     if(o1.show !== o2.show){return false}
@@ -87,7 +87,7 @@ function deepComparatorRoyaume(o1:typeof royaume,o2:typeof royaume){
     return true
 }
 
-function deepComparatorClientId(o1:typeof clientId,o2:typeof clientId){
+function deepComparatorClientId(o1:clientId,o2:clientId){
 
     if(o1.label !== o2.label){return false}
     if(o1.show !== o2.show){return false}
@@ -103,7 +103,7 @@ function deepComparatorClientId(o1:typeof clientId,o2:typeof clientId){
     return true
 }
 
-function deepComparatorEnv(o1:typeof env,o2:typeof env){
+function deepComparatorEnv(o1:env,o2:env){
 
     if(o1.label !== o2.label){return false}
     if(o1.show !== o2.show){return false}
@@ -120,13 +120,13 @@ function deepComparatorEnv(o1:typeof env,o2:typeof env){
 
 
 
-export function getFakeDate():typeof instance[]{
+export function getFakeDate():instance[]{
     return JSON.parse(JSON.stringify((defaultjson as { [key: string]: any })['default']))
 }
 /*
 
 function generateFakeStruct(){
-    let instances:typeof instance[] = [
+    let instances:instance[] = [
         {label:'l1',show:true,royaumes:[
             {label:'l1r1',show:true,clientIds:[
                 {label:'l1r1c1',protocol:'saml',show:true,envs:[

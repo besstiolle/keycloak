@@ -4,9 +4,9 @@ import type { clientId, commit, hashNode, config } from "$lib/struct";
  * Merge nodes information into the commit[] struct.
  */
 export function hydrate(commitJson:string, hashJson:string){
-    let commits:typeof commit[] = JSON.parse(commitJson)
-    const hashNodes:typeof hashNode[] = JSON.parse(hashJson)
-    const hasNodesMap = new Map<String, typeof clientId>()
+    let commits:commit[] = JSON.parse(commitJson)
+    const hashNodes:hashNode[] = JSON.parse(hashJson)
+    const hasNodesMap = new Map<String, clientId>()
 
     console.debug("length before hydratation was %oKo ", Math.round(((commitJson.length + hashJson.length) / 1000)))
 
@@ -15,7 +15,7 @@ export function hydrate(commitJson:string, hashJson:string){
     });
 
 
-    let clientIds:typeof clientId[]
+    let clientIds:clientId[]
 
     commits.forEach(commit => {
         commit.instances.forEach(instance => {
@@ -25,7 +25,7 @@ export function hydrate(commitJson:string, hashJson:string){
                     if(!hasNodesMap.has(nodeHash)){
                         console.error("hash " + nodeHash + " was missing for royaume " + royaume.label)
                     } else {
-                        clientIds.push(hasNodesMap.get(nodeHash) as typeof clientId)
+                        clientIds.push(hasNodesMap.get(nodeHash) as clientId)
                     }
                 });
                 royaume.clientIds = clientIds
@@ -46,10 +46,10 @@ export function dehydrate(json:string){
     console.debug("length before dehydratation was %oKo ", Math.round((json.length / 1000)))
 
     //Parsing JSON, creating virtual node for each version of clientId, saving them one time with simple hash
-    let allCommits:typeof commit[] = JSON.parse(json)
+    let allCommits:commit[] = JSON.parse(json)
     let md5Hash:string
     let md5ForRoyaume:string[] = []
-    let mapMD5 = new Map<String, typeof clientId>()
+    let mapMD5 = new Map<String, clientId>()
     allCommits.forEach(commit => {
         const parsedValues = parseLog(commit.log as string[])
 
@@ -121,7 +121,7 @@ const MD5 = function(d:any){var r = M(V(Y(X(d),8*d.length)));return r.toLowerCas
  * @param json the value of the store config
  * @returns 
  */
-export function getConfigValue(json:string):typeof config{
+export function getConfigValue(json:string):config{
     if(json != null && json != ''){
         return JSON.parse(json)
     }

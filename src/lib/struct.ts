@@ -1,51 +1,51 @@
 //Representation of the JSON data structure	
-export let commit:{
+export interface commit{
     hash:string
     ts:number
     log?:string[]
-    instances:typeof instance[]
+    instances:instance[]
     message:string
     author:string[]
 }
-export let instance:{
+export interface instance{
     label: string
     show: boolean 
-    royaumes:typeof royaume[]
+    royaumes:royaume[]
 }
-export let royaume: { 
+export interface royaume { 
     label: string
     show: boolean
-    clientIds?:typeof clientId[]
+    clientIds?:clientId[]
     nodes:string[]
 }
             
-export let clientId: { 
+export interface clientId { 
     protocol: string 
     show: boolean
     label: string
-    envs:typeof env[]
+    envs:env[]
 }
-export let env: { 
+export interface env { 
     label: string
     show: boolean
     mapper:string
     uris: string[]
 }
 //Représentation on visual rendering
-export let visualCommit:{
+export interface visualCommit{
     hash:string
     date:string
     message:string
     author:string
     //link:string
-}|undefined
-
-export let hashNode:{
-    md5:string
-    clientId:typeof clientId
 }
 
-export let config:{
+export interface hashNode{
+    md5:string
+    clientId:clientId
+}
+
+export interface config{
     gitUrl1:string
     gitUrl2:string
 }

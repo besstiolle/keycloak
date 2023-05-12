@@ -25,7 +25,7 @@ describe('test Filtering By Side Applet', () => {
     it('by default, everything should stay "show=undefined"', () => {
         mock.mockReturnValue(stateOfFiltersAsMap());  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -46,7 +46,7 @@ describe('test Filtering By Side Applet', () => {
         
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -67,7 +67,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -88,7 +88,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -110,7 +110,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -138,7 +138,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -161,7 +161,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)
@@ -203,7 +203,7 @@ describe('test Filtering By Side Applet', () => {
 
         mock.mockReturnValue(map);  // mock the return value 
 
-        let instances:typeof instance[] = getFakeDate()
+        let instances:instance[] = getFakeDate()
         SearchEngine.filteringBySideApplet(instances)
 
         expect( StateOfFilters.getAllStatesOfFilteers).toBeCalledTimes(1)

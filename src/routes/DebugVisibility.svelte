@@ -1,7 +1,7 @@
 <script lang="ts">
 
 	import type { instance } from "$lib/struct"
-	export let instances:typeof instance[]
+	export let instances:instance[]
 </script>
 
 <div class='debug'>
@@ -10,7 +10,7 @@
 	<li><span class:showTrue={instance.show === true} class:showFalse={instance.show === false} class:showNull={instance.show === null}>{instance.label}</span><ul>
 			{#each instance.royaumes as royaume}
 			<li><span class:showTrue={royaume.show === true} class:showFalse={royaume.show === false} class:showNull={royaume.show === null}>{royaume.label}</span><ul>
-					{#each royaume.clientIds as clientId}
+					{#if royaume.clientIds}{#each royaume.clientIds as clientId}
 					<li><span class:showTrue={clientId.show === true} class:showFalse={clientId.show === false} class:showNull={clientId.show === null}>{clientId.label}</span><ul>
 							{#each clientId.envs as env}
 							<li><span class:showTrue={env.show === true} class:showFalse={env.show === false} class:showNull={env.show === null}>{env.label}</span><ul>
@@ -22,7 +22,7 @@
 							</ul></li>
 							{/each}
 					</ul></li>
-					{/each}
+					{/each}{/if}
 			</ul></li>
 			{/each}
 		</ul></li>

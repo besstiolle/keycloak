@@ -7,7 +7,7 @@
     import LineCountersAll from './LineCountersAll.svelte';
     import PieCountersByInstance from './PieCountersByInstance.svelte';
 
-	let allCommits:typeof commit[] = []
+	let allCommits:commit[] = []
 
 	
 	function initiateJson(){
