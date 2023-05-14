@@ -26,6 +26,11 @@
 			</li>
 		</ul>
 		<ul>
+			<li aria-current={$page.url.pathname === '/elastic' ? 'page' : undefined}>
+				<a href="/elastic">Elastic</a>
+			</li>
+		</ul>
+		<ul>
 			<li aria-current={$page.url.pathname === '/config' ? 'page' : undefined}>
 				<a href="/config">Configuration</a>
 			</li>
