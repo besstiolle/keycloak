@@ -1,16 +1,26 @@
 <script lang="ts">
-    import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type pointer } from '$lib/elasticStruct';
+    import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore, type pointer } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
-
 
     export let initiateBinder:Function
 
 	let fileinput:HTMLInputElement
+    let minDate:Date = new Date("2099-01-01 00:00")
+    let maxDate:Date = new Date("2000-01-01 00:00")
+    let container:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
 
 
 	const invite:string = 'Choose a Elastic exported CSV file'
 	
 	const onFileSelected = (e:any)=>{
+
+        if($jsonElasticDataStore.container.size > 0){
+            container = $jsonElasticDataStore.container
+            minDate = $jsonElasticDataStore.minDate
+            maxDate = $jsonElasticDataStore.maxDate
+        }
+
+
 		let jsonFile = e.target.files[0];
 		let reader = new FileReader();
 		reader.readAsText(jsonFile);
@@ -19,7 +29,7 @@
             let csv = e.target?.result as string
 
             //Expurge string like "12,012" to real number like 12012
-            csv = clean(csv)
+            csv = cleanUnformatedNumbers(csv)
    
             let currentType = CSV_TYPE.KEYCLOAK
             if(jsonFile.name.indexOf('_api_strongbox') !== -1) {
@@ -30,18 +40,27 @@
             
             csvToContainer(csv, currentType)
    
+            let elasticStoreCloned:elasticStore = {
+                minDate: minDate,
+                maxDate: maxDate,
+                container: container
+            }
 
-            //Saving data into localStorage
-            //jsonElasticDataStore.set(csv)
+            $jsonElasticDataStore = elasticStoreCloned
 
             initiateBinder()
 		};
 	}
 
-    function clean(csv:string){
+    /**
+     * catch & Transform "1,234,567,890" to 1,234,567,890 to a real number 1234567890 but in a string type
+     * @param the unformated number with double quote
+     * @return string : the number without commas, double quote 
+    */
+    function cleanUnformatedNumbers(str:string):string{
         const regex = /\"((\d)+\,(\d)+)+\"/gm; //Catching "1,234" or even "1,234,567,890"
 
-        return csv.replace(regex, (oc:string) =>{
+        return str.replace(regex, (oc:string) =>{
             return oc.slice(1, oc.length-1).replace(",","") //Transform "1,234,567,890" to 1,234,567,890 to 1234567890 (string)
         })
 
@@ -78,11 +97,11 @@
         }
 
         //Update min date & max date
-        if($jsonElasticDataStore.minDate > headerToDate(tmp_date)) {
-            $jsonElasticDataStore.minDate = headerToDate(tmp_date)
+        if(minDate > headerToDate(tmp_date)) {
+            minDate = headerToDate(tmp_date)
         }
-        if($jsonElasticDataStore.maxDate < headerToDate(headers[headers.length-1])) {
-            $jsonElasticDataStore.maxDate = headerToDate(headers[headers.length-1])
+        if(maxDate < headerToDate(headers[headers.length-1])) {
+            maxDate = headerToDate(headers[headers.length-1])
         }
 
         str.slice(str.indexOf("\n") + 1).split("\n").forEach(line =>{
@@ -90,12 +109,6 @@
                 runner(headers, line)
             }
         })
-
-        //console.info(container)
-
-        /*container.forEach((ob, key, value) => {
-            console.info(JSON.stringify(ob))
-        });*/
     }
 
     function runnerHabilitationHits(headers:string[], line:string):void{
@@ -108,8 +121,8 @@
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel)
 
-        if($jsonElasticDataStore.container.has(clientIdLabel)){
-            clientId = $jsonElasticDataStore.container.get(clientIdLabel) as clientIdElastic
+        if(container.has(clientIdLabel)){
+            clientId = container.get(clientIdLabel) as clientIdElastic
         } 
 
         let pointer:pointer
@@ -127,7 +140,7 @@
             
         }
 
-        $jsonElasticDataStore.container.set(clientIdLabel, clientId)
+        container.set(clientIdLabel, clientId)
     }
 
     function runnerKeyCloackHits(headers:string[], line:string):void{
@@ -143,8 +156,8 @@
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel, instance)
 
-        if($jsonElasticDataStore.container.has(clientIdLabel)){
-            clientId = $jsonElasticDataStore.container.get(clientIdLabel) as clientIdElastic
+        if(container.has(clientIdLabel)){
+            clientId = container.get(clientIdLabel) as clientIdElastic
             clientId.instance = instance //Update for security
         } 
 
@@ -215,7 +228,7 @@
             
         }
 
-        $jsonElasticDataStore.container.set(clientIdLabel, clientId)
+        container.set(clientIdLabel, clientId)
     }
 
     function headerToPointer(header:string):pointer{

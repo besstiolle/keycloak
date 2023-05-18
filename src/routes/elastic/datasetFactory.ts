@@ -3,7 +3,7 @@ import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type datasetAndLimits, ty
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
-export function initiateDataset(store:elasticStore, csvType:CSV_TYPE, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
+export function initiateDatasetFromCsv(store:elasticStore, csvType:CSV_TYPE, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
     let start = store.minDate
     let value:number|null=0
     let tmp_val:number=0
@@ -32,7 +32,12 @@ export function initiateDataset(store:elasticStore, csvType:CSV_TYPE, requestTyp
                         value = readDataOfClientId(clientId._h,start)
                         break;
                     default:
-                        value = readDataOfClientIdByRequestType(clientId, requestType, start)
+                        if(requestType != null){
+                            value = readDataOfClientId(clientId[requestType], start)
+                            //value = readDataOfClientIdByRequestType(clientId, requestType, start)
+                        } else {
+                            throw "requestType can't be null if CSV type is KEYCLOAK"
+                        }
                         break;
                 }
                 if(value !==null){
@@ -122,8 +127,9 @@ export function initiateDataset(store:elasticStore, csvType:CSV_TYPE, requestTyp
     return datasetAndLimits
 }
 
+/*
+function readDataOfClientIdByRequestType(clientId:clientIdElastic, requestType: REQUEST_TYPE, start: Date): number | null {
 
-function readDataOfClientIdByRequestType(clientId:clientIdElastic, requestType: REQUEST_TYPE | null, start: Date): number | null {
     switch(requestType){
         case REQUEST_TYPE.USER_INFO_REQUEST :
             return readDataOfClientId(clientId.USER_INFO_REQUEST, start)
@@ -178,12 +184,12 @@ function readDataOfClientIdByRequestType(clientId:clientIdElastic, requestType: 
             break
     }
     return null
-}
+}*/
 
 
-function readDataOfClientId(arr: number[][][][], date: Date):number|null {
+export function readDataOfClientId(arr: number[][][][], date: Date):number|null {
     let pointer = dateToPointer(date)
-    if( arr[pointer.y] !== undefined 
+    if( arr != undefined && arr[pointer.y] !== undefined 
             && arr[pointer.y][pointer.m] !== undefined
             && arr[pointer.y][pointer.m][pointer.d] !== undefined
             && arr[pointer.y][pointer.m][pointer.d][pointer.h / 3] !== undefined ){
@@ -192,7 +198,7 @@ function readDataOfClientId(arr: number[][][][], date: Date):number|null {
     return null
 }
 
-function dateToPointer(date:Date):pointer{
+export function dateToPointer(date:Date):pointer{
     return {
         y:date.getFullYear(),
         m:date.getMonth()+1,

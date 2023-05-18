@@ -4,7 +4,7 @@
     import { jsonElasticDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import UploadElastic from './UploadElastic.svelte';
-    import { initiateDataset } from './datasetFactory';
+    import { initiateDatasetFromCsv } from './datasetFactory';
 
 	let addAnother = false
 	
@@ -37,10 +37,10 @@
 	}
 
 	function initiateLineHitsAll(){
-		datasetAndLimits1 = initiateDataset($jsonElasticDataStore, CSV_TYPE.STRONGBOX)
-		datasetAndLimits2 = initiateDataset($jsonElasticDataStore, CSV_TYPE.HABILITATION)
-		datasetAndLimits3 = initiateDataset($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.CLIENT_LOGIN)
-		datasetAndLimits4 = initiateDataset($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.LOGIN_ERROR)
+		datasetAndLimits1 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.STRONGBOX)
+		datasetAndLimits2 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.HABILITATION)
+		datasetAndLimits3 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.CLIENT_LOGIN)
+		datasetAndLimits4 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.LOGIN_ERROR)
 	}
 
 	// start scripting

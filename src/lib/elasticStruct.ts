@@ -45,14 +45,14 @@ export interface dataset{
     data:Map<number, number>
 }
 
-export interface clientIdElastic{
+export interface clientIdElastic extends Record<string,any>{
     clientId:string
     instance:string
 
     //DATA array
     _h:number[][][][] //habilitation 
     _s:number[][][][] //strongbox
-
+/*
     //differents type of requests
     USER_INFO_REQUEST:number[][][][],
     LOGIN_ERROR:number[][][][],
@@ -70,5 +70,5 @@ export interface clientIdElastic{
     SEND_VERIFY_EMAIL_ERROR:number[][][][],
     UPDATE_PASSWORD:number[][][][],
     LOGOUT:number[][][][],
-    CUSTOM_REQUIRED_ACTION:number[][][][]
+    CUSTOM_REQUIRED_ACTION:number[][][][]*/
 }
