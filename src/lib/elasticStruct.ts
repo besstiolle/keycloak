@@ -1,7 +1,9 @@
 export enum CSV_TYPE {
-    STRONGBOX,HABILITATION,KEYCLOAK
+    REQUESTS,ERRORS
 }
 export enum REQUEST_TYPE {
+    STRONGBOX='STRONGBOX',
+    HABILITATIONS='HABILITATIONS',
     USER_INFO_REQUEST='USER_INFO_REQUEST',
     LOGIN_ERROR='LOGIN_ERROR',
     CODE_TO_TOKEN='CODE_TO_TOKEN',
@@ -50,10 +52,9 @@ export interface clientIdElastic extends Record<string,any>{
     instance:string
 
     //DATA array
-    _h:number[][][][] //habilitation 
-    _s:number[][][][] //strongbox
-
-    //differents type of requests
+    HABILITATIONS:number[][][][] //habilitation 
+    STRONGBOX:number[][][][] //strongbox
+    //other differents type of requests
     USER_INFO_REQUEST:number[][][][],
     LOGIN_ERROR:number[][][][],
     CODE_TO_TOKEN:number[][][][],

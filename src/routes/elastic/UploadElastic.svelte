@@ -33,11 +33,11 @@
             //Expurge string like "12,012" to real number like 12012
             csv = cleanUnformatedNumbers(csv)
    
-            let currentType = CSV_TYPE.KEYCLOAK
-            if(jsonFile.name.indexOf('_api_strongbox') !== -1) {
-                currentType = CSV_TYPE.STRONGBOX
-            } else if(jsonFile.name.indexOf('_api_habilitation') !== -1) {
-                currentType = CSV_TYPE.HABILITATION
+            let currentType = CSV_TYPE.REQUESTS
+            if(jsonFile.name.indexOf('LOGIN_ERROR') !== -1) {
+                currentType = CSV_TYPE.ERRORS
+            } else if(jsonFile.name.indexOf('code erreur') !== -1) {
+                currentType = CSV_TYPE.ERRORS
             } 
             
             csvToContainer(csv, currentType)
@@ -68,6 +68,56 @@
 
     }
 
+    function csvToContainer(str:string , type:CSV_TYPE, delimiter:string = ","): void{
+
+        
+        let runner:Function
+        switch(type){
+            //TODO
+            //case CSV_TYPE.ERRORS:
+//
+            //    break
+            default:
+                runner = runnerKeyCloackHits
+                
+                break;
+        }
+
+        //Fix for files habilitations & strongbox
+        let mustAddInstance = type === CSV_TYPE.REQUESTS && !str.startsWith('Instance')
+        if(mustAddInstance){
+            str = 'Instance,' + str
+            //console.info("must add")
+        }
+
+        const headersStr = str.slice(0, str.indexOf("\n"))
+        const headers:string[] = headersStr.split(delimiter)
+
+        //Update min date & max date
+        let tmp_date:string = headers[3] //TODO fix case of CSV ERROR
+        if(type === CSV_TYPE.REQUESTS){
+            tmp_date = headers[3]
+        }
+        if(minDate > headerToDate(tmp_date)) {
+            minDate = headerToDate(tmp_date)
+        }
+        if(maxDate < headerToDate(headers[headers.length-1])) {
+            maxDate = headerToDate(headers[headers.length-1])
+        }
+
+
+        str.slice(str.indexOf("\r\n") + 1).split("\r\n").forEach(line =>{
+            if(line.length > 2){
+                //Fix for files habilitations & strongbox
+                if(mustAddInstance){
+                    line = "keycloak-interne," + line
+                }
+                //console.info(headers, line)
+                runner(headers, line)
+            }
+        })
+    }
+
     /**
      * Transform csv header to a proper date
      * @param str
@@ -76,78 +126,11 @@
         return new Date(str.substring(1,17))
     }
 
-    function csvToContainer(str:string , type:CSV_TYPE, delimiter:string = ","): void{
-
-        const headersStr = str.slice(0, str.indexOf("\n"))
-        const headers:string[] = headersStr.split(delimiter)
-        
-        let runner:Function
-        let tmp_date:string
-        switch(type){
-            case CSV_TYPE.HABILITATION:
-                runner = runnerHabilitationHits
-                tmp_date = headers[1]
-                break
-            case CSV_TYPE.STRONGBOX:
-                runner = runnerStrongboxHits
-                tmp_date = headers[1]
-                break;
-            default:
-                runner = runnerKeyCloackHits
-                tmp_date = headers[3]
-                break;
-        }
-
-        //Update min date & max date
-        if(minDate > headerToDate(tmp_date)) {
-            minDate = headerToDate(tmp_date)
-        }
-        if(maxDate < headerToDate(headers[headers.length-1])) {
-            maxDate = headerToDate(headers[headers.length-1])
-        }
-
-        str.slice(str.indexOf("\r\n") + 1).split("\r\n").forEach(line =>{
-            if(line.length > 2){
-                runner(headers, line)
-            }
-        })
-    }
-
-    function runnerHabilitationHits(headers:string[], line:string):void{
-        runnerStrongboxHits(headers, line, CSV_TYPE.HABILITATION)
-    }
-
-    function runnerStrongboxHits(headers:string[], line:string, type:CSV_TYPE=CSV_TYPE.STRONGBOX):void{
-        let elts:string[] = line.split(',')        
-        let clientIdLabel=elts[0].replaceAll("\"","")
-
-        let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel)
-
-        if(container.has(clientIdLabel)){
-            clientId = container.get(clientIdLabel) as clientIdElastic
-        } 
-
-        for(let i=1; i<elts.length; i++){
-            if(elts[i] === ''){
-                continue
-            }
-
-            if(type === CSV_TYPE.STRONGBOX){
-                clientId._s = writeDataInMatrix(clientId._s, headerToDate(headers[i]), parseInt(elts[i]))
-            } else {
-                clientId._h = writeDataInMatrix(clientId._h, headerToDate(headers[i]), parseInt(elts[i]))
-            }
-            
-        }
-
-        container.set(clientIdLabel, clientId)
-    }
-
     function runnerKeyCloackHits(headers:string[], line:string):void{
         let elts:string[] = line.split(',')
         let instance=elts[0].replaceAll("\"","")
         let clientIdLabel=elts[1].replaceAll("\"","")
-        let requestType=elts[2].replaceAll("\"","")
+        let requestType=elts[2].replaceAll("\"","").toUpperCase()
 
         //TODO implements more controls
        // if(Object.values(REQUEST_TYPE).indexOf(requestType) == -1){
@@ -167,6 +150,7 @@
             }
 
             if(elts[i].trim() !== ''){
+                //console.info(clientIdLabel, elts[i], headers[i])
                 clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))
             }           
             

@@ -8,7 +8,7 @@ interface locaStorageValue extends Record<string,string> { //could be extends Re
 }
 
 export function toJson(store:elasticStore):string{
-   // console.info("toJson")
+    //console.info("toJson")
 
     let lsValue:locaStorageValue
     let allClientId:locaStorageValue[] = []
@@ -20,17 +20,6 @@ export function toJson(store:elasticStore):string{
             clientId:clientIdElastic.clientId,
             instance:clientIdElastic.instance
         }
-
-        tmp_str = reduceArray(clientIdElastic._s, store.minDate, store.maxDate)
-        if(tmp_str !== ''){
-            lsValue['_s'] = tmp_str
-        }
-        
-        tmp_str = reduceArray(clientIdElastic._h, store.minDate, store.maxDate)
-        if(tmp_str !== ''){
-            lsValue["_h"] = tmp_str
-        }
-        
 
         for(const requestType in REQUEST_TYPE){
             tmp_str = reduceArray(clientIdElastic[requestType], store.minDate, store.maxDate)
@@ -88,11 +77,8 @@ export function fromJsonMixedObject(json:any):elasticStore{
 
         tmp_clientIdElastic = emptyClientIdElastic(lsValue.clientId, lsValue.instance)
 
-        tmp_clientIdElastic._s = inflateArray(lsValue._s, minDate, maxDate, "_s for " + lsValue.clientId)
-        tmp_clientIdElastic._h = inflateArray(lsValue._h, minDate, maxDate, "_h for " + lsValue.clientId)
-
         for(const requestType in REQUEST_TYPE){
-            tmp_clientIdElastic[requestType] = inflateArray(lsValue[requestType], minDate, maxDate, requestType + " for " + lsValue.clientId)
+            tmp_clientIdElastic[requestType] = inflateArray(lsValue[requestType], minDate, maxDate)
         }
 
         container.set(tmp_clientIdElastic.clientId, tmp_clientIdElastic)
@@ -107,7 +93,7 @@ export function fromJsonMixedObject(json:any):elasticStore{
     return elasticStore
 }
 
-function inflateArray(str: string, minDate:Date, maxDate:Date, debug:string): number[][][][] {
+function inflateArray(str: string, minDate:Date, maxDate:Date): number[][][][] {
     
     let matrix:number[][][][] = []
     if(str === undefined){

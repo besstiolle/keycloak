@@ -39,10 +39,10 @@
 
 	function initiateLineHitsAll(){
 		//console.info("initiateLineHitsAll >", $jsonElasticDataStore)
-		datasetAndLimits1 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.STRONGBOX)
-		datasetAndLimits2 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.HABILITATION)
-		datasetAndLimits3 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.CLIENT_LOGIN)
-		datasetAndLimits4 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.LOGIN_ERROR)
+		datasetAndLimits1 = initiateDatasetFromStore($jsonElasticDataStore, REQUEST_TYPE.STRONGBOX)
+		datasetAndLimits2 = initiateDatasetFromStore($jsonElasticDataStore, REQUEST_TYPE.HABILITATIONS)
+		datasetAndLimits3 = initiateDatasetFromStore($jsonElasticDataStore, REQUEST_TYPE.CLIENT_LOGIN)
+		datasetAndLimits4 = initiateDatasetFromStore($jsonElasticDataStore, REQUEST_TYPE.LOGIN_ERROR)
 	}
 
 	// start scripting

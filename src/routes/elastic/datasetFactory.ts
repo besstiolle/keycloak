@@ -1,10 +1,10 @@
 
-import { CSV_TYPE, REQUEST_TYPE, type datasetAndLimits, type elasticStore, type pointer } from '$lib/elasticStruct';
+import type { REQUEST_TYPE, datasetAndLimits, elasticStore } from '$lib/elasticStruct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
-export function initiateDatasetFromStore(store:elasticStore, csvType:CSV_TYPE, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
+export function initiateDatasetFromStore(store:elasticStore, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
     //console.info("initiateDatasetFromStore")
     let start = store.minDate
     let value:number|null=0
@@ -25,20 +25,10 @@ export function initiateDatasetFromStore(store:elasticStore, csvType:CSV_TYPE, r
             for(let i=0; i < 8;i++){
                 start.setHours(i*3)
                 value = 0
-                switch(csvType){
-                    case CSV_TYPE.STRONGBOX:
-                        value = readDataOfMatrix(clientId._s,start)
-                        break
-                    case CSV_TYPE.HABILITATION:
-                        value = readDataOfMatrix(clientId._h,start)
-                        break;
-                    default:
-                        if(requestType != null){
-                            value = readDataOfMatrix(clientId[requestType], start)
-                        } else {
-                            throw "requestType can't be null if CSV type is KEYCLOAK"
-                        }
-                        break;
+                if(requestType != null){
+                    value = readDataOfMatrix(clientId[requestType], start)
+                } else {
+                    throw "requestType can't be null if CSV type is KEYCLOAK"
                 }
                 if(value !==null){
                     sumOfDay+= value

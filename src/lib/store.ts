@@ -60,7 +60,6 @@ if(isBrowser){
 function toB64Compressed(elasticStore:elasticStore):string{
     //console.info("value avant JSON", elasticStore)
 
-    //console.info(value.container.get("sdo-courtiergoi-gateway")?._s[2023][4][11])
 
     const json = toJson(elasticStore)
     //console.info("json : ", json)
