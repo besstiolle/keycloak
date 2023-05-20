@@ -7,11 +7,17 @@ interface locaStorageValue extends Record<string,string> { //could be extends Re
         instance:string
 }
 
+interface localStorageError{
+    type:string,
+    data:string
+}
+
 export function toJson(store:elasticStore):string{
     //console.info("toJson")
 
     let lsValue:locaStorageValue
     let allClientId:locaStorageValue[] = []
+    let allErrors:localStorageError[] = []
     let tmp_str:string
 
     store.container.forEach((clientIdElastic,key) => {
@@ -31,10 +37,22 @@ export function toJson(store:elasticStore):string{
         allClientId.push(lsValue)
     })
 
+    store.errors.forEach((error, key) => {
+        tmp_str = reduceArray(error, store.minDate, store.maxDate)
+        if(tmp_str !== ''){
+            allErrors.push({
+                type: key,
+                data: tmp_str
+            })
+        }   
+
+    })
+
     let json =  JSON.stringify({
         container: allClientId,
         minDate: store.minDate,
-        maxDate: store.maxDate
+        maxDate: store.maxDate,
+        errors : allErrors
     })
 
     return json
@@ -69,6 +87,7 @@ function reduceArray(arr:number[][][][], minDate:Date, maxDate:Date):string{
 
 export function fromJsonMixedObject(json:any):elasticStore{
     let container = new Map<string,clientIdElastic>()
+    let errors = new Map<string,number[][][][]>()
     let tmp_clientIdElastic:clientIdElastic
     let minDate = new Date(json['minDate'])
     let maxDate = new Date(json['maxDate'])
@@ -83,12 +102,16 @@ export function fromJsonMixedObject(json:any):elasticStore{
 
         container.set(tmp_clientIdElastic.clientId, tmp_clientIdElastic)
     })
-
+    
+    json['errors'].forEach((lsValue:localStorageError) => {
+        errors.set(lsValue.type, inflateArray(lsValue.data, minDate, maxDate))
+    })
 
     let elasticStore:elasticStore = {
         minDate: minDate,
         maxDate: maxDate,
-        container: container
+        container: container,
+        errors:errors
     }
     return elasticStore
 }

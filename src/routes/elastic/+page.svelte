@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { CSV_TYPE, REQUEST_TYPE, type datasetAndLimits } from '$lib/elasticStruct';
+    import { REQUEST_TYPE, type datasetAndLimits } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import UploadElastic from './UploadElastic.svelte';

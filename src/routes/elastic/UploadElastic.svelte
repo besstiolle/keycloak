@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { CSV_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
+    import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
     import { emptyClientIdElastic } from './clientIdElasticFactory';
+    import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
     import { writeDataInMatrix } from './matrixUtils';
+    import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function
 
@@ -10,6 +12,8 @@
     let minDate:Date = new Date("2099-01-01 00:00")
     let maxDate:Date = new Date("2000-01-01 00:00")
     let container:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
+    let errors:Map<string,number[][][][]> = new Map<string,number[][][][]>()
+    let RC:string
 
 
 	const invite:string = 'Choose a Elastic exported CSV file'
@@ -30,6 +34,9 @@
             
             let csv = e.target?.result as string
 
+            //Detect return chariot type windows or unix
+            RC = isLN(csv) ? LN : RCLN
+
             //Expurge string like "12,012" to real number like 12012
             csv = cleanUnformatedNumbers(csv)
    
@@ -45,7 +52,8 @@
             let elasticStoreCloned:elasticStore = {
                 minDate: minDate,
                 maxDate: maxDate,
-                container: container
+                container: container,
+                errors: errors
             }
 
             $jsonElasticDataStore = elasticStoreCloned
@@ -54,50 +62,31 @@
 		};
 	}
 
-    /**
-     * catch & Transform "1,234,567,890" to 1,234,567,890 to a real number 1234567890 but in a string type
-     * @param the unformated number with double quote
-     * @return string : the number without commas, double quote 
-    */
-    function cleanUnformatedNumbers(str:string):string{
-        const regex = /\"((\d)+\,(\d)+)+\"/gm; //Catching "1,234" or even "1,234,567,890"
-
-        return str.replace(regex, (oc:string) =>{
-            return oc.slice(1, oc.length-1).replace(",","") //Transform "1,234,567,890" to 1,234,567,890 to 1234567890 (string)
-        })
-
-    }
-
-    function csvToContainer(str:string , type:CSV_TYPE, delimiter:string = ","): void{
-
-        
-        let runner:Function
-        switch(type){
-            //TODO
-            //case CSV_TYPE.ERRORS:
-//
-            //    break
-            default:
-                runner = runnerKeyCloackHits
-                
-                break;
-        }
+    function csvToContainer(csvContent:string , type:CSV_TYPE, delimiter:string = COMMA): void{
 
         //Fix for files habilitations & strongbox
-        let mustAddInstance = type === CSV_TYPE.REQUESTS && !str.startsWith('Instance')
+        let mustAddInstance = type === CSV_TYPE.REQUESTS && !csvContent.startsWith('Instance')
         if(mustAddInstance){
-            str = 'Instance,' + str
-            //console.info("must add")
+            csvContent = 'Instance,' + csvContent
         }
 
-        const headersStr = str.slice(0, str.indexOf("\n"))
+        const headersStr = csvContent.slice(0, csvContent.indexOf(RC))
         const headers:string[] = headersStr.split(delimiter)
 
         //Update min date & max date
-        let tmp_date:string = headers[3] //TODO fix case of CSV ERROR
+        let tmp_date:string
+        let runner:Function
         if(type === CSV_TYPE.REQUESTS){
             tmp_date = headers[3]
+            runner = runnerKeyCloackHits
+        } else if(type === CSV_TYPE.ERRORS){
+            tmp_date = headers[1]
+            runner = runnerErrorsHits
+        } else {
+            throw new Error('case not implemented for type', type);
         }
+
+        //Updating current min/max date of the processus
         if(minDate > headerToDate(tmp_date)) {
             minDate = headerToDate(tmp_date)
         }
@@ -106,36 +95,47 @@
         }
 
 
-        str.slice(str.indexOf("\r\n") + 1).split("\r\n").forEach(line =>{
+        csvContent.slice(csvContent.indexOf(RC) + 1).split(RC).forEach(line =>{
             if(line.length > 2){
-                //Fix for files habilitations & strongbox
+                //Mandatory fix for files habilitations & strongbox
                 if(mustAddInstance){
                     line = "keycloak-interne," + line
                 }
-                //console.info(headers, line)
                 runner(headers, line)
             }
         })
     }
 
-    /**
-     * Transform csv header to a proper date
-     * @param str
-     */
-    function headerToDate(str:string){
-        return new Date(str.substring(1,17))
+    function runnerErrorsHits(headers:string[], line:string):void{
+        let elts:string[] = line.split(COMMA)
+        let errorType=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let arr:number[][][][] = []
+
+        if(!errors.has(errorType)){
+            errors.set(errorType, arr)
+        } 
+
+        for(let i=1; i<elts.length; i++){
+            if(elts[i].trim() === EMPTY_STRING){
+                continue
+            }
+            arr = errors.get(errorType) as  number[][][][]
+            errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
+        }
+
     }
 
     function runnerKeyCloackHits(headers:string[], line:string):void{
-        let elts:string[] = line.split(',')
-        let instance=elts[0].replaceAll("\"","")
-        let clientIdLabel=elts[1].replaceAll("\"","")
-        let requestType=elts[2].replaceAll("\"","").toUpperCase()
+        let elts:string[] = line.split(COMMA)
+        let instance=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let clientIdLabel=elts[1].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let requestType=elts[2].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim().toUpperCase()
 
-        //TODO implements more controls
-       // if(Object.values(REQUEST_TYPE).indexOf(requestType) == -1){
-       //     throw requestType + " is an unknown request type. Please update interface clientIdElastic in elasticStruct.ts"
-       // }
+        //Strict control to avoid unwanted data inside our container
+        if(!(requestType in REQUEST_TYPE)){
+            console.error("requestType is unknown", requestType)
+            throw Error("requestType is unknown")
+        }
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel, instance)
 
@@ -145,20 +145,14 @@
         } 
 
         for(let i=3; i<elts.length; i++){
-            if(elts[i] === ""){
+            if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-
-            if(elts[i].trim() !== ''){
-                //console.info(clientIdLabel, elts[i], headers[i])
-                clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))
-            }           
-            
+            clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))           
         }
 
         container.set(clientIdLabel, clientId)
     }
-
 </script>
 
 

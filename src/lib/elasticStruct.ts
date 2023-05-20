@@ -20,13 +20,16 @@ export enum REQUEST_TYPE {
     SEND_VERIFY_EMAIL_ERROR='SEND_VERIFY_EMAIL_ERROR',
     UPDATE_PASSWORD='UPDATE_PASSWORD',
     LOGOUT='LOGOUT',
-    CUSTOM_REQUIRED_ACTION='CUSTOM_REQUIRED_ACTION'
+    CUSTOM_REQUIRED_ACTION='CUSTOM_REQUIRED_ACTION',
+    VERIFY_EMAIL_ERROR='VERIFY_EMAIL_ERROR', //update 20 mai 2023
+    SEND_RESET_PASSWORD='SEND_RESET_PASSWORD' //update 20 mai 2023
 }
 
 export interface elasticStore{
     minDate:Date,
     maxDate:Date,
-    container:Map<string, clientIdElastic>
+    container:Map<string, clientIdElastic>,
+    errors:Map<string, number[][][][]>
 }
 
 export interface pointer{
@@ -71,5 +74,7 @@ export interface clientIdElastic extends Record<string,any>{
     SEND_VERIFY_EMAIL_ERROR:number[][][][],
     UPDATE_PASSWORD:number[][][][],
     LOGOUT:number[][][][],
-    CUSTOM_REQUIRED_ACTION:number[][][][]
+    CUSTOM_REQUIRED_ACTION:number[][][][],
+    VERIFY_EMAIL_ERROR:number[][][][],
+    SEND_RESET_PASSWORD:number[][][][],
 }
