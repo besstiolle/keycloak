@@ -3,20 +3,17 @@ import type { clientIdElastic, elasticStore } from "./elasticStruct";
 
 import pako from 'pako';
 import * as base64 from "byte-base64";
-import { ElasticStoreFromJson as ElasticStoreFromJsonObject, ElasticStoreToJson as elasticStoreToJson } from "../routes/elastic/jsonParser";
+import { fromJsonMixedObject, toJson } from "../routes/elastic/jsonParser";
+import { getEmptyElasticStore } from "../routes/elastic/elasticStoreFactory";
 
 const isBrowser = typeof window !== 'undefined'
 
 let storedJsonData:string = ''
 let storedHashNodeJsonData:string = ''
 let storedConfigJsonData:string = ''
-let storedElasticJsonData:elasticStore = {
-    minDate:new Date("2099-01-01"),
-    maxDate:new Date("2000-01-01"),
-    container:new Map<string, clientIdElastic>()
-}
+let storedElasticJsonData:elasticStore = getEmptyElasticStore()
 
-if(isBrowser){
+if(isBrowser){/*
     let valueFromLocalStorage = localStorage.getItem("jsonData")
     if(valueFromLocalStorage){
         storedJsonData = valueFromLocalStorage
@@ -30,16 +27,20 @@ if(isBrowser){
     valueFromLocalStorage = localStorage.getItem("jsonConfigData")
     if(valueFromLocalStorage){
         storedConfigJsonData = valueFromLocalStorage
-    }
+    }*/
 
-    valueFromLocalStorage = localStorage.getItem("jsonElasticData")
+    storedJsonData = localStorage.getItem("jsonData") || '';
+    storedHashNodeJsonData = localStorage.getItem("jsonHashNodeData") || '';
+    storedConfigJsonData = localStorage.getItem("jsonConfigData") || '';
+
+    let valueFromLocalStorage = localStorage.getItem("jsonElasticData")
     if(valueFromLocalStorage){
-        const returned = base64.base64ToBytes(valueFromLocalStorage)
+        /*const returned = base64.base64ToBytes(valueFromLocalStorage)
         const restored:object = JSON.parse(pako.inflate(returned, { to: 'string' }));
-        //console.info(restored)  
-        let elasticStore:elasticStore = ElasticStoreFromJsonObject(restored)
-        //console.info(elasticStore)
-        //storedElasticJsonData = elasticStore 
+        console.info(restored)  
+        let elasticStore:elasticStore = ElasticStoreFromJsonObject(restored)*/
+        let elasticStore:elasticStore = fromJsonMixedObject(JSON.parse(valueFromLocalStorage))
+        storedElasticJsonData = elasticStore 
         //FIXME
     }
 }
@@ -56,14 +57,17 @@ if(isBrowser){
     jsonElasticDataStore.subscribe(value => {localStorage.setItem("jsonElasticData", toB64Compressed(value))})
 }
 
-function toB64Compressed(value:elasticStore):string{
-    //console.info(value)
-    const json = elasticStoreToJson(value)
-    //console.info(json)
-    const compressed = pako.deflate(json, { level: 9})
-    const b64 = base64.bytesToBase64(compressed)
-    //console.info(b64.length)
-    return b64
+function toB64Compressed(elasticStore:elasticStore):string{
+    //console.info("value avant JSON", elasticStore)
+
+    //console.info(value.container.get("sdo-courtiergoi-gateway")?._s[2023][4][11])
+
+    const json = toJson(elasticStore)
+    //console.info("json : ", json)
+    //const compressed = pako.deflate(json, { level: 9})
+    //const b64 = base64.bytesToBase64(compressed)
+    //return b64
+    return json
 }
 
 

@@ -1,10 +1,11 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { CSV_TYPE, REQUEST_TYPE, type dataset, type datasetAndLimits } from '$lib/elasticStruct';
+    import { CSV_TYPE, REQUEST_TYPE, type datasetAndLimits } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import UploadElastic from './UploadElastic.svelte';
-    import { initiateDatasetFromCsv } from './datasetFactory';
+    import { initiateDatasetFromStore } from './datasetFactory';
+    import { getEmptyElasticStore } from './elasticStoreFactory';
 
 	let addAnother = false
 	
@@ -37,10 +38,11 @@
 	}
 
 	function initiateLineHitsAll(){
-		datasetAndLimits1 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.STRONGBOX)
-		datasetAndLimits2 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.HABILITATION)
-		datasetAndLimits3 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.CLIENT_LOGIN)
-		datasetAndLimits4 = initiateDatasetFromCsv($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.LOGIN_ERROR)
+		//console.info("initiateLineHitsAll >", $jsonElasticDataStore)
+		datasetAndLimits1 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.STRONGBOX)
+		datasetAndLimits2 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.HABILITATION)
+		datasetAndLimits3 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.CLIENT_LOGIN)
+		datasetAndLimits4 = initiateDatasetFromStore($jsonElasticDataStore, CSV_TYPE.KEYCLOAK, REQUEST_TYPE.LOGIN_ERROR)
 	}
 
 	// start scripting
@@ -64,6 +66,7 @@
 <side>
 	<h2>Options</h2>
 	<button class='myButton' on:click="{() => {addAnother = true}}">add Data</button>
+	<button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button>
 </side>
 <data>
 	<div class="chart-container">

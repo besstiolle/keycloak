@@ -1,9 +1,11 @@
 
-import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type datasetAndLimits, type elasticStore, type pointer } from '$lib/elasticStruct';
+import { CSV_TYPE, REQUEST_TYPE, type datasetAndLimits, type elasticStore, type pointer } from '$lib/elasticStruct';
+import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
-export function initiateDatasetFromCsv(store:elasticStore, csvType:CSV_TYPE, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
+export function initiateDatasetFromStore(store:elasticStore, csvType:CSV_TYPE, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
+    //console.info("initiateDatasetFromStore")
     let start = store.minDate
     let value:number|null=0
     let tmp_val:number=0
@@ -17,7 +19,6 @@ export function initiateDatasetFromCsv(store:elasticStore, csvType:CSV_TYPE, req
     let avgByDayOfWeek = new Map<number, number>()
 
     store.container.forEach(clientId => {
-        
         start = new Date(store.minDate)
         while (start <= store.maxDate){
             sumOfDay=0
@@ -26,15 +27,14 @@ export function initiateDatasetFromCsv(store:elasticStore, csvType:CSV_TYPE, req
                 value = 0
                 switch(csvType){
                     case CSV_TYPE.STRONGBOX:
-                        value = readDataOfClientId(clientId._s,start)
+                        value = readDataOfMatrix(clientId._s,start)
                         break
                     case CSV_TYPE.HABILITATION:
-                        value = readDataOfClientId(clientId._h,start)
+                        value = readDataOfMatrix(clientId._h,start)
                         break;
                     default:
                         if(requestType != null){
-                            value = readDataOfClientId(clientId[requestType], start)
-                            //value = readDataOfClientIdByRequestType(clientId, requestType, start)
+                            value = readDataOfMatrix(clientId[requestType], start)
                         } else {
                             throw "requestType can't be null if CSV type is KEYCLOAK"
                         }
@@ -125,84 +125,4 @@ export function initiateDatasetFromCsv(store:elasticStore, csvType:CSV_TYPE, req
     }
 
     return datasetAndLimits
-}
-
-/*
-function readDataOfClientIdByRequestType(clientId:clientIdElastic, requestType: REQUEST_TYPE, start: Date): number | null {
-
-    switch(requestType){
-        case REQUEST_TYPE.USER_INFO_REQUEST :
-            return readDataOfClientId(clientId.USER_INFO_REQUEST, start)
-            break
-        case REQUEST_TYPE.LOGIN_ERROR :
-            return readDataOfClientId(clientId.LOGIN_ERROR, start)
-            break
-        case REQUEST_TYPE.CODE_TO_TOKEN :
-            return readDataOfClientId(clientId.CODE_TO_TOKEN, start)
-            break
-        case REQUEST_TYPE.LOGIN :
-            return readDataOfClientId(clientId.LOGIN, start)
-            break
-        case REQUEST_TYPE.REFRESH_TOKEN :
-            return readDataOfClientId(clientId.REFRESH_TOKEN, start)
-            break
-        case REQUEST_TYPE.CLIENT_LOGIN :
-            return readDataOfClientId(clientId.CLIENT_LOGIN, start)
-            break
-        case REQUEST_TYPE.RESET_PASSWORD_ERROR :
-            return readDataOfClientId(clientId.RESET_PASSWORD_ERROR, start)
-            break
-        case REQUEST_TYPE.TOKEN_EXCHANGE :
-            return readDataOfClientId(clientId.TOKEN_EXCHANGE, start)
-            break
-        case REQUEST_TYPE.UPDATE_PROFILE :
-            return readDataOfClientId(clientId.UPDATE_PROFILE, start)
-            break
-        case REQUEST_TYPE.REFRESH_TOKEN_ERROR :
-            return readDataOfClientId(clientId.REFRESH_TOKEN_ERROR, start)
-            break
-        case REQUEST_TYPE.CUSTOM_REQUIRED_ACTION_ERROR :
-            return readDataOfClientId(clientId.CUSTOM_REQUIRED_ACTION_ERROR, start)
-            break
-        case REQUEST_TYPE.CODE_TO_TOKEN_ERROR :
-            return readDataOfClientId(clientId.CODE_TO_TOKEN_ERROR, start)
-            break
-        case REQUEST_TYPE.SEND_RESET_PASSWORD_ERROR :
-            return readDataOfClientId(clientId.SEND_RESET_PASSWORD_ERROR, start)
-            break
-        case REQUEST_TYPE.SEND_VERIFY_EMAIL_ERROR :
-            return readDataOfClientId(clientId.SEND_VERIFY_EMAIL_ERROR, start)
-            break
-        case REQUEST_TYPE.UPDATE_PASSWORD :
-            return readDataOfClientId(clientId.UPDATE_PASSWORD, start)
-            break
-        case REQUEST_TYPE.LOGOUT :
-            return readDataOfClientId(clientId.LOGOUT, start)
-            break
-        case REQUEST_TYPE.CUSTOM_REQUIRED_ACTION :
-            return readDataOfClientId(clientId.CUSTOM_REQUIRED_ACTION, start)
-            break
-    }
-    return null
-}*/
-
-
-export function readDataOfClientId(arr: number[][][][], date: Date):number|null {
-    let pointer = dateToPointer(date)
-    if( arr != undefined && arr[pointer.y] !== undefined 
-            && arr[pointer.y][pointer.m] !== undefined
-            && arr[pointer.y][pointer.m][pointer.d] !== undefined
-            && arr[pointer.y][pointer.m][pointer.d][pointer.h / 3] !== undefined ){
-        return arr[pointer.y][pointer.m][pointer.d][pointer.h / 3]
-    }
-    return null
-}
-
-export function dateToPointer(date:Date):pointer{
-    return {
-        y:date.getFullYear(),
-        m:date.getMonth()+1,
-        d:date.getDate(),
-        h:date.getHours(),
-    }
 }

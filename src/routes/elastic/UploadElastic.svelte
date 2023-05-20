@@ -1,6 +1,8 @@
 <script lang="ts">
-    import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore, type pointer } from '$lib/elasticStruct';
+    import { CSV_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
+    import { emptyClientIdElastic } from './clientIdElasticFactory';
+    import { writeDataInMatrix } from './matrixUtils';
 
     export let initiateBinder:Function
 
@@ -104,7 +106,7 @@
             maxDate = headerToDate(headers[headers.length-1])
         }
 
-        str.slice(str.indexOf("\n") + 1).split("\n").forEach(line =>{
+        str.slice(str.indexOf("\r\n") + 1).split("\r\n").forEach(line =>{
             if(line.length > 2){
                 runner(headers, line)
             }
@@ -116,7 +118,7 @@
     }
 
     function runnerStrongboxHits(headers:string[], line:string, type:CSV_TYPE=CSV_TYPE.STRONGBOX):void{
-        let elts:string[] = line.split(',')
+        let elts:string[] = line.split(',')        
         let clientIdLabel=elts[0].replaceAll("\"","")
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel)
@@ -125,17 +127,15 @@
             clientId = container.get(clientIdLabel) as clientIdElastic
         } 
 
-        let pointer:pointer
         for(let i=1; i<elts.length; i++){
-            if(elts[i] === ""){
+            if(elts[i] === ''){
                 continue
             }
 
-            pointer = headerToPointer(headers[i])
             if(type === CSV_TYPE.STRONGBOX){
-                clientId._s = _set(clientId._s, pointer, elts[i])
+                clientId._s = writeDataInMatrix(clientId._s, headerToDate(headers[i]), parseInt(elts[i]))
             } else {
-                clientId._h = _set(clientId._h, pointer, elts[i])
+                clientId._h = writeDataInMatrix(clientId._h, headerToDate(headers[i]), parseInt(elts[i]))
             }
             
         }
@@ -161,128 +161,18 @@
             clientId.instance = instance //Update for security
         } 
 
-        let pointer:pointer
         for(let i=3; i<elts.length; i++){
             if(elts[i] === ""){
                 continue
             }
 
-            pointer = headerToPointer(headers[i]);
-            //TODO find a way to be more agnostic
-            //(clientId[requestType] as number[][][][]) = []
-            //clientId[requestType] = _set(clientId[requestType], pointer, elts[i])    
-
-            switch(requestType){
-                case REQUEST_TYPE.USER_INFO_REQUEST :
-                    clientId.USER_INFO_REQUEST = _set(clientId.USER_INFO_REQUEST, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.LOGIN_ERROR :
-                    clientId.LOGIN_ERROR = _set(clientId.LOGIN_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.CODE_TO_TOKEN :
-                    clientId[requestType] = _set(clientId[requestType], pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.LOGIN :
-                    clientId.LOGIN = _set(clientId.LOGIN, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.REFRESH_TOKEN :
-                    clientId.REFRESH_TOKEN = _set(clientId.REFRESH_TOKEN, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.CLIENT_LOGIN :
-                    clientId.CLIENT_LOGIN = _set(clientId.CLIENT_LOGIN, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.RESET_PASSWORD_ERROR :
-                    clientId.RESET_PASSWORD_ERROR = _set(clientId.RESET_PASSWORD_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.TOKEN_EXCHANGE :
-                    clientId.TOKEN_EXCHANGE = _set(clientId.TOKEN_EXCHANGE, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.UPDATE_PROFILE :
-                    clientId.UPDATE_PROFILE = _set(clientId.UPDATE_PROFILE, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.REFRESH_TOKEN_ERROR :
-                    clientId.REFRESH_TOKEN_ERROR = _set(clientId.REFRESH_TOKEN_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.CUSTOM_REQUIRED_ACTION_ERROR :
-                    clientId.CUSTOM_REQUIRED_ACTION_ERROR = _set(clientId.CUSTOM_REQUIRED_ACTION_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.CODE_TO_TOKEN_ERROR :
-                    clientId.CODE_TO_TOKEN_ERROR = _set(clientId.CODE_TO_TOKEN_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.SEND_RESET_PASSWORD_ERROR :
-                    clientId.SEND_RESET_PASSWORD_ERROR = _set(clientId.SEND_RESET_PASSWORD_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.SEND_VERIFY_EMAIL_ERROR :
-                    clientId.SEND_VERIFY_EMAIL_ERROR = _set(clientId.SEND_VERIFY_EMAIL_ERROR, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.UPDATE_PASSWORD :
-                    clientId.UPDATE_PASSWORD = _set(clientId.UPDATE_PASSWORD, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.LOGOUT :
-                    clientId.LOGOUT = _set(clientId.LOGOUT, pointer, elts[i])    
-                    break
-                case REQUEST_TYPE.CUSTOM_REQUIRED_ACTION :
-                    clientId.CUSTOM_REQUIRED_ACTION = _set(clientId.CUSTOM_REQUIRED_ACTION, pointer, elts[i])    
-                    break
-            }
+            if(elts[i].trim() !== ''){
+                clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))
+            }           
             
         }
 
         container.set(clientIdLabel, clientId)
-    }
-
-    function headerToPointer(header:string):pointer{
-        return {
-            y:parseInt(header.substring(1,5)),
-            m:parseInt(header.substring(6,8)),
-            d:parseInt(header.substring(9,11)),
-            h:parseInt(header.substring(12,14))/3,
-        }
-    }
-
-    function _set(s:number[][][][], pointer:pointer, elt:string){
-
-        if(elt.trim() === ''){
-            return s
-        }
-
-        if(s[pointer.y] === undefined){
-            s[pointer.y] = []
-        }
-        if(s[pointer.y][pointer.m] === undefined){
-            s[pointer.y][pointer.m] = []
-        }
-        if(s[pointer.y][pointer.m][pointer.d] === undefined){
-            s[pointer.y][pointer.m][pointer.d] = []
-        }
-        s[pointer.y][pointer.m][pointer.d][pointer.h] = parseInt(elt)
-        return s
-    }
-
-    function emptyClientIdElastic(label:string, instance:string = "unknown"):clientIdElastic{
-        return {
-            clientId:label,
-            instance:instance,
-            _h:[],
-            _s:[],
-            USER_INFO_REQUEST:[],
-            LOGIN_ERROR:[],
-            CODE_TO_TOKEN:[],
-            LOGIN:[],
-            REFRESH_TOKEN:[],
-            CLIENT_LOGIN:[],
-            RESET_PASSWORD_ERROR:[],
-            TOKEN_EXCHANGE:[],
-            UPDATE_PROFILE:[],
-            REFRESH_TOKEN_ERROR:[],
-            CUSTOM_REQUIRED_ACTION_ERROR:[],
-            CODE_TO_TOKEN_ERROR:[],
-            SEND_RESET_PASSWORD_ERROR:[],
-            SEND_VERIFY_EMAIL_ERROR:[],
-            UPDATE_PASSWORD:[],
-            LOGOUT:[],
-            CUSTOM_REQUIRED_ACTION:[]
-        }
     }
 
 </script>

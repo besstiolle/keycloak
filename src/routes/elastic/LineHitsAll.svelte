@@ -28,6 +28,7 @@
     }
 	
 	function startChart(){
+	//console.info("datasets > ", datasets)
 		new Chart(
 			document.getElementById(HTMLCanvasElementID) as HTMLCanvasElement,
 			{

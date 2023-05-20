@@ -1,29 +1,42 @@
-import { REQUEST_TYPE, type clientIdElastic, type elasticStore, type pointer } from "$lib/elasticStruct"
-import { dateToPointer, readDataOfClientId } from "./datasetFactory"
+import { REQUEST_TYPE, type clientIdElastic, type elasticStore} from "$lib/elasticStruct"
+import { emptyClientIdElastic } from "./clientIdElasticFactory"
+import { readDataOfMatrix, writeDataInMatrix } from "./matrixUtils"
 
 interface locaStorageValue extends Record<string,string> { //could be extends Record<string,any> but here it's not necessary,  allow adding member of object in TS
         clientId:string,
-        instance:string,
-        _s:string,
-        _h:string
+        instance:string
 }
 
-export function ElasticStoreToJson(store:elasticStore):string{
+export function toJson(store:elasticStore):string{
+   // console.info("toJson")
 
     let lsValue:locaStorageValue
     let allClientId:locaStorageValue[] = []
+    let tmp_str:string
 
-    store.container.forEach((value,key) => {
+    store.container.forEach((clientIdElastic,key) => {
 
         lsValue = {
-            clientId:value.clientId,
-            instance:value.instance,
-            _s:reduceArray(value._s, store),
-            _h:reduceArray(value._h, store)
+            clientId:clientIdElastic.clientId,
+            instance:clientIdElastic.instance
         }
 
+        tmp_str = reduceArray(clientIdElastic._s, store.minDate, store.maxDate)
+        if(tmp_str !== ''){
+            lsValue['_s'] = tmp_str
+        }
+        
+        tmp_str = reduceArray(clientIdElastic._h, store.minDate, store.maxDate)
+        if(tmp_str !== ''){
+            lsValue["_h"] = tmp_str
+        }
+        
+
         for(const requestType in REQUEST_TYPE){
-            lsValue[key] = reduceArray(value[key], store)
+            tmp_str = reduceArray(clientIdElastic[requestType], store.minDate, store.maxDate)
+            if(tmp_str !== ''){
+                lsValue[requestType] = tmp_str
+            }             
         }
 
         allClientId.push(lsValue)
@@ -38,14 +51,18 @@ export function ElasticStoreToJson(store:elasticStore):string{
     return json
 }
 
-function reduceArray(arr:number[][][][], store:elasticStore){
+function reduceArray(arr:number[][][][], minDate:Date, maxDate:Date):string{
     let values:any[] = []
     let hasValue:boolean = false
-    let start = new Date(store.minDate)
-    while(start <= store.maxDate){
+    let start = new Date(minDate)
+    while(start <= maxDate){
         for(let i=0; i < 8;i++){
             start.setHours(i*3)
-            let val = readDataOfClientId(arr,start)
+            let val = readDataOfMatrix(arr,start)
+            if(isNaN(val as any)){
+                console.error("NAN for ", arr, start)
+                val=null
+            }
             if(val !== null){
                 hasValue = true
             }
@@ -61,7 +78,7 @@ function reduceArray(arr:number[][][][], store:elasticStore){
 }
 
 
-export function ElasticStoreFromJson(json:any):elasticStore{
+export function fromJsonMixedObject(json:any):elasticStore{
     let container = new Map<string,clientIdElastic>()
     let tmp_clientIdElastic:clientIdElastic
     let minDate = new Date(json['minDate'])
@@ -69,18 +86,14 @@ export function ElasticStoreFromJson(json:any):elasticStore{
 
     json['container'].forEach((lsValue:locaStorageValue) => {
 
-        tmp_clientIdElastic = {
-            clientId:lsValue.clientId,
-            instance:lsValue.instance,
-            _s:inflateArray(lsValue._s, minDate, maxDate),
-            _h:inflateArray(lsValue._h, minDate, maxDate),
-        }
+        tmp_clientIdElastic = emptyClientIdElastic(lsValue.clientId, lsValue.instance)
+
+        tmp_clientIdElastic._s = inflateArray(lsValue._s, minDate, maxDate, "_s for " + lsValue.clientId)
+        tmp_clientIdElastic._h = inflateArray(lsValue._h, minDate, maxDate, "_h for " + lsValue.clientId)
 
         for(const requestType in REQUEST_TYPE){
-            tmp_clientIdElastic.requestType = inflateArray(lsValue.requestType, minDate, maxDate)
+            tmp_clientIdElastic[requestType] = inflateArray(lsValue[requestType], minDate, maxDate, requestType + " for " + lsValue.clientId)
         }
-
-        //console.info(lsValue.clientId)
 
         container.set(tmp_clientIdElastic.clientId, tmp_clientIdElastic)
     })
@@ -94,19 +107,24 @@ export function ElasticStoreFromJson(json:any):elasticStore{
     return elasticStore
 }
 
-function inflateArray(str: string, minDate:Date, maxDate:Date): number[][][][] {
-    let arr:number[][][][] = []
+function inflateArray(str: string, minDate:Date, maxDate:Date, debug:string): number[][][][] {
+    
+    let matrix:number[][][][] = []
+    if(str === undefined){
+        return matrix
+    }
     let start = new Date(minDate)
     let values = str.split('|')
     let pos = 0
+    
     while(start <= maxDate){
         for(let i=0; i < 8;i++){
             start.setHours(i*3)
             
             let val = values[pos]
 
-            if(val !== null){
-                arr = writeDataOfClientId(arr,start,parseInt(val))
+            if(val !== null && val !== ''){
+                matrix = writeDataInMatrix(matrix,start,parseInt(val))
             }
 
             pos++
@@ -114,27 +132,7 @@ function inflateArray(str: string, minDate:Date, maxDate:Date): number[][][][] {
         start.setHours(0)
         start.setDate(start.getDate()+1)
     }
+    
+    return matrix
 
-    return arr
-
-}
-
-function writeDataOfClientId(arr: number[][][][], date: Date, value:number): number[][][][]{
-    let pointer = dateToPointer(date)
-    if( arr == undefined) {
-        arr = []
-    }
-    if(arr[pointer.y] === undefined) {
-        arr[pointer.y] = []
-    }
-    if(arr[pointer.y][pointer.m] === undefined) {
-        arr[pointer.y][pointer.m] = []
-    }
-    if(arr[pointer.y][pointer.m][pointer.d] === undefined) {
-        arr[pointer.y][pointer.m][pointer.d] = []
-    }
-    if(arr[pointer.y][pointer.m][pointer.d][pointer.h / 3] === undefined) {
-        arr[pointer.y][pointer.m][pointer.d][pointer.h / 3] = value
-    }
-    return arr
 }

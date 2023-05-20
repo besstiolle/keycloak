@@ -52,7 +52,7 @@ export interface clientIdElastic extends Record<string,any>{
     //DATA array
     _h:number[][][][] //habilitation 
     _s:number[][][][] //strongbox
-/*
+
     //differents type of requests
     USER_INFO_REQUEST:number[][][][],
     LOGIN_ERROR:number[][][][],
@@ -70,5 +70,5 @@ export interface clientIdElastic extends Record<string,any>{
     SEND_VERIFY_EMAIL_ERROR:number[][][][],
     UPDATE_PASSWORD:number[][][][],
     LOGOUT:number[][][][],
-    CUSTOM_REQUIRED_ACTION:number[][][][]*/
+    CUSTOM_REQUIRED_ACTION:number[][][][]
 }
