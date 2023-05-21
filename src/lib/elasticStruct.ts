@@ -39,15 +39,22 @@ export interface pointer{
     h:number
 }
 
-export interface datasetAndLimits{
+export interface datasetAndLimitsForLine{
     min:number,
     max:number,
     datasets:dataset[]
+}
+export interface datasetAndLimitsForPie{
+    datasets:datasetString[]
 }
 
 export interface dataset{
     label:string,
     data:Map<number, number>
+}
+export interface datasetString{
+    label:string,
+    data:Map<string, number>
 }
 
 export interface clientIdElastic extends Record<string,any>{

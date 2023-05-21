@@ -20,10 +20,11 @@
 	
 	const onFileSelected = (e:any)=>{
 
-        if($jsonElasticDataStore.container.size > 0){
+        if($jsonElasticDataStore.container.size > 0 || $jsonElasticDataStore.errors.size > 0){
             container = $jsonElasticDataStore.container
             minDate = $jsonElasticDataStore.minDate
             maxDate = $jsonElasticDataStore.maxDate
+            errors = $jsonElasticDataStore.errors
         }
 
 
@@ -46,8 +47,12 @@
             } else if(jsonFile.name.indexOf('code erreur') !== -1) {
                 currentType = CSV_TYPE.ERRORS
             } 
+
+            console.info(errors.size)
             
             csvToContainer(csv, currentType)
+
+            console.info(errors.size)
    
             let elasticStoreCloned:elasticStore = {
                 minDate: minDate,
@@ -120,6 +125,8 @@
                 continue
             }
             arr = errors.get(errorType) as  number[][][][]
+            
+            console.info('set')
             errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
         }
 

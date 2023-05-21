@@ -1,10 +1,10 @@
 
-import type { REQUEST_TYPE, datasetAndLimits, elasticStore } from '$lib/elasticStruct';
+import type { REQUEST_TYPE, datasetAndLimitsForLine, datasetAndLimitsForPie, elasticStore } from '$lib/elasticStruct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
-export function initiateDatasetFromStore(store:elasticStore, requestType:REQUEST_TYPE|null=null):datasetAndLimits{
+export function initiateDatasetFromStoreForLine(store:elasticStore, requestType:REQUEST_TYPE|null=null):datasetAndLimitsForLine{
     //console.info("initiateDatasetFromStore")
     let start = store.minDate
     let value:number|null=0
@@ -114,5 +114,39 @@ export function initiateDatasetFromStore(store:elasticStore, requestType:REQUEST
         datasets:datasets
     }
 
+    return datasetAndLimits
+}
+
+
+export function initiateDatasetFromStoreForPie(store:elasticStore):datasetAndLimitsForPie{
+    let start:Date
+    let tmp_value:number|null
+    let sumOfError:number
+    let datasetAndLimits:datasetAndLimitsForPie = {
+        datasets:[]
+    }
+    let mapTypeErrorToCount = new Map<string,number>()
+
+    store.errors.forEach((values, key) => {
+        start = new Date(store.minDate)
+        sumOfError=0
+        while (start <= store.maxDate){
+            for(let i=0; i < 8;i++){
+                start.setHours(i*3)
+                tmp_value = readDataOfMatrix(values, start)
+                if(tmp_value !== null){
+                    sumOfError += tmp_value
+                }
+            }
+            start.setHours(0)
+            start.setDate(start.getDate()+1)
+        }
+        mapTypeErrorToCount.set(key, sumOfError)
+    })
+
+    datasetAndLimits.datasets.push({
+        label:'Σ d\'erreurs sur la période',
+        data:mapTypeErrorToCount
+    })
     return datasetAndLimits
 }
