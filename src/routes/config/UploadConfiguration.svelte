@@ -1,6 +1,8 @@
 <script lang="ts">
 
     export let initiateBinder:Function
+    //Type of file supported separated by a COMMA like .json,.jpeg,....
+    export let extensionAccepted:string 
 
 	let fileinput:HTMLInputElement
 	const invite:string = 'Choose a localStorage json file'
@@ -15,10 +17,15 @@
             
             let json = e.target?.result as string
             let master = JSON.parse(json)
-            localStorage.setItem("jsonData", master["jsonData"])
-            localStorage.setItem("jsonHashNodeData", master["jsonHashNodeData"])
-            localStorage.setItem("jsonConfigData", master["jsonConfigData"])
-            localStorage.setItem("jsonElasticData", master["jsonElasticData"])
+            //Controle
+            if(master['version'] !== 1){
+                console.error("not a supported backup")
+            } else {
+                localStorage.setItem("jsonData", master["jsonData"])
+                localStorage.setItem("jsonHashNodeData", master["jsonHashNodeData"])
+                localStorage.setItem("jsonConfigData", master["jsonConfigData"])
+                localStorage.setItem("jsonElasticData", master["jsonElasticData"])
+            }
 
             initiateBinder()
 		};
@@ -29,7 +36,7 @@
 <div id="box" on:click={()=>{fileinput.click();}} on:keydown={()=>{fileinput.click();}}>
     <div><img src='./download.png' alt={invite} title={invite}/></div>
     <div>
-        <input type="file" name="files[]" accept=".json" id="file" on:change={(e)=>onFileSelected(e)}  bind:this={fileinput} />
+        <input type="file" name="files[]" accept={extensionAccepted} id="file" on:change={(e)=>onFileSelected(e)}  bind:this={fileinput} />
         <label for="file">{invite}</label>
     </div>
     <button type="submit">Upload</button>

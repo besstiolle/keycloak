@@ -28,6 +28,7 @@
 
     function download(){
         let master = {
+            version:1,
             jsonData:localStorage.getItem("jsonData") || '',
             jsonHashNodeData:localStorage.getItem("jsonHashNodeData") || '',
             jsonConfigData:localStorage.getItem("jsonConfigData") || '',
@@ -76,7 +77,7 @@
 
 <section><h1>Config</h1></section>
 {#if addAnother}
-<UploadConfiguration initiateBinder={initiateVoid}/>
+<UploadConfiguration initiateBinder={initiateVoid} extensionAccepted='.json'/>
 {:else}
 <content>
     <label for='gitUrl1'>link to custom commit -using %hash%-</label>
