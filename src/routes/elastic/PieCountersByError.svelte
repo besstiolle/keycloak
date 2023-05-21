@@ -69,9 +69,6 @@
             colors.splice(10,100)
         }
 
-        console.info(labels)
-        console.info(values)
-
         return {values:values, labels:labels, colors:colors}
     }
 
