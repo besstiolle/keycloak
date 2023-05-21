@@ -13,21 +13,7 @@ let storedHashNodeJsonData:string = ''
 let storedConfigJsonData:string = ''
 let storedElasticJsonData:elasticStore = getEmptyElasticStore()
 
-if(isBrowser){/*
-    let valueFromLocalStorage = localStorage.getItem("jsonData")
-    if(valueFromLocalStorage){
-        storedJsonData = valueFromLocalStorage
-    }
-
-    valueFromLocalStorage = localStorage.getItem("jsonHashNodeData")
-    if(valueFromLocalStorage){
-        storedHashNodeJsonData = valueFromLocalStorage
-    }
-
-    valueFromLocalStorage = localStorage.getItem("jsonConfigData")
-    if(valueFromLocalStorage){
-        storedConfigJsonData = valueFromLocalStorage
-    }*/
+if(isBrowser){
 
     storedJsonData = localStorage.getItem("jsonData") || '';
     storedHashNodeJsonData = localStorage.getItem("jsonHashNodeData") || '';
