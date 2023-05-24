@@ -47,7 +47,7 @@
 
         Array.from(countersByInstanceAndRoyaume.keys()).map(labelInstance => {
             
-            currentColor = COLORS[j]
+            currentColor = COLORS[j%COLORS.length]
             let counterByRoyaumeForInstance = countersByInstanceAndRoyaume.get(labelInstance)
             if(counterByRoyaumeForInstance){
                 sizeOfRoyaume = counterByRoyaumeForInstance.size+1
