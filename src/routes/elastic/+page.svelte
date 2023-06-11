@@ -1,12 +1,14 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie } from '$lib/elasticStruct';
+    import { REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit } from '$lib/elasticStruct';
     import { jsonElasticDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import PieCountersByError from './PieCountersByError.svelte';
     import UploadElastic from './UploadElastic.svelte';
-    import { initiateDatasetFromStoreForLine, initiateDatasetFromStoreForPie } from './datasetFactory';
+    import { initTableur, initiateDatasetFromStoreForLine, initiateDatasetFromStoreForPie } from './datasetFactory';
     import { getEmptyElasticStore } from './elasticStoreFactory';
+    import KeyResume from './KeyResume.svelte';
+    import TableClientIdBy from './TableClientIdBy.svelte';
 
 	let addAnother = false
 	
@@ -15,6 +17,7 @@
 	let datasetAndLimits3:datasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
 	let datasetAndLimits4:datasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
 	let datasetAndLimits5:datasetAndLimitsForPie = emptyDatasetAndLimitsForPie()
+	let datasetTableurByHits:datasetTableurHit[] = []
 	
 	function emptyDatasetAndLimitsForLine():datasetAndLimitsForLine{
 		let datasetAndLimits:datasetAndLimitsForLine = {
@@ -53,6 +56,7 @@
 		datasetAndLimits3 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.CLIENT_LOGIN)
 		datasetAndLimits4 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.LOGIN_ERROR)
 		datasetAndLimits5 = initiateDatasetFromStoreForPie($jsonElasticDataStore)
+		datasetTableurByHits = initTableur($jsonElasticDataStore)
 	}
 
 	// start scripting
@@ -98,6 +102,14 @@
 	<div class="chart-container">
 		<h2>Top 10 des Erreurs rencontrées sur la période</h2>
 		<PieCountersByError datasets={datasetAndLimits5.datasets} />
+	</div>
+	<div >
+		<h2>Key Resume</h2>
+		<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
+	</div>
+	<div >
+		<h2>List of clientId</h2>
+		<TableClientIdBy datasets={datasetTableurByHits}/>
 	</div>
 
 	

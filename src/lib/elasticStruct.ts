@@ -56,6 +56,18 @@ export interface datasetString{
     label:string,
     data:Map<string, number>
 }
+export interface datasetTableurHit{
+    clientId:string,
+    instance: string,
+    firstSeen:Date,
+    lastSeen:Date,
+    duration:number,
+    avgAll:number,
+    avgHit30d:number,
+    maxhit:number,
+    maxDate:Date
+    sumHits:number
+}
 
 export interface clientIdElastic extends Record<string,any>{
     clientId:string
@@ -83,5 +95,32 @@ export interface clientIdElastic extends Record<string,any>{
     LOGOUT:number[][][][],
     CUSTOM_REQUIRED_ACTION:number[][][][],
     VERIFY_EMAIL_ERROR:number[][][][],
-    SEND_RESET_PASSWORD:number[][][][],
+    SEND_RESET_PASSWORD:number[][][][]
+}
+
+export function getKeysOfClientIdElastic(){
+
+    return [
+        'HABILITATIONS',
+        'STRONGBOX',
+        'USER_INFO_REQUEST',
+        'LOGIN_ERROR',
+        'CODE_TO_TOKEN',
+        'LOGIN',
+        'REFRESH_TOKEN',
+        'CLIENT_LOGIN',
+        'RESET_PASSWORD_ERROR',
+        'TOKEN_EXCHANGE',
+        'UPDATE_PROFILE',
+        'REFRESH_TOKEN_ERROR',
+        'CUSTOM_REQUIRED_ACTION_ERROR',
+        'CODE_TO_TOKEN_ERROR',
+        'SEND_RESET_PASSWORD_ERROR',
+        'SEND_VERIFY_EMAIL_ERROR',
+        'UPDATE_PASSWORD',
+        'LOGOUT',
+        'CUSTOM_REQUIRED_ACTION',
+        'VERIFY_EMAIL_ERROR',
+        'SEND_RESET_PASSWORD'
+    ]
 }

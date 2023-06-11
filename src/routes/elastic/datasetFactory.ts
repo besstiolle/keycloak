@@ -1,5 +1,5 @@
 
-import type { REQUEST_TYPE, datasetAndLimitsForLine, datasetAndLimitsForPie, elasticStore } from '$lib/elasticStruct';
+import { getKeysOfClientIdElastic, type REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, type elasticStore } from '$lib/elasticStruct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
@@ -149,4 +149,126 @@ export function initiateDatasetFromStoreForPie(store:elasticStore):datasetAndLim
         data:mapTypeErrorToCount
     })
     return datasetAndLimits
+}
+
+export function initTableur(store:elasticStore):datasetTableurHit[]{
+    
+    let datasetByHit : datasetTableurHit[] = []
+    let start:Date
+    let tmp_value:number|null
+    let sumOfHitsForDay:number
+    let maxHits:number
+    let sumHits:number
+    let maxDate:Date
+    let firstSeen:Date
+    let lastSeen:Date
+
+    store.container.forEach(clientId => {
+
+        start = new Date(store.minDate)
+        maxDate = new Date("1900-01-01")
+        firstSeen = new Date("2900-01-01")
+        lastSeen = new Date("1900-01-01")
+        maxHits = 0
+        sumHits = 0
+        let sumRolling:Map<number, number> = new Map<number, number>()
+        let cptRolling:Map<number, number> = new Map<number, number>()
+        let avgRolling:Map<number, number> = new Map<number, number>()
+        let keys = getKeysOfClientIdElastic()
+
+        //Initiate keys for avgRolling
+        while (start <= store.maxDate){
+            start.setHours(0)
+            sumRolling.set(start.getTime(), 0)
+            cptRolling.set(start.getTime(), 0)
+            start.setDate(start.getDate()+1)
+        }
+
+        start = new Date(store.minDate)
+        while (start <= store.maxDate){
+            sumOfHitsForDay=0
+            for(let i=0; i < 8;i++){
+                start.setHours(i*3)
+                keys.forEach(key => {                    
+                    tmp_value = readDataOfMatrix(clientId[key], start)
+                    if(tmp_value !== null){
+                        sumOfHitsForDay += tmp_value
+                        sumHits += tmp_value
+                        if(firstSeen > start){
+                            firstSeen = new Date(start)
+                        }
+                        lastSeen = new Date(start)
+                    }
+                });
+            }
+            start.setHours(0)
+
+
+            let tmp_d:Date = new Date(start)
+            for(let j=0; j<30;j++){
+                tmp_d.setDate(start.getDate() + j)
+                if(sumRolling.has(tmp_d.getTime())) {
+                    sumRolling.set(tmp_d.getTime(), sumRolling.get(tmp_d.getTime()) as number + sumOfHitsForDay)
+                } 
+                if(cptRolling.has(tmp_d.getTime())) {
+                    cptRolling.set(tmp_d.getTime(), cptRolling.get(tmp_d.getTime()) as number + 1)
+                }
+            }
+            
+
+
+
+            if(sumOfHitsForDay > maxHits){
+                maxHits = sumOfHitsForDay
+                maxDate = new Date(start)
+            }
+
+            start.setDate(start.getDate()+1)
+        }
+
+        //Processing rolling avg 
+        start = new Date(store.minDate)
+        let sum, cpt =0
+        while (start <= store.maxDate){
+            start.setHours(0)
+            sum = 0
+            cpt = 1
+
+            if(sumRolling.has(start.getTime())){
+                sum = sumRolling.get(start.getTime()) as number
+            } 
+            if(cptRolling.has(start.getTime())){
+                cpt = cptRolling.get(start.getTime()) as number
+            }
+
+            avgRolling.set(start.getTime(), sum/cpt)
+
+            start.setDate(start.getDate()+1)
+        }
+
+        //Find rolling avg J-30
+        let end = new Date(store.maxDate)
+        end.setHours(0)
+        end.setDate(start.getDate()-30)
+        let avgHit30d = -1
+        if(avgRolling.has(end.getTime())){
+            avgHit30d = Math.round(avgRolling.get(end.getTime()) as number)
+        }
+
+        let duration = Math.round((lastSeen.getTime() - firstSeen.getTime()) / 86400000) + 1
+        
+        datasetByHit.push({
+            clientId: clientId.clientId,
+            instance: clientId.instance,
+            firstSeen: firstSeen,
+            lastSeen: lastSeen,
+            duration:duration,
+            avgAll:Math.round(sumHits / duration),
+            avgHit30d: avgHit30d,
+            maxhit: maxHits,
+            maxDate: maxDate,
+            sumHits:sumHits
+        })
+    });
+    return datasetByHit
 }
