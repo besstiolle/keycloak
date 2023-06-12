@@ -125,5 +125,5 @@ export function getConfigValue(json:string):config{
     if(json != null && json != ''){
         return JSON.parse(json)
     }
-    return {gitUrl1:'',gitUrl2:''}
+    return {gitUrl1:'',gitUrl2:'', mapClientId:''}
 }

@@ -48,4 +48,5 @@ export interface hashNode{
 export interface config{
     gitUrl1:string
     gitUrl2:string
+    mapClientId:string
 }

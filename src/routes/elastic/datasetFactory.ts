@@ -152,19 +152,23 @@ export function initiateDatasetFromStoreForPie(store:elasticStore):datasetAndLim
     return datasetAndLimits
 }
 
-function getListOfClientId(commit:commit):string[]{
+function getListOfClientId(commit:commit, whitelist:string[]):string[]{
     let list:string[]=[]
     commit.instances.forEach(instance => {
         instance.royaumes.forEach(r => {
             r.clientIds?.forEach(c => {
-                list.push(c.label)
+                list.push(c.label.toLocaleLowerCase())
             });
         });
     });
+
+    //Add whitelist
+    list = list.concat(whitelist)
+
     return list
 }
 
-export function initTableur(store:elasticStore, commit:commit):datasetTableurHit[]{
+export function initTableur(store:elasticStore, commit:commit, whitelist:string[]):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     let start:Date
@@ -175,7 +179,7 @@ export function initTableur(store:elasticStore, commit:commit):datasetTableurHit
     let maxDate:Date
     let firstSeen:Date
     let lastSeen:Date
-    let knownClientId = getListOfClientId(commit)
+    let knownClientId = getListOfClientId(commit, whitelist)
 
     store.container.forEach(clientId => {
 
@@ -269,7 +273,7 @@ export function initTableur(store:elasticStore, commit:commit):datasetTableurHit
         let duration = Math.round((lastSeen.getTime() - firstSeen.getTime()) / 86400000) + 1
         
         //Find if the current clientId is a well-known and recognized clientId
-        let isKnown = knownClientId.includes(clientId.clientId)
+        let isKnown = knownClientId.includes(clientId.clientId.toLocaleLowerCase())
 
         datasetByHit.push({
             clientId: clientId.clientId.trim(),

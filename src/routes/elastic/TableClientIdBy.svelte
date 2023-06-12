@@ -121,9 +121,22 @@
         sumAll
     }
 
+    /**
+     * 0 = all
+     * 1 = no smell
+     * 2 = only smell
+     */
+    let rotate = 0
+    function rotateSmell(){
+        rotate++
+        rotate = rotate % 3
+    }
+
     initArrOrder()
 
 </script>
+
+<h3 on:click={rotateSmell} on:keydown={rotateSmell}>Click me to show/hide ☣️ lines</h3>
 
 <table>
     <thead>
@@ -143,8 +156,8 @@
     </thead>
     <tbody>
         {#each  datasets as data}
-        <tr>
-            <td class='tl w'>{data.clientId}{data.isKnown?' 👮':''}</td>
+        <tr class:hide="{(!data.isKnown && rotate==1) || (data.isKnown && rotate==2)}">
+            <td class='tl w'>{data.clientId}{data.isKnown?'':' ☣️'}</td>
             <td class='tl'>{data.instance}</td>
             <td>{dateToInternalDate(data.firstSeen)}</td>
             <td>{dateToInternalDate(data.lastSeen)}</td>
@@ -161,6 +174,9 @@
 </table>
 
 <style>
+    h3{
+        cursor: pointer;
+    }
     table{
         margin: 0 -20rem;
         border: 0px none;
@@ -187,5 +203,8 @@
     }
     tr:nth-child(even) {
         background-color: #ccc;
+    }
+    .hide{
+        display: none;
     }
 </style>

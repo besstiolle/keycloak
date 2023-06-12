@@ -1,7 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
     import { REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit } from '$lib/elasticStruct';
-    import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
+    import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import PieCountersByError from './PieCountersByError.svelte';
     import UploadElastic from './UploadElastic.svelte';
@@ -10,7 +10,7 @@
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import type { commit } from '$lib/struct';
-    import { hydrate } from '../HydratationUtils';
+    import { getConfigValue, hydrate } from '../HydratationUtils';
 
 	let addAnother = false
 	
@@ -46,7 +46,7 @@
 		
 		addAnother = false
 		let start = new Date()
-		
+
 		lastCommit = hydrate($jsonDataStore, $jsonHashNodeDataStore)[0]
 
 		initiateLineHitsAll()
@@ -62,7 +62,19 @@
 		datasetAndLimits3 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.CLIENT_LOGIN)
 		datasetAndLimits4 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.LOGIN_ERROR)
 		datasetAndLimits5 = initiateDatasetFromStoreForPie($jsonElasticDataStore)
-		datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit)
+		datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId))
+	}
+
+	function getWhitelist(map:string):string[]{
+		let lines = map.split('\n')
+		let vals:string[]
+		let keys:string[] = []
+		lines.forEach(line => {
+			vals = line.split('=')
+			keys.push(vals[0])
+		});
+		console.info(keys)
+		return keys
 	}
 
 	// start scripting
