@@ -1,5 +1,6 @@
 
 import { getKeysOfClientIdElastic, type REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, type elasticStore } from '$lib/elasticStruct';
+import type { commit } from '$lib/struct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
@@ -151,7 +152,19 @@ export function initiateDatasetFromStoreForPie(store:elasticStore):datasetAndLim
     return datasetAndLimits
 }
 
-export function initTableur(store:elasticStore):datasetTableurHit[]{
+function getListOfClientId(commit:commit):string[]{
+    let list:string[]=[]
+    commit.instances.forEach(instance => {
+        instance.royaumes.forEach(r => {
+            r.clientIds?.forEach(c => {
+                list.push(c.label)
+            });
+        });
+    });
+    return list
+}
+
+export function initTableur(store:elasticStore, commit:commit):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     let start:Date
@@ -162,6 +175,7 @@ export function initTableur(store:elasticStore):datasetTableurHit[]{
     let maxDate:Date
     let firstSeen:Date
     let lastSeen:Date
+    let knownClientId = getListOfClientId(commit)
 
     store.container.forEach(clientId => {
 
@@ -214,9 +228,6 @@ export function initTableur(store:elasticStore):datasetTableurHit[]{
                     cptRolling.set(tmp_d.getTime(), cptRolling.get(tmp_d.getTime()) as number + 1)
                 }
             }
-            
-
-
 
             if(sumOfHitsForDay > maxHits){
                 maxHits = sumOfHitsForDay
@@ -257,8 +268,11 @@ export function initTableur(store:elasticStore):datasetTableurHit[]{
 
         let duration = Math.round((lastSeen.getTime() - firstSeen.getTime()) / 86400000) + 1
         
+        //Find if the current clientId is a well-known and recognized clientId
+        let isKnown = knownClientId.includes(clientId.clientId)
+
         datasetByHit.push({
-            clientId: clientId.clientId,
+            clientId: clientId.clientId.trim(),
             instance: clientId.instance,
             firstSeen: firstSeen,
             lastSeen: lastSeen,
@@ -267,7 +281,8 @@ export function initTableur(store:elasticStore):datasetTableurHit[]{
             avgHit30d: avgHit30d,
             maxhit: maxHits,
             maxDate: maxDate,
-            sumHits:sumHits
+            sumHits:sumHits,
+            isKnown:isKnown
         })
     });
     return datasetByHit

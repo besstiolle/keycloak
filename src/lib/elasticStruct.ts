@@ -66,7 +66,8 @@ export interface datasetTableurHit{
     avgHit30d:number,
     maxhit:number,
     maxDate:Date
-    sumHits:number
+    sumHits:number,
+    isKnown:boolean
 }
 
 export interface clientIdElastic extends Record<string,any>{

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
     import { REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit } from '$lib/elasticStruct';
-    import { jsonElasticDataStore } from '$lib/store';
+    import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
     import LineHitsAll from './LineHitsAll.svelte';
     import PieCountersByError from './PieCountersByError.svelte';
     import UploadElastic from './UploadElastic.svelte';
@@ -9,6 +9,8 @@
     import { getEmptyElasticStore } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
+    import type { commit } from '$lib/struct';
+    import { hydrate } from '../HydratationUtils';
 
 	let addAnother = false
 	
@@ -18,6 +20,7 @@
 	let datasetAndLimits4:datasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
 	let datasetAndLimits5:datasetAndLimitsForPie = emptyDatasetAndLimitsForPie()
 	let datasetTableurByHits:datasetTableurHit[] = []
+	let lastCommit:commit
 	
 	function emptyDatasetAndLimitsForLine():datasetAndLimitsForLine{
 		let datasetAndLimits:datasetAndLimitsForLine = {
@@ -43,8 +46,11 @@
 		
 		addAnother = false
 		let start = new Date()
+		
+		lastCommit = hydrate($jsonDataStore, $jsonHashNodeDataStore)[0]
 
 		initiateLineHitsAll()
+
 
 		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
@@ -56,7 +62,7 @@
 		datasetAndLimits3 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.CLIENT_LOGIN)
 		datasetAndLimits4 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.LOGIN_ERROR)
 		datasetAndLimits5 = initiateDatasetFromStoreForPie($jsonElasticDataStore)
-		datasetTableurByHits = initTableur($jsonElasticDataStore)
+		datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit)
 	}
 
 	// start scripting

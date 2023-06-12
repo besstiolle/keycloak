@@ -128,23 +128,23 @@
 <table>
     <thead>
         <tr>{#key arrOrder}
-            <td on:click={() => sortBy(fields.clientId)}>ClientId{arrOrder[0]}</td>
-            <td on:click={() => sortBy(fields.instance)}>Instance{arrOrder[1]}</td>
-            <td class='w2' on:click={() => sortBy(fields.firstSeen)}>First Seen{arrOrder[2]}</td>
-            <td class='w2' on:click={() => sortBy(fields.lastSeen)}>Last Seen{arrOrder[3]}</td>
-            <td class='w2' on:click={() => sortBy(fields.duration)}>period of activity{arrOrder[4]}</td>
-            <td class='w2' on:click={() => sortBy(fields.avgAll)}>Avg hits all period{arrOrder[5]}</td>
-            <td class='w2' on:click={() => sortBy(fields.avg30)}>Avg hits on last 30 days{arrOrder[6]}</td>
-            <td class='w2' on:click={() => sortBy(fields.maxAll)}>Max Hits all period{arrOrder[7]}</td>
-            <td class='w2' on:click={() => sortBy(fields.dateMaxAll)}>Date of this max hit{arrOrder[8]}</td>
-            <td class='w2' on:click={() => sortBy(fields.sumAll)}>Sum Hits all period{arrOrder[9]}</td>
+            <td on:click={() => sortBy(fields.clientId)} on:keydown={() => sortBy(fields.clientId)}>ClientId{arrOrder[0]}</td>
+            <td on:click={() => sortBy(fields.instance)} on:keydown={() => sortBy(fields.instance)}>Instance{arrOrder[1]}</td>
+            <td class='w2' on:click={() => sortBy(fields.firstSeen)} on:keydown={() => sortBy(fields.firstSeen)}>First Seen{arrOrder[2]}</td>
+            <td class='w2' on:click={() => sortBy(fields.lastSeen)} on:keydown={() => sortBy(fields.lastSeen)}>Last Seen{arrOrder[3]}</td>
+            <td class='w2' on:click={() => sortBy(fields.duration)} on:keydown={() => sortBy(fields.duration)}>period of activity{arrOrder[4]}</td>
+            <td class='w2' on:click={() => sortBy(fields.avgAll)} on:keydown={() => sortBy(fields.avgAll)}>Avg hits all period{arrOrder[5]}</td>
+            <td class='w2' on:click={() => sortBy(fields.avg30)} on:keydown={() => sortBy(fields.avg30)}>Avg hits on last 30 days{arrOrder[6]}</td>
+            <td class='w2' on:click={() => sortBy(fields.maxAll)} on:keydown={() => sortBy(fields.maxAll)}>Max Hits all period{arrOrder[7]}</td>
+            <td class='w2' on:click={() => sortBy(fields.dateMaxAll)} on:keydown={() => sortBy(fields.dateMaxAll)}>Date of this max hit{arrOrder[8]}</td>
+            <td class='w2' on:click={() => sortBy(fields.sumAll)} on:keydown={() => sortBy(fields.sumAll)}>Sum Hits all period{arrOrder[9]}</td>
             {/key}
         </tr>
     </thead>
     <tbody>
         {#each  datasets as data}
         <tr>
-            <td class='tl w'>{data.clientId}</td>
+            <td class='tl w'>{data.clientId}{data.isKnown?' 👮':''}</td>
             <td class='tl'>{data.instance}</td>
             <td>{dateToInternalDate(data.firstSeen)}</td>
             <td>{dateToInternalDate(data.lastSeen)}</td>
