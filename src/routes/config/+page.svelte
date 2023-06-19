@@ -11,7 +11,7 @@
     let mapClientId:string = ''
     let mapClientId_tmp:string = ''
     let isSafe:boolean = true
-    const REGEX = /^([\w\-\_\:\/\-\.]+=[\w\-\_:\/\-\.]+\n)+[\w\-\_:\/\-\.]+=[\w\-\_:\/\-\.]+$/ 
+    const REGEX = /^([\w\-\_\:\/\-\.]+=[\w\-\_:\/\-\.]+\n)*[\w\-\_:\/\-\.]+=[\w\-\_:\/\-\.]+$/ 
 
     function init(){
         if(!browser){return}
@@ -32,7 +32,7 @@
      * @param str
      */
     function testIsSafe(str:string):boolean{
-        return REGEX.test(str)
+        return str == '' || REGEX.test(str)
     }
 
     function save(){
@@ -108,7 +108,7 @@
     <input id='gitUrl1' type='text' class='form' bind:value={gitUrl1} placeholder="https://myUrl/foo/bar/-/commit/%hash%" on:change={save} on:keyup={save}/>
     <label for='gitUrl2'>link to custom path for a commit  -using %hash% & %path%-</label>
     <input id='gitUrl2' type='text' class='form' bind:value={gitUrl2} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
-    <label for='mapClientId'>Mapping clientId (referentialKey:logValue per line){#key isSafe}{#if !isSafe}&nbsp;-&nbsp;<span class='err'>Not saved</span>{/if}{/key}</label>
+    <label for='mapClientId'>Mapping clientId (referentialKey=logValue per line){#key isSafe}{#if !isSafe}&nbsp;-&nbsp;<span class='err'>Not saved</span>{/if}{/key}</label>
     <textarea id='mapClientId' class='form' bind:value={mapClientId_tmp} on:change={save} on:keyup={save}></textarea>
     <button class='myButton' on:click="{download}">Download backup</button>
     <button class='myButton' on:click="{() => {addAnother = true}}">Upload a localStorage backup</button>
