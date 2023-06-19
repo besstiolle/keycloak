@@ -219,7 +219,8 @@
 						<li class:hide={royaume.show !== null && royaume.show === false}>{@html markerHtml(royaume.label)}<ul>
 								{#if royaume && royaume.clientIds}
 								{#each royaume.clientIds as clientId}
-								<li class:hide={clientId.show !== null && clientId.show === false}>{@html markerHtml(clientId.label)}<span class='tag {clientId.protocol}'>{clientId.protocol}</span><ul>
+								<li class:hide={clientId.show !== null && clientId.show === false}><span>{@html markerHtml(clientId.label)}</span>
+									<span class='tag {clientId.protocol}'>{clientId.protocol}</span><ul>
 										{#each clientId.envs as env}
 										<li class:hide={env.show !== null && env.show === false}>
 											{env.label} 
