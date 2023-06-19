@@ -66,6 +66,9 @@
 	}
 
 	function getWhitelist(map:string):string[]{
+		if(map == undefined || map.trim() === ''){
+			return []
+		}
 		let lines = map.split('\n')
 		let vals:string[]
 		let keys:string[] = []
