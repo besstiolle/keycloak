@@ -25,6 +25,59 @@ export enum REQUEST_TYPE {
     SEND_RESET_PASSWORD='SEND_RESET_PASSWORD' //update 20 mai 2023
 }
 
+	
+export enum DATA_TYPE {
+    SUM_BY_DAY='SUM_BY_DAY',
+    SUM_BY_WEEK='SUM_BY_WEEK',
+    SUM_BY_MONTH='SUM_BY_MONTH',
+    SUM_BY_DAY_OF_WEEK='SUM_BY_DAY_OF_WEEK',
+    SUM_BY_DAY_OF_YEAR='SUM_BY_DAY_OF_YEAR'
+}
+
+
+export const enum ACTION_VAL{
+    SUM_BY_INSTANCE="SUM_BY_INSTANCE",
+    DISTINCT_BY_INSTANCE="DISTINCT_BY_INSTANCE",
+    SUM_BY_CLIENTID="SUM_BY_CLIENTID",
+    DISTINCT_BY_CLIENTID="DISTINCT_BY_CLIENTID",
+    SUM_BY_REQUESTTYPE="SUM_BY_REQUESTTYPE",
+    DISTINCT_BY_REQUESTTYPE="DISTINCT_BY_REQUESTTYPE",
+
+    GRAPH_LINE="GRAPH_LINE",
+    GRAPH_CHARTS="GRAPH_CHARTS",
+    GRAPH_TABLE="GRAPH_TABLE",
+    
+    BY_DAY="BY_DAY",
+    BY_WEEK="BY_WEEK",
+    BY_MONTH="BY_MONTH",
+    BY_DAY_OF_WEEK="BY_DAY_OF_WEEK",
+    BY_DAY_OF_YEAR="BY_DAY_OF_YEAR"
+}
+
+export interface GlobalState{
+    isSumOrDistinctByInstance:ACTION_VAL,
+    isSumOrDistinctByClientId:ACTION_VAL,
+    isSumOrDistinctByRequestType:ACTION_VAL,
+    isAgregate:ACTION_VAL,
+    isGraphType:ACTION_VAL,
+    selectedInstances:string[],
+    selectedClientsId:string[],
+    selectedRequestsType:string[]
+}
+
+export interface rawData{
+    sumByDay : Map<number,number>,
+    sumByWeek : Map<number,number>,
+    sumByMonth : Map<number,number>,
+    sumByDayOfWeek : Map<number,number>,
+    sumByDayOfYear : Map<number,number>
+} 
+
+export interface minMax{
+    min:number,
+    max:number
+}
+
 export interface elasticStore{
     minDate:Date,
     maxDate:Date,

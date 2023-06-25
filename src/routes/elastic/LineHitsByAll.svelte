@@ -1,10 +1,12 @@
 
 <script lang="ts">
-    import type { DATA_TYPE, dataset } from '$lib/elasticStruct';
+    import { DATA_TYPE, type dataset } from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
-	
+	const DAY_OF_WEEK = ["Dimanche","Lundi","Mardi","Mercredi", "Jeudi", "Vendredi", "Samedi"]
+
+
 	export let dataType:DATA_TYPE
     export let borneMin:number
     export let borneMax:number
@@ -18,7 +20,7 @@
 	} 
 
     const DATA = {
-        labels: Array.from(labelsSource.data.keys()).sort().map(row => row),
+        labels: Array.from(labelsSource.data.keys()).sort().map(row => getLabelValue(row)),
         datasets: datasets.map(dataset => {
 			return {
 				label: dataset.label,
@@ -27,6 +29,12 @@
 			}
 		})
     }
+
+	function getLabelValue(row:number){
+		if(dataType == DATA_TYPE.SUM_BY_DAY_OF_WEEK){
+			return DAY_OF_WEEK[row]
+		}
+	}
 	
 	function startChart(){
 	//console.info("datasets > ", datasets)
@@ -40,11 +48,6 @@
 					},
 					scales: {
 						x: {
-							type: 'time',
-							time: {
-								// Luxon format string
-								tooltipFormat: 'DD T'
-							},
 							title: {
 								display: true,
 								text: 'Date'

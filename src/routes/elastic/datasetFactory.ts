@@ -1,9 +1,204 @@
 
-import { getKeysOfClientIdElastic, type REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, type elasticStore } from '$lib/elasticStruct';
+import { getKeysOfClientIdElastic, type REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
 import type { commit } from '$lib/struct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
+
+export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
+    let tmp_val:null|number = 0
+    let value = 0
+    let sumByDay = new Map<number,number>()  // eg : today 0:00
+    let sumByWeek = new Map<number,number>() // eg : monday 0:00
+    let sumByMonth = new Map<number,number>() // eg : first day of month 0:00
+    let sumByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
+    let sumByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
+
+    let day = 0
+    let startOfWeek = 0
+    let startOfMonth = 0
+    let dayOfWeek = 0
+    let dayofYear = 0
+    
+    start.setHours(0)
+    while (start <= end){
+        day = start.getTime()
+        startOfWeek = getStartOfWeek(start).getTime()
+        //console.info(start, new Date(startOfWeek))
+        startOfMonth = getStartOfMonth(start).getTime()
+        //console.info(start, new Date(startOfMonth))
+        dayOfWeek = start.getDay()
+        //console.info(start, dayOfWeek)
+        dayofYear = getDayOfYear(start)
+        //console.info(start, dayofYear)
+        for(let i=0; i < 8;i++){
+            start.setHours(i*3)
+            tmp_val = readDataOfMatrix(arr, start)
+            value = 0
+            if(tmp_val != null){
+                value = tmp_val
+            }
+            //console.info(value)
+            sumByDay = addToMap(sumByDay, day, value)
+            sumByWeek = addToMap(sumByWeek, startOfWeek, value)
+            sumByMonth = addToMap(sumByMonth, startOfMonth, value)
+            sumByDayOfWeek = addToMap(sumByDayOfWeek, dayOfWeek, value)
+            //cptByDayOfWeek = addToMap(cptByDayOfWeek, dayOfWeek, 1)
+            sumByDayOfYear = addToMap(sumByDayOfYear, dayofYear, value)
+            //cptByDayOfYear = addToMap(cptByDayOfWeek, dayOfWeek, 1)
+        }
+        start.setHours(0)
+        start.setDate(start.getDate()+1)
+    }
+
+    return {
+        sumByDay:sumByDay,
+        sumByWeek:sumByWeek,
+        sumByMonth:sumByMonth,
+        sumByDayOfWeek:sumByDayOfWeek,
+        sumByDayOfYear:sumByDayOfYear
+    }
+}
+
+function addToMap(map:Map<number, number>, key:number, value:number){
+    let val = 0
+    if(map.has(key)){
+        val = map.get(key) as number
+    }
+    val += value
+    map.set(key, val)
+    return map
+}
+
+function getStartOfMonth(now:Date){
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+function getStartOfWeek(date:Date){
+    let now  = new Date(date)
+    now.setDate(now.getDate() - (now.getDay() + 6) % 7)
+    return now
+}
+
+function getDayOfYear(now:Date):number{
+    let start = new Date(now.getFullYear(), 0, 0)
+    let diff = (now.getTime() - start.getTime()) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000)
+    const oneDay = 1000 * 60 * 60 * 24
+    return Math.floor(diff / oneDay)
+}
+
+
+
+export function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawData:rawData, instance:string, clientId:string, requestType:string):Map<string, Map<number,number>>{
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDay, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY)
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_WEEK)
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByMonth, instance, clientId, requestType, DATA_TYPE.SUM_BY_MONTH)
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_WEEK)
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfYear, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_YEAR)
+    
+    return map
+}
+
+function processRawDataAndDataTypeIntoMap(map:Map<string, Map<number,number>>,  mapValue:Map<number,number>, instance:string, clientId:string, requestType:string, dataType:string):Map<string, Map<number,number>>{
+    //	6 Types of keys
+    //Key 1 : Instance only + type of data 						=> x||*||*||¤
+    //Key 2 : client ID only + type of data 				    => *||y||*||¤
+    //Key 3 : RequestType only + type of data 					=> *||*||z||¤
+    //Key 4 : Instance + RequestType + type of data 			=> x||*||z||¤
+    //Key 5 : client ID + RequestType + type of data 			=> *||y||z||¤
+    //Key 6 : Instance + client ID + RequesType + type of data 	=> x||y||z||¤
+    let key1 = getHashKey(instance, null, null, dataType)
+    let key2 = getHashKey(null, clientId, null, dataType)
+    let key3 = getHashKey(null, null, requestType, dataType)
+    let key4 = getHashKey(instance, null, requestType, dataType)
+    let key5 = getHashKey(null, clientId, requestType, dataType)
+    let key6 = getHashKey(instance, clientId, requestType, dataType)
+
+    map = updateMapWithKey(map, key1, mapValue)
+    map = updateMapWithKey(map, key2, mapValue)
+    map = updateMapWithKey(map, key3, mapValue)
+    map = updateMapWithKey(map, key4, mapValue)
+    map = updateMapWithKey(map, key5, mapValue)
+    map = updateMapWithKey(map, key6, mapValue)
+
+    return map
+}
+
+function updateMapWithKey(map:Map<string, Map<number,number>>, key:string, mapValue:Map<number,number>):Map<string, Map<number,number>>{
+    
+    let existingMapValue = new Map<number,number>()
+    if(map.has(key)){
+        existingMapValue = map.get(key) as Map<number,number>
+    }
+
+    existingMapValue = fusionMap([existingMapValue, mapValue])
+    map.set(key, existingMapValue)
+
+    return map
+}
+
+export function fusionMap(allMap:Map<number,number>[]):Map<number,number>{
+    if(allMap.length == 0){
+        return new Map<number, number>()
+    }
+    if(allMap.length == 1){
+        return allMap[0]
+    }
+    let map3 = new Map(allMap[0])
+    let valueMap1 = 0
+    allMap[1].forEach((valueMap2, key)  => {
+        valueMap1 = 0
+        if(map3.has(key)){
+            valueMap1 = map3.get(key) as number
+        }
+        map3.set(key, valueMap1 + valueMap2)
+    });
+
+    if(allMap.length > 2){
+        map3 = fusionMap([map3].concat(allMap.slice(2)))
+    }
+
+    return map3
+}
+
+const DELIM = '||'
+const STAR = '*'
+export function getHashKey(instance:string|null, clientId:string|null, requestType:string|null, dataType:string):string{
+    return (instance?instance:STAR)+DELIM+(clientId?clientId:STAR)+DELIM+(requestType?requestType:STAR)+DELIM+dataType
+}
+
+
+export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):minMax{
+    if(ob == null){
+        ob = {
+            min:9999999999,
+            max:0
+        }
+    }
+
+    if(allMap.length == 0){
+        return ob
+    }
+    
+    if(allMap.length > 1){
+        ob = getMinMax(allMap.slice(1), ob)
+    }
+
+    let min = ob.min
+    let max = ob.max
+    allMap[0].forEach((value) => {
+        if(min > value){
+            min = value
+        }
+        if(max < value){
+            max = value
+        }
+    });
+
+
+    return {min:min, max:max}
+}
+
 
 export function initiateDatasetFromStoreForLine(store:elasticStore, requestType:REQUEST_TYPE|null=null):datasetAndLimitsForLine{
     //console.info("initiateDatasetFromStore")

@@ -15,8 +15,8 @@
 			for(let item of inputs){
 				(item as HTMLInputElement).checked=value
 			}
-			action()
-			action2()		
+			action(event)
+			action2(event)		
 		}
 		
 		console.debug("setAllAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
@@ -29,7 +29,7 @@
 	const checkboxAction = function(event?:Event){
 		let start = new Date()
 		action(event)
-		action2()		
+		action2(event)		
 		console.debug("checkboxAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	
@@ -46,10 +46,16 @@
 
 
 <style>
+.filterBlock{
+	max-height: 300px;
+	overflow-x: hidden;
+	overflow-y: unset;
+}
 .filterBlock > span{
 	cursor: pointer;
 	font-size: 0.8rem;
 	margin-bottom: 1rem;
+	word-break: break-all;
 }
 .filter{
 	flex-direction:column;
