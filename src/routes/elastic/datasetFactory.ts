@@ -144,6 +144,10 @@ export function fusionMap(allMap:Map<number,number>[]):Map<number,number>{
     if(allMap.length == 1){
         return allMap[0]
     }
+    if(allMap[1] == undefined){
+        console.info("allMap[1] was undefined", allMap)
+        return new Map<number, number>()
+    }
     let map3 = new Map(allMap[0])
     let valueMap1 = 0
     allMap[1].forEach((valueMap2, key)  => {

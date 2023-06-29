@@ -18,8 +18,27 @@
         
 		sideState.isSumOrDistinctByInstance = button.getAttribute("data-val") as ACTION_VAL
     sideState.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID
-    sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
 		updateInstanceInState()
+
+
+    //Update state for button "client-id"
+    let buttons = document.getElementsByClassName("sumOrDistinctClientId")
+    if(sideState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE) {
+      for(let button of buttons){
+        if(button.getAttribute("data-val") as ACTION_VAL == ACTION_VAL.SUM_BY_CLIENTID){
+          button.classList.add("button-on")
+          button.classList.remove("button-off")
+        } else {
+          button.classList.remove("button-on")
+          button.classList.add("button-off")
+        }
+        button.classList.add("hide")
+      }
+    } else {
+      for(let button of buttons){
+        button.classList.remove("hide")
+      }
+    }
 
 	}
 
@@ -27,8 +46,8 @@
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
 		sideState.isSumOrDistinctByClientId = button.getAttribute("data-val") as ACTION_VAL
-    sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
-    updateClientIdInState()
+        sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
+		drawGraph()
 
 	}
 
@@ -151,7 +170,6 @@
 <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_WEEK}>By Week</button>
 <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_MONTH}>By Month</button>
 <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_DAY_OF_WEEK}>By Day of Week</button>
-<button class="button-off" disabled>By Day of Year</button>
 <hr/>
 <button class="button-off" disabled>Show x̄</button>
 <hr/>
@@ -167,7 +185,7 @@
 
 <style>
 :global(.hide){
-    display: none;
+  display: none;
 }
 /* CSS https://getcssscan.com/css-buttons-examples */
 .button-on {

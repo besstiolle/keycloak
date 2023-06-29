@@ -50,8 +50,7 @@ export const enum ACTION_VAL{
     BY_DAY="BY_DAY",
     BY_WEEK="BY_WEEK",
     BY_MONTH="BY_MONTH",
-    BY_DAY_OF_WEEK="BY_DAY_OF_WEEK",
-    BY_DAY_OF_YEAR="BY_DAY_OF_YEAR"
+    BY_DAY_OF_WEEK="BY_DAY_OF_WEEK"
 }
 
 export interface GlobalState{
