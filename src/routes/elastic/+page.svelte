@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { REQUEST_TYPE, getKeysOfClientIdElastic, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState } from '$lib/elasticStruct';
+    import { REQUEST_TYPE, getKeysOfClientIdElastic, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, type dataset } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
 
     import UploadElastic from './UploadElastic.svelte';
@@ -35,9 +35,9 @@
 		isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
 		isGraphType : ACTION_VAL.GRAPH_LINE,
 		isAgregate : ACTION_VAL.BY_DAY,
-		selectedInstances: [],
-		selectedClientsId: [],
-		selectedRequestsType: []
+		selectedInstances: fInstances,
+		selectedClientsId: fClientIds,
+		selectedRequestsType: fRequestTypes
 	}
 
 	
@@ -97,7 +97,10 @@
 
 		if(globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE){
 			for(let instance of globalState.selectedInstances){
-				allPartials.push(globalMap.get(getHashKey(instance,null,null,dataTypeSelected)) as Map<number,number>)
+				
+				for(let requestType of globalState.selectedRequestsType){
+					allPartials.push(globalMap.get(getHashKey(instance,null,requestType,dataTypeSelected)) as Map<number,number>)
+				}
 			}
 			let partialMap = fusionMap(allPartials)
 			minMax = getMinMax([partialMap])
@@ -129,16 +132,83 @@
 			
 		} else {
 			
-			minMax = getMinMax(allPartials)
-
-			for(let i=0; i < allPartials.length; i++){
-				datasetAndLimits.datasets.push({label:allLabels[i], data:allPartials[i]})
-			}
+			//TODO
 
 		}
+
+
+
+		//minMax + [label + dataset.data]
+
+
 		datasetAndLimits.min = minMax.min
 		datasetAndLimits.max = minMax.max
 
+	}
+
+	function test(instances:string[], clientIds:string[], requestsType:string[], dataTypeSelected:string, globalState:GlobalState):dataset[]{
+		let maps:Map<number,number>[] = []
+		let doFusion = (globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE)
+		let label = ""
+		let labels:string[] = []
+
+		if(instances.length == 0) {
+			maps.concat(test2(null, clientIds, requestsType, dataTypeSelected))
+			label = "All Instances"
+		}
+		for(let instance of instances){
+			if(doFusion){
+
+			}
+			maps.concat(test2(instance, clientIds, requestsType, dataTypeSelected))
+		}
+		
+	}
+
+	function test2(instance:string|null, clientIds:string[], requestsType:string[], dataTypeSelected:string):Map<number,number>[]{
+		let maps:Map<number,number>[] = []
+		let labelAndMaps:LabelAndMaps
+		let doFusion = (globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_CLIENTID)
+		let label = ""
+		let labels:string[] = []
+		if(clientIds.length == 0) {
+			labelAndMaps = test3(instance, null, requestsType, dataTypeSelected)
+			
+			maps = maps.concat(labelAndMaps.maps)
+			labels = labelAndMaps.labels // No modifications
+		}
+		for(let clientId of clientIds){
+			labelAndMaps = test3(instance, clientId, requestsType, dataTypeSelected)
+			maps = maps.concat(labelAndMaps.maps)
+		}
+		
+		return maps
+	}
+
+	function test3(instance:string|null, clientId:string|null, requestsType:string[], dataTypeSelected:string):LabelAndMaps{
+		let map = new Map<number,number>()
+		let maps:Map<number,number>[] = []
+		let doFusion = (globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_REQUESTTYPE)
+		let label = ""
+		let labels:string[] = []
+		if(requestsType.length == 0) {
+			maps.push(globalMap.get(getHashKey(instance,clientId,null,dataTypeSelected)) as Map<number,number>)
+			label = '' // Pas de filtre souhaité, on n'affiche pas le détail
+		}
+		for(let requestType of requestsType){
+			maps.push(globalMap.get(getHashKey(instance,clientId,requestType,dataTypeSelected)) as Map<number,number>)
+			labels.push(requestType)
+		}
+		if(doFusion){
+			labels = [''] //Si on fusionne toutes les requestsType, on ne détaille pas le contenu dans les données
+			maps = [fusionMap(maps)]
+		} 
+		return {labels:labels,maps:maps}
+	}
+
+	interface LabelAndMaps{
+		labels:string[]
+		maps:Map<number,number>[]
 	}
 
 	function debugMe(map:Map<string, Map<number,number>>, key:string){

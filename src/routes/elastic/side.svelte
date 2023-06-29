@@ -17,8 +17,8 @@
 		switchFor(button, className)
         
 		sideState.isSumOrDistinctByInstance = button.getAttribute("data-val") as ACTION_VAL
-        sideState.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID
-        sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
+    sideState.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID
+    sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
 		updateInstanceInState()
 
 	}
@@ -27,8 +27,8 @@
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
 		sideState.isSumOrDistinctByClientId = button.getAttribute("data-val") as ACTION_VAL
-        sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
-		drawGraph()
+    sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
+    updateClientIdInState()
 
 	}
 
@@ -36,7 +36,7 @@
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
 		sideState.isSumOrDistinctByRequestType = button.getAttribute("data-val") as ACTION_VAL
-		drawGraph()
+		updateRequestTypeInState()
 
 	}
 
@@ -104,6 +104,7 @@
         }
         
         updateClientIdInState()
+        updateRequestTypeInState()
     }
 
     function updateClientIdInState(){
@@ -160,7 +161,7 @@
 <FilterBlock filterCode={StateOfFiltersElastic.ID_CLIENTIDS} filterTitre='ClientIds' filterList={fClientIds}  action={updateClientIdInState} action2={()=>{}}/>
 <button class="sumOrDistinctClientId button-on" on:click={switchforSumByClientId} data-val={ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
 <button class="sumOrDistinctClientId button-off" on:click={switchforSumByClientId} data-val={ACTION_VAL.DISTINCT_BY_CLIENTID}>Distinct</button>
-<FilterBlock filterCode={StateOfFiltersElastic.ID_CLIENTIDS} filterTitre='RequestTypes' filterList={fRequestTypes}  action={updateRequestTypeInState} action2={()=>{}}/>
+<FilterBlock filterCode={StateOfFiltersElastic.ID_REQUESTTYPE} filterTitre='RequestTypes' filterList={fRequestTypes}  action={updateRequestTypeInState} action2={()=>{}}/>
 <button class="sumOrDistinctRequestType button-on" on:click={switchforSumByRequestType} data-val={ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
 <button class="sumOrDistinctRequestType button-off" on:click={switchforSumByRequestType} data-val={ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
 
