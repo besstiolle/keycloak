@@ -1,27 +1,24 @@
 
 <script lang="ts">
-    import { DATA_TYPE, type dataset } from '$lib/elasticStruct';
+    import { DATA_TYPE, type DatasetAndLimitsForLine, type LabelAndDataset} from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
 	const DAY_OF_WEEK = ["Dimanche","Lundi","Mardi","Mercredi", "Jeudi", "Vendredi", "Samedi"]
 
-
+	export let datasetAndLimits:DatasetAndLimitsForLine
 	export let dataType:DATA_TYPE
-    export let borneMin:number
-    export let borneMax:number
-	export let datasets:dataset[]	
 
     const HTMLCanvasElementID = 'lineCountersAllCanevas'+Math.round(Math.random()*1000)
 
-	let labelsSource:dataset = {label:"", data: new Map<number, number>()}
-	if(datasets.length >= 1){
-		labelsSource = datasets[0]
+	let labelsSource:LabelAndDataset = {label:"", data: new Map<number, number>()}
+		if(datasetAndLimits.labelsAndDatasets.length >= 1){
+		labelsSource = datasetAndLimits.labelsAndDatasets[0]
 	} 
 
     const DATA = {
         labels: Array.from(labelsSource.data.keys()).sort().map(row => getLabelValue(row)),
-        datasets: datasets.map(dataset => {
+        datasets: datasetAndLimits.labelsAndDatasets.map(dataset => {
 			return {
 				label: dataset.label,
 				data: Array.from(dataset.data.keys()).sort().map(row => dataset.data.get(row) ),
@@ -31,7 +28,7 @@
     }
 
 	function getLabelValue(row:number){
-		if(dataType == DATA_TYPE.SUM_BY_DAY_OF_WEEK){
+		if(dataType == DATA_TYPE.SUM_BY_DAY_OF_WEEK || dataType == DATA_TYPE.AVG_BY_DAY_OF_WEEK){
 			return DAY_OF_WEEK[row]
 		}
 	}
@@ -59,7 +56,7 @@
 						y: {
 							//min: Math.round(borneMin / 1.1),
 							min: 0,
-							max: Math.round(borneMax * 1.1),
+							max: Math.round(datasetAndLimits.max * 1.1),
 							title: {
 								display: true,
 								text: 'ClientIds'

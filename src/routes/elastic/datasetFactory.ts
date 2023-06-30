@@ -1,5 +1,5 @@
 
-import { getKeysOfClientIdElastic, type REQUEST_TYPE, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
+import { getKeysOfClientIdElastic, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
 import type { commit } from '$lib/struct';
 import { readDataOfMatrix } from './matrixUtils';
 
@@ -12,51 +12,65 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
     let sumByWeek = new Map<number,number>() // eg : monday 0:00
     let sumByMonth = new Map<number,number>() // eg : first day of month 0:00
     let sumByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
-    let sumByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
+    let cptByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
+    let avgByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
+    //let sumByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
+    //let cptByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
+    let sumAbsolute = 0
 
     let day = 0
     let startOfWeek = 0
     let startOfMonth = 0
     let dayOfWeek = 0
     let dayofYear = 0
-    
+
     start.setHours(0)
     while (start <= end){
         day = start.getTime()
         startOfWeek = getStartOfWeek(start).getTime()
-        //console.info(start, new Date(startOfWeek))
         startOfMonth = getStartOfMonth(start).getTime()
-        //console.info(start, new Date(startOfMonth))
         dayOfWeek = start.getDay()
-        //console.info(start, dayOfWeek)
         dayofYear = getDayOfYear(start)
-        //console.info(start, dayofYear)
         for(let i=0; i < 8;i++){
             start.setHours(i*3)
             tmp_val = readDataOfMatrix(arr, start)
             value = 0
             if(tmp_val != null){
                 value = tmp_val
+                sumByDay = addToMap(sumByDay, day, value)
+                sumByWeek = addToMap(sumByWeek, startOfWeek, value)
+                sumByMonth = addToMap(sumByMonth, startOfMonth, value)
+                sumByDayOfWeek = addToMap(sumByDayOfWeek, dayOfWeek, value)
+                
+                //sumByDayOfYear = addToMap(sumByDayOfYear, dayofYear, value)
+                //cptByDayOfYear = addToMap(cptByDayOfWeek, dayOfWeek, 1)
+                sumAbsolute += value
             }
-            //console.info(value)
-            sumByDay = addToMap(sumByDay, day, value)
-            sumByWeek = addToMap(sumByWeek, startOfWeek, value)
-            sumByMonth = addToMap(sumByMonth, startOfMonth, value)
-            sumByDayOfWeek = addToMap(sumByDayOfWeek, dayOfWeek, value)
-            //cptByDayOfWeek = addToMap(cptByDayOfWeek, dayOfWeek, 1)
-            sumByDayOfYear = addToMap(sumByDayOfYear, dayofYear, value)
-            //cptByDayOfYear = addToMap(cptByDayOfWeek, dayOfWeek, 1)
         }
+        
+        cptByDayOfWeek = addToMap(cptByDayOfWeek, dayOfWeek, 1)
+
         start.setHours(0)
         start.setDate(start.getDate()+1)
     }
+
+    //Post traitement pour AVG
+    sumByDayOfWeek.forEach((value, key) => {
+        if(cptByDayOfWeek.has(key)){
+            avgByDayOfWeek.set(key, value / (cptByDayOfWeek.get(key) as number))
+        }
+    });
 
     return {
         sumByDay:sumByDay,
         sumByWeek:sumByWeek,
         sumByMonth:sumByMonth,
         sumByDayOfWeek:sumByDayOfWeek,
-        sumByDayOfYear:sumByDayOfYear
+        cptByDayOfWeek:cptByDayOfWeek,
+        avgByDayOfWeek:avgByDayOfWeek,
+        //sumByDayOfYear:sumByDayOfYear,
+        //cptByDayOfYear:cptByDayOfYear,
+        sumAbsolute:sumAbsolute
     }
 }
 
@@ -94,8 +108,16 @@ export function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawDa
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_WEEK)
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByMonth, instance, clientId, requestType, DATA_TYPE.SUM_BY_MONTH)
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_WEEK)
-    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfYear, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_YEAR)
-    
+    map = processRawDataAndDataTypeIntoMap(map, rawData.avgByDayOfWeek, instance, clientId, requestType, DATA_TYPE.AVG_BY_DAY_OF_WEEK)
+
+
+    let tmp_map = new Map<number, number>()
+    tmp_map.set(0,rawData.sumAbsolute)
+    map = processRawDataAndDataTypeIntoMap(map, tmp_map, instance, clientId, requestType, DATA_TYPE.ABSOLUTE_SUM)
+    //map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfYear, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_YEAR)
+
+    //console.info(rawData.cptByDayOfWeek)
+
     return map
 }
 
@@ -107,19 +129,20 @@ function processRawDataAndDataTypeIntoMap(map:Map<string, Map<number,number>>,  
     //Key 4 : Instance + RequestType + type of data 			=> x||*||z||¤
     //Key 5 : client ID + RequestType + type of data 			=> *||y||z||¤
     //Key 6 : Instance + client ID + RequesType + type of data 	=> x||y||z||¤
-    let key1 = getHashKey(instance, null, null, dataType)
-    let key2 = getHashKey(null, clientId, null, dataType)
-    let key3 = getHashKey(null, null, requestType, dataType)
-    let key4 = getHashKey(instance, null, requestType, dataType)
-    let key5 = getHashKey(null, clientId, requestType, dataType)
-    let key6 = getHashKey(instance, clientId, requestType, dataType)
 
-    map = updateMapWithKey(map, key1, mapValue)
-    map = updateMapWithKey(map, key2, mapValue)
-    map = updateMapWithKey(map, key3, mapValue)
-    map = updateMapWithKey(map, key4, mapValue)
+   // let key1 = getHashKey(instance, null, null, dataType)
+  //  let key2 = getHashKey(null, clientId, null, dataType)
+  //  let key3 = getHashKey(null, null, requestType, dataType)
+  //  let key4 = getHashKey(instance, null, requestType, dataType)
+    let key5 = getHashKey(null, clientId, requestType, dataType)
+   // let key6 = getHashKey(instance, clientId, requestType, dataType)
+
+  //  map = updateMapWithKey(map, key1, mapValue)
+  //  map = updateMapWithKey(map, key2, mapValue)
+  //  map = updateMapWithKey(map, key3, mapValue)
+  //  map = updateMapWithKey(map, key4, mapValue)
     map = updateMapWithKey(map, key5, mapValue)
-    map = updateMapWithKey(map, key6, mapValue)
+  //  map = updateMapWithKey(map, key6, mapValue)
 
     return map
 }
@@ -204,168 +227,6 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
 }
 
 
-export function initiateDatasetFromStoreForLine(store:elasticStore, requestType:REQUEST_TYPE|null=null):datasetAndLimitsForLine{
-    //console.info("initiateDatasetFromStore")
-    let start = store.minDate
-    let value:number|null=0
-    let tmp_val:number=0
-    let sumOfDay:number=0
-    
-    let sumByTsMax = 0
-    let sumByTs = new Map<number,number>()
-    let avgByTs = new Map<number,number>()
-    let sumByDayOfWeek = new Map<number, number>()
-    let countByDayOfWeek = new Map<number, number>()
-    let avgByDayOfWeek = new Map<number, number>()
-
-    store.container.forEach(clientId => {
-        start = new Date(store.minDate)
-        while (start <= store.maxDate){
-            sumOfDay=0
-            for(let i=0; i < 8;i++){
-                start.setHours(i*3)
-                value = 0
-                if(requestType != null){
-                    value = readDataOfMatrix(clientId[requestType], start)
-                } else {
-                    throw "requestType can't be null if CSV type is KEYCLOAK"
-                }
-                if(value !==null){
-                    sumOfDay+= value
-                }
-            }
-            start.setHours(0)
-
-            if(sumByTs.has(start.getTime()/1000)){
-                tmp_val = (sumByTs.get(start.getTime()/1000) as number)+ sumOfDay
-                sumByTs.set(start.getTime()/1000,tmp_val)
-                
-                if(sumByTsMax < tmp_val){
-                    sumByTsMax = tmp_val
-                }
-            } else {
-                sumByTs.set(start.getTime()/1000,sumOfDay)
-                avgByTs.set(start.getTime()/1000,-1) //Initiate for later in the code
-            }
-
-            /**
-             * Section to processing AVG by DAY OF WEEK (part I)
-            */
-            let dayOfWeek = DAY_OF_WEEK[start.getDay()] //Translation sunday -> saturday to monday -> sunday like real people
-            if(sumByDayOfWeek.has(dayOfWeek)){
-                tmp_val = sumByDayOfWeek.get(dayOfWeek) as number + sumOfDay
-                sumByDayOfWeek.set(dayOfWeek, tmp_val)
-            } else {
-                sumByDayOfWeek.set(dayOfWeek, sumOfDay)
-            }
-
-            /**
-             * End of Section
-            */
-
-            start.setDate(start.getDate()+1)
-        }
-
-    })
-
-    /**
-     * Section to processing AVG by DAY OF WEEK (part II)
-    */
-    start = new Date(store.minDate)
-    start.setHours(0)
-    while (start <= store.maxDate){
-        let dayOfWeek = DAY_OF_WEEK[start.getDay()]
-        if(countByDayOfWeek.has(dayOfWeek)){
-            tmp_val = countByDayOfWeek.get(dayOfWeek) as number + 1
-            countByDayOfWeek.set(dayOfWeek, tmp_val)
-        } else {
-            countByDayOfWeek.set(dayOfWeek, 1)
-        }
-        start.setDate((start.getDate()+1))
-    }
-    DAY_OF_WEEK.forEach(dayOfWeek => {
-        if(sumByDayOfWeek.has(dayOfWeek)){
-            avgByDayOfWeek.set(dayOfWeek, (sumByDayOfWeek.get(dayOfWeek) as number) / (countByDayOfWeek.get(dayOfWeek) as number))
-        } else {
-            avgByDayOfWeek.set(dayOfWeek, 0)
-        }
-    })
-    /**
-     * End of Section
-    */
-
-    /**
-     * Section to processing 2nd dataset of "sumByTs*" chart
-    */
-    avgByTs.forEach((value, key) => {
-        avgByTs.set(key, avgByDayOfWeek.get(DAY_OF_WEEK[(new Date(key * 1000)).getDay()]) as number)
-    })
-
-
-    /**
-     * Build All Datasets for Charts
-    */
-    let datasets = [{label:"Σ of hits by day",data:sumByTs},
-                    {label:"x̄ by day of week", data:avgByTs}]
-
-    let datasetAndLimits = {
-        min:0,
-        max:sumByTsMax,
-        datasets:datasets
-    }
-
-    return datasetAndLimits
-}
-
-
-export function initiateDatasetFromStoreForPie(store:elasticStore):datasetAndLimitsForPie{
-    let start:Date
-    let tmp_value:number|null
-    let sumOfError:number
-    let datasetAndLimits:datasetAndLimitsForPie = {
-        datasets:[]
-    }
-    let mapTypeErrorToCount = new Map<string,number>()
-
-    store.errors.forEach((values, key) => {
-        start = new Date(store.minDate)
-        sumOfError=0
-        while (start <= store.maxDate){
-            for(let i=0; i < 8;i++){
-                start.setHours(i*3)
-                tmp_value = readDataOfMatrix(values, start)
-                if(tmp_value !== null){
-                    sumOfError += tmp_value
-                }
-            }
-            start.setHours(0)
-            start.setDate(start.getDate()+1)
-        }
-        mapTypeErrorToCount.set(key, sumOfError)
-    })
-
-    datasetAndLimits.datasets.push({
-        label:'Σ d\'erreurs sur la période',
-        data:mapTypeErrorToCount
-    })
-    return datasetAndLimits
-}
-
-function getListOfClientId(commit:commit, whitelist:string[]):string[]{
-    let list:string[]=[]
-    commit.instances.forEach(instance => {
-        instance.royaumes.forEach(r => {
-            r.clientIds?.forEach(c => {
-                list.push(c.label.toLocaleLowerCase())
-            });
-        });
-    });
-
-    //Add whitelist
-    list = list.concat(whitelist)
-
-    return list
-}
 
 export function initTableur(store:elasticStore, commit:commit, whitelist:string[]):datasetTableurHit[]{
     
@@ -489,4 +350,20 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
         })
     });
     return datasetByHit
+}
+
+function getListOfClientId(commit:commit, whitelist:string[]):string[]{
+    let list:string[]=[]
+    commit.instances.forEach(instance => {
+        instance.royaumes.forEach(r => {
+            r.clientIds?.forEach(c => {
+                list.push(c.label.toLocaleLowerCase())
+            });
+        });
+    });
+
+    //Add whitelist
+    list = list.concat(whitelist)
+
+    return list
 }

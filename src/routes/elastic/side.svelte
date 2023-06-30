@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ACTION_VAL, type GlobalState } from "$lib/elasticStruct";
+    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, type GlobalState } from "$lib/elasticStruct";
     import FilterBlock from "../FilterBlock.svelte";
     import { StateOfFiltersElastic } from "./StateOfFiltersElastic";
 
@@ -62,16 +62,34 @@
 	function switchforTypeAgregate(e:Event, className:string='typeOfAgregate'){
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
-		sideState.isAgregate = button.getAttribute("data-val") as ACTION_VAL
+		sideState.isAgregate = button.getAttribute("data-val") as DATA_TYPE
 		drawGraph()
 	}
 	
 	function switchforTypeGraph(e:Event, className:string='typeOfGraph'){
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
-		sideState.isGraphType = button.getAttribute("data-val") as ACTION_VAL
+		sideState.graphType = button.getAttribute("data-val") as GRAPH_TYPE
+
+    switch(sideState.graphType){
+      case GRAPH_TYPE.LINE:doHideNoTableur(false);break; 
+      case GRAPH_TYPE.PIE:doHideNoTableur(false);break; 
+      case GRAPH_TYPE.TABLEUR:doHideNoTableur(true);break; 
+    }
+
 		drawGraph()
 	}
+
+  function doHideNoTableur(doHide:boolean){
+    let divElements = document.getElementsByClassName("noTableur")
+    for(let div of divElements){
+      if(doHide){
+        div.classList.add("hide")
+      } else {
+        div.classList.remove("hide")
+      }
+    }
+  }
 
 	function switchFor(button:HTMLButtonElement, className:string){
 		let buttons = document.getElementsByClassName(className)
@@ -161,32 +179,36 @@
     }
 
 </script>
-
-<button class="typeOfGraph button-on" on:click={switchforTypeGraph}>Lines</button>
-<button class="typeOfGraph button-off" on:click={switchforTypeGraph} disabled>Charts</button>
-<button class="typeOfGraph button-off" on:click={switchforTypeGraph} disabled>Table</button>
-<hr/>
-<button class="typeOfAgregate button-on" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_DAY}>By Day</button>
-<button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_WEEK}>By Week</button>
-<button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_MONTH}>By Month</button>
-<button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={ACTION_VAL.BY_DAY_OF_WEEK}>By Day of Week</button>
-<hr/>
-<button class="button-off" disabled>Show x̄</button>
-<hr/>
-<FilterBlock filterCode={StateOfFiltersElastic.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={updateInstanceInState} action2={()=>{}}/>
-<button class="sumOrDistinctInstance button-on" on:click={switchforSumByInstance} data-val={ACTION_VAL.SUM_BY_INSTANCE}>Sum</button>
-<button class="sumOrDistinctInstance button-off" on:click={switchforSumByInstance} data-val={ACTION_VAL.DISTINCT_BY_INSTANCE}>Distinct</button>
-<FilterBlock filterCode={StateOfFiltersElastic.ID_CLIENTIDS} filterTitre='ClientIds' filterList={fClientIds}  action={updateClientIdInState} action2={()=>{}}/>
-<button class="sumOrDistinctClientId button-on" on:click={switchforSumByClientId} data-val={ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
-<button class="sumOrDistinctClientId button-off" on:click={switchforSumByClientId} data-val={ACTION_VAL.DISTINCT_BY_CLIENTID}>Distinct</button>
-<FilterBlock filterCode={StateOfFiltersElastic.ID_REQUESTTYPE} filterTitre='RequestTypes' filterList={fRequestTypes}  action={updateRequestTypeInState} action2={()=>{}}/>
-<button class="sumOrDistinctRequestType button-on" on:click={switchforSumByRequestType} data-val={ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
-<button class="sumOrDistinctRequestType button-off" on:click={switchforSumByRequestType} data-val={ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
-
+<div>
+  <button class="typeOfGraph button-on" on:click={switchforTypeGraph} data-val={GRAPH_TYPE.LINE}>Lines</button>
+  <button class="typeOfGraph button-off" on:click={switchforTypeGraph} data-val={GRAPH_TYPE.PIE}>Charts</button>
+  <button class="typeOfGraph button-off" on:click={switchforTypeGraph} data-val={GRAPH_TYPE.TABLEUR}>Table</button>
+  <hr/>
+</div>
+<div class="noTableur">
+  <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.SUM_BY_DAY}>By Day</button>
+  <button class="typeOfAgregate button-on" on:click={switchforTypeAgregate} data-val={DATA_TYPE.SUM_BY_WEEK}>By Week</button>
+  <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.SUM_BY_MONTH}>By Month</button>
+  <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.SUM_BY_DAY_OF_WEEK}>By Day of Week</button>
+  <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.AVG_BY_DAY_OF_WEEK}>x̄ By Day of Week</button>
+  <hr/>
+</div>
+<div class="noTableur">
+  <button class="button-off" disabled>Show x̄</button>
+  <hr/>
+</div>
+<div class="noTableur">
+  <FilterBlock filterCode={StateOfFiltersElastic.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={updateInstanceInState} action2={()=>{}}/>
+  <button class="sumOrDistinctInstance button-on" on:click={switchforSumByInstance} data-val={ACTION_VAL.SUM_BY_INSTANCE}>Sum</button>
+  <button class="sumOrDistinctInstance button-off" on:click={switchforSumByInstance} data-val={ACTION_VAL.DISTINCT_BY_INSTANCE}>Distinct</button>
+  <FilterBlock filterCode={StateOfFiltersElastic.ID_CLIENTIDS} filterTitre='ClientIds' filterList={fClientIds}  action={updateClientIdInState} action2={()=>{}}/>
+  <button class="sumOrDistinctClientId button-on hide" on:click={switchforSumByClientId} data-val={ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
+  <button class="sumOrDistinctClientId button-off hide" on:click={switchforSumByClientId} data-val={ACTION_VAL.DISTINCT_BY_CLIENTID}>Distinct</button>
+  <FilterBlock filterCode={StateOfFiltersElastic.ID_REQUESTTYPE} filterTitre='RequestTypes' filterList={fRequestTypes}  action={updateRequestTypeInState} action2={()=>{}}/>
+  <button class="sumOrDistinctRequestType button-on" on:click={switchforSumByRequestType} data-val={ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
+  <button class="sumOrDistinctRequestType button-off" on:click={switchforSumByRequestType} data-val={ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
+</div>
 <style>
-:global(.hide){
-  display: none;
-}
 /* CSS https://getcssscan.com/css-buttons-examples */
 .button-on {
   appearance: none;
@@ -295,5 +317,14 @@
 
 .button-off:-webkit-details-marker {
   display: none;
+}
+
+/**********************/
+
+.hide{
+  display: none;
+}
+hr{
+  width: 90%;
 }
 </style>

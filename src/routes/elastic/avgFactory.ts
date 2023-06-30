@@ -1,33 +1,16 @@
-import type { LabelAndDataset } from "./groupByFactory"
+import type { LabelAndDataset } from "$lib/elasticStruct"
 
 
-export interface LabelAndDatasetAndMeta{
-    label:string,
-    map:Map<number,number>
-    avg:number
-    avg30:Map<number,number>
-    avg60:Map<number,number>
-    //10% & 90% ?
-}
 
-export function runAvg(labelsAndDatasets:LabelAndDataset[]):LabelAndDatasetAndMeta[]{
-    let labelsAndDatasetsAndMetas:LabelAndDatasetAndMeta[] = []
+export function runAvg(labelAndDataset:LabelAndDataset):number{
+    let avg=0
 
-    let avg30 = new Map<number,number>()
-    let avg60 = new Map<number,number>()
-    //Processing Avg30 & Avg60
-    if(labelsAndDatasets.length == 1){
-        //TODO
-    }
-
-    labelsAndDatasets.forEach(labelsAndDatasets => {
-        labelsAndDatasetsAndMetas.push({
-            label:labelsAndDatasets.label,
-            map:labelsAndDatasets.map,
-            avg:0,
-            avg30:avg30,
-            avg60:avg60
-        })
+    let cpt = 0
+    let sum = 0
+    labelAndDataset.data.forEach((value, key) => {
+        sum += value
+        cpt++
     });
-    return labelsAndDatasetsAndMetas
+
+    return sum / cpt
 }

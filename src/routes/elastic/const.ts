@@ -6,3 +6,4 @@ export const PIPE = '|'
 export const DOUBLE_QUOTE = '"'
 export const SIMPLE_QUOTE = "'"
 export const EMPTY_STRING = ''
+export const VERTICAL_TWO_DOT = ":"

@@ -1,4 +1,5 @@
-import { DATA_TYPE } from "$lib/elasticStruct"
+import { DATA_TYPE, type LabelAndDataset } from "$lib/elasticStruct"
+import { VERTICAL_TWO_DOT } from "./const"
 import { fusionMap, getHashKey } from "./datasetFactory"
 
 
@@ -58,18 +59,34 @@ export function runEngine(engine:GroupByEngine, globalMap:Map<string, Map<number
         default:console.error("cas d'usage non définit. dumb was ", dumb)
     }
 
+    
+    //Sort desc by weight
+    values.sort(function (ob1, ob2) {
+        return ob2.weight - ob1.weight
+    });
+
+
     if(values.length > MAX_VALUES){
-        values = values.slice(0,MAX_VALUES)
-    }
+        let newDatas:Map<number, number>[] = []
+        let newWeight = 0
+        let shortValues:LabelAndDataset[] = values.slice(0,MAX_VALUES)
+        values.slice(MAX_VALUES).forEach(labelAndDataset => {
+            newDatas.push(labelAndDataset.data)
+            newWeight += labelAndDataset.weight
+        });
+
+        //Add +1 last dataset
+        shortValues.push({
+            label:"Others",
+            data:fusionMap(newDatas),
+            weight:newWeight
+        })
+
+        return shortValues
+    } 
 
     return values
 }
-
-export interface LabelAndDataset{
-    label:string,
-    map:Map<number,number>
-}
-
 
 /**
  *   0 : distinct instance,     distinct client ,   distinct request
@@ -84,8 +101,9 @@ function _run0(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
             if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                 for(let requestType of engine.selectedRequestsType){
                     allLabelsAndDatasets.push({
-                        label: instance + ":" + clientId + ":" + requestType,
-                        map: globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>
+                        label: instance + VERTICAL_TWO_DOT + clientId + VERTICAL_TWO_DOT + requestType,
+                        data: globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>,
+                        weight : (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                     })
                 }
             }
@@ -103,18 +121,22 @@ function _run0(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
 function _run2(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
+    let weight = 0
 
     for(let instance of engine.selectedInstances){
         for(let requestType of engine.selectedRequestsType){
             tmp_maps = []
+            weight = 0
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                     tmp_maps.push(globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>)
+                    weight += (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                 }
             }
             allLabelsAndDatasets.push({
-                label: instance + ":" + "" + ":" + requestType,
-                map: fusionMap(tmp_maps)
+                label: instance + VERTICAL_TWO_DOT + requestType,
+                data: fusionMap(tmp_maps),
+                weight : weight
             })
         }
     }
@@ -130,19 +152,23 @@ function _run2(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
 function _run3(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
+    let weight = 0
     
     for(let requestType of engine.selectedRequestsType){
         tmp_maps = []
+        weight = 0
         for(let instance of engine.selectedInstances){
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                     tmp_maps.push(globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>)
+                    weight += (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                 }
             }
         }
         allLabelsAndDatasets.push({
-            label: "" + ":" + "" + ":" + requestType,
-            map: fusionMap(tmp_maps)
+            label: requestType,
+            data: fusionMap(tmp_maps),
+            weight : weight
         })
     }
     return allLabelsAndDatasets
@@ -158,18 +184,22 @@ function _run3(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
 function _run4(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
+    let weight = 0
 
     for(let instance of engine.selectedInstances){
         for(let clientId of engine.selectedClientsId){
             if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                 tmp_maps = []
+                weight = 0
                 for(let requestType of engine.selectedRequestsType){
                     tmp_maps.push(globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>)
+                    weight += (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                 }
 
                 allLabelsAndDatasets.push({
-                    label: instance +":"+clientId,
-                    map: fusionMap(tmp_maps)
+                    label: instance + VERTICAL_TWO_DOT + clientId,
+                    data: fusionMap(tmp_maps),
+                    weight : weight
                 })
             }
         }
@@ -187,18 +217,23 @@ function _run4(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
 function _run6(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
+    let weight = 0
+
     for(let instance of engine.selectedInstances){
-        tmp_maps=[]
+        tmp_maps = []
+        weight = 0
         for(let clientId of engine.selectedClientsId){
             if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                 for(let requestType of engine.selectedRequestsType){
                     tmp_maps.push(globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>)
+                    weight += (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                 }
             }
         }
         allLabelsAndDatasets.push({
             label: instance,
-            map: fusionMap(tmp_maps)
+            data: fusionMap(tmp_maps),
+            weight : weight
         })
     }
     
@@ -215,18 +250,22 @@ function _run6(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
 function _run7(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
+    let weight = 0
+
     for(let requestType of engine.selectedRequestsType){
         for(let instance of engine.selectedInstances){
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                     tmp_maps.push(globalMap.get(getHashKey(null,clientId,requestType,engine.dataTypeSelected)) as Map<number,number>)
+                    weight += (globalMap.get(getHashKey(null,clientId,requestType,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
                 }
             }
         }
     }
     allLabelsAndDatasets.push({
         label: "all informations selected",
-        map: fusionMap(tmp_maps)
+        data: fusionMap(tmp_maps),
+        weight : weight
     })
     return allLabelsAndDatasets
 }

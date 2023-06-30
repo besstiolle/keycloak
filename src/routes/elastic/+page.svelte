@@ -1,10 +1,10 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { REQUEST_TYPE, getKeysOfClientIdElastic, type datasetAndLimitsForLine, type datasetAndLimitsForPie, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, type dataset } from '$lib/elasticStruct';
+    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
 
     import UploadElastic from './UploadElastic.svelte';
-    import { getRawData, initTableur, initiateDatasetFromStoreForLine, initiateDatasetFromStoreForPie,  processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
+    import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
     import { getEmptyElasticStore } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
@@ -13,20 +13,20 @@
     import LineHitsByAll from './LineHitsByAll.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
     import Side from './side.svelte';
-    import { GroupByEngine, runEngine, type LabelAndDataset } from './groupByFactory';
-    import { runAvg } from './avgFactory';
+    import { GroupByEngine, runEngine } from './groupByFactory';
+    import PieCountersByError from './PieCountersByError.svelte';
 
 	let addAnother = false
 	
-	let datasetAndLimits:datasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
-	let datasetAndLimits5:datasetAndLimitsForPie = emptyDatasetAndLimitsForPie()
+	let datasetAndLimits:DatasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
+	let datasetsForPie:LabelAndDatasetString[]
 	let datasetTableurByHits:datasetTableurHit[] = []
 	let lastCommit:commit
 
 	//Filters on left
 	let fInstances:string[] = []
 	let fClientIds:string[] = []
-	let fRequestTypes:string[] = getKeysOfClientIdElastic()
+	let fRequestTypes:string[] = getKeysOfClientIdElastic().sort()
 	let instanceToClientId:Map<string,string[]> = new Map<string,string[]>()
 
 	let globalMap = new Map<string, Map<number, number>>()
@@ -35,26 +35,19 @@
 		isSumOrDistinctByInstance : ACTION_VAL.SUM_BY_INSTANCE,
 		isSumOrDistinctByClientId : ACTION_VAL.SUM_BY_CLIENTID,
 		isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
-		isGraphType : ACTION_VAL.GRAPH_LINE,
-		isAgregate : ACTION_VAL.BY_DAY,
+		graphType : GRAPH_TYPE.LINE,
+		isAgregate : DATA_TYPE.SUM_BY_WEEK,
 		selectedInstances: fInstances,
 		selectedClientsId: fClientIds,
 		selectedRequestsType: fRequestTypes
 	}
 
 	
-	function emptyDatasetAndLimitsForLine():datasetAndLimitsForLine{
-		let datasetAndLimits:datasetAndLimitsForLine = {
-			datasets:[],
+	function emptyDatasetAndLimitsForLine():DatasetAndLimitsForLine{
+		let datasetAndLimits:DatasetAndLimitsForLine = {
+			labelsAndDatasets:[],
 			min:0,
 			max:0
-		}
-
-		return datasetAndLimits
-	}
-	function emptyDatasetAndLimitsForPie():datasetAndLimitsForPie{
-		let datasetAndLimits:datasetAndLimitsForPie = {
-			datasets:[{label:"", data: new Map<string, number>()}]
 		}
 
 		return datasetAndLimits
@@ -65,33 +58,38 @@
 			return
 		}
 		let start = new Date()		
+
 		addAnother = false
 		lastCommit = hydrate($jsonDataStore, $jsonHashNodeDataStore)[0]
+		console.debug("hydratation ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 
-		initiateLineHitsAll()
 		globalMap = getAllRawData()
+		console.debug("getAllRawData ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		//let weightMap = getWeightMap()
+		//console.debug("getWeightMap ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+
 		initiateFilters()
+		console.debug("initiateFilters ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 		globalState.selectedInstances = fInstances
 
 		drawGraph()
 
-		console.debug("initiatePage ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
+		console.debug("initiatePage ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 	}
+
+	/*function getWeightMap(){
+		let newKey = ''
+		globalMap.forEach((value, key) => {
+			if(key.endsWith(DATA_TYPE.ABSOLUTE_SUM)){
+				newKey = key.substring(0,key.length - DATA_TYPE.ABSOLUTE_SUM.length)
+				console.info(newKey, value.get(0))
+			}
+		});
+	}*/
 
 	function drawGraph(){
 
-		let dataTypeSelected:DATA_TYPE=DATA_TYPE.SUM_BY_DAY
-		switch(globalState.isAgregate){
-			case ACTION_VAL.BY_DAY:dataTypeSelected=DATA_TYPE.SUM_BY_DAY;break;
-			case ACTION_VAL.BY_WEEK:dataTypeSelected=DATA_TYPE.SUM_BY_WEEK;break;
-			case ACTION_VAL.BY_MONTH:dataTypeSelected=DATA_TYPE.SUM_BY_MONTH;break;
-			case ACTION_VAL.BY_DAY_OF_WEEK:dataTypeSelected=DATA_TYPE.SUM_BY_DAY_OF_WEEK;break;
-			default:console.info(globalState.isAgregate, "is not found")
-		}
-
 		let minMax:minMax = {min:9000000,max:0}
-		//reset dataset wrapper
-		datasetAndLimits = emptyDatasetAndLimitsForLine()
 
 		//isGroupAllInstance:boolean, isGroupClientId:boolean, isGroupRequestType:boolean, dataTypeSelected:DATA_TYPE
 		let engine = new GroupByEngine(globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -100,28 +98,42 @@
 										globalState.selectedInstances,
 										globalState.selectedClientsId,
 										globalState.selectedRequestsType,
-										dataTypeSelected,
+										globalState.isAgregate,
 										instanceToClientId)
-		let labelsAndDatasets:LabelAndDataset[] = runEngine(engine, globalMap)
+		let labelsAndDatasets = runEngine(engine, globalMap)
 
-		if(labelsAndDatasets.length==1){//TODO And bouton activé
-		datasetAndLimits.min = minMax.min
-		datasetAndLimits.max = minMax.max
+		if(globalState.graphType == GRAPH_TYPE.LINE){
+			//reset dataset wrapper
+			datasetAndLimits = emptyDatasetAndLimitsForLine()
+			labelsAndDatasets.forEach(labelAndDataset => {
+				minMax = getMinMax([labelAndDataset.data], minMax)
+			});
 
-	}
+			datasetAndLimits.labelsAndDatasets = labelsAndDatasets
+			datasetAndLimits.min = minMax.min
+			datasetAndLimits.max = minMax.max
+		} else if (globalState.graphType == GRAPH_TYPE.PIE) {
+			
+			datasetsForPie = []
+			let mapData = new Map<string, number>()
+			labelsAndDatasets.forEach(labelAndDataset => {
+				mapData.set(labelAndDataset.label, labelAndDataset.weight)	//labelAndDataset.data.
+			});
+			datasetsForPie.push({
+				label:'Ratio by selected field',
+				data:mapData
+			})
 
-	function debugMe(map:Map<string, Map<number,number>>, key:string){
-		if(!map.has(key)){
-			console.info("key inconnue : " + key)
-			return
+			//console.info(datasetsForPie)
+
+		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
+			datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId))
+		} else {
+			//cas non gérer
+			console.error("Type of graph not available : ", globalState.graphType)	
 		}
-		let sum = 0;
 
-		(map.get(key) as Map<number,number>).forEach((value,key) => {
-			sum += value
-		})
 
-		console.info("key : "+key+" somme : " + sum)
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
@@ -133,23 +145,11 @@
 			for(const requestType of allRequestTypes){
 				rawData = getRawData(clientId[requestType] as number[][][][], new Date($jsonElasticDataStore.minDate), new Date($jsonElasticDataStore.maxDate))
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
-			}
-			
+			}			
 		})
 
 		return map
 		
-		
-	}
-
-	function initiateLineHitsAll(){
-		//console.info("initiateLineHitsAll >", $jsonElasticDataStore)
-		//datasetAndLimits1 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.STRONGBOX)
-		//datasetAndLimits2 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.HABILITATIONS)
-		//datasetAndLimits3 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.CLIENT_LOGIN)
-		//datasetAndLimits4 = initiateDatasetFromStoreForLine($jsonElasticDataStore, REQUEST_TYPE.LOGIN_ERROR)
-		//datasetAndLimits5 = initiateDatasetFromStoreForPie($jsonElasticDataStore)
-		datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId))
 	}
 
 	function getWhitelist(map:string):string[]{
@@ -187,6 +187,9 @@
 			}
 			instanceToClientId.set(clientId.instance, listOfClientIdForInstance)
 		});
+
+		fInstances.sort()
+		fClientIds.sort()
 	}
 
 	// start scripting
@@ -216,25 +219,35 @@
 	<button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button>
 </side>
 <data>
-	<div class="chart-container">
-		<h2>Evolution des requetes dans le temps</h2>
-		{#key datasetAndLimits}
-			{#if globalState.isAgregate == ACTION_VAL.BY_DAY_OF_WEEK}
-				<LineHitsByAll datasets={datasetAndLimits.datasets} borneMin={datasetAndLimits.min} borneMax={datasetAndLimits.max} dataType={DATA_TYPE.SUM_BY_DAY_OF_WEEK}/>	
-			{:else}
-				<LineHitsAll datasets={datasetAndLimits.datasets} borneMin={datasetAndLimits.min} borneMax={datasetAndLimits.max} dataType={DATA_TYPE.SUM_BY_DAY}/>	
-			{/if}
-		{/key}
+	{#if globalState.graphType == GRAPH_TYPE.LINE} 
+		<div class="chart-container">
+			<h2>Evolution des requetes dans le temps</h2>
+			{#key datasetAndLimits}
+				{#if globalState.isAgregate == DATA_TYPE.SUM_BY_DAY_OF_WEEK || globalState.isAgregate == DATA_TYPE.AVG_BY_DAY_OF_WEEK}
+					<LineHitsByAll datasetAndLimits={datasetAndLimits} dataType={globalState.isAgregate}/>	
+				{:else}
+					<LineHitsAll datasetAndLimits={datasetAndLimits}/>	
+				{/if}
+			{/key}
+			
+		</div>
+	{:else if globalState.graphType == GRAPH_TYPE.PIE}
 		
-	</div>
-	<!--<div >
-		<h2>Key Resume</h2>
-		<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
-	</div>
-	<div >
-		<h2>List of clientId</h2>
-		<TableClientIdBy datasets={datasetTableurByHits}/>
-	</div>-->
+		<div class="chart-container">
+			<h2>Ratio des entrées sélectionnées</h2>
+			<PieCountersByError datasets={datasetsForPie} />
+		</div>
+	{:else if globalState.graphType == GRAPH_TYPE.TABLEUR}
+		<div >
+			<h2>Key Resume</h2>
+			<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
+		</div>
+		<div >
+			<h2>List of clientId</h2>
+			<TableClientIdBy datasets={datasetTableurByHits}/>
+		</div>
+	{/if}
+			
 
 	
 </data>

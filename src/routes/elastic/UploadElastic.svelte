@@ -47,12 +47,8 @@
             } else if(jsonFile.name.indexOf('code erreur') !== -1) {
                 currentType = CSV_TYPE.ERRORS
             } 
-
-            console.info(errors.size)
             
             csvToContainer(csv, currentType)
-
-            console.info(errors.size)
    
             let elasticStoreCloned:elasticStore = {
                 minDate: minDate,
@@ -126,7 +122,6 @@
             }
             arr = errors.get(errorType) as  number[][][][]
             
-            console.info('set')
             errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
         }
 

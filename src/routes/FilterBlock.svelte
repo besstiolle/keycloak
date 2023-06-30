@@ -50,18 +50,24 @@
 	max-height: 300px;
 	overflow-x: hidden;
 	overflow-y: unset;
+	word-break: break-all;
 }
 .filterBlock > span{
 	cursor: pointer;
 	font-size: 0.8rem;
 	margin-bottom: 1rem;
-	word-break: break-all;
 }
 .filter{
 	flex-direction:column;
 	display: flex;
 	cursor: pointer;
 	margin-top: 1rem;
+}
+
+label{
+  display: flex;
+  flex-direction: row;
+  font-size: 0.8em;
 }
 
 </style>

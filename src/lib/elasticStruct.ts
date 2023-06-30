@@ -31,7 +31,8 @@ export enum DATA_TYPE {
     SUM_BY_WEEK='SUM_BY_WEEK',
     SUM_BY_MONTH='SUM_BY_MONTH',
     SUM_BY_DAY_OF_WEEK='SUM_BY_DAY_OF_WEEK',
-    SUM_BY_DAY_OF_YEAR='SUM_BY_DAY_OF_YEAR'
+    AVG_BY_DAY_OF_WEEK='AVG_BY_DAY_OF_WEEK',
+    ABSOLUTE_SUM='ABSOLUTE_SUM'
 }
 
 
@@ -42,23 +43,20 @@ export const enum ACTION_VAL{
     DISTINCT_BY_CLIENTID="DISTINCT_BY_CLIENTID",
     SUM_BY_REQUESTTYPE="SUM_BY_REQUESTTYPE",
     DISTINCT_BY_REQUESTTYPE="DISTINCT_BY_REQUESTTYPE",
+}
 
-    GRAPH_LINE="GRAPH_LINE",
-    GRAPH_CHARTS="GRAPH_CHARTS",
-    GRAPH_TABLE="GRAPH_TABLE",
-    
-    BY_DAY="BY_DAY",
-    BY_WEEK="BY_WEEK",
-    BY_MONTH="BY_MONTH",
-    BY_DAY_OF_WEEK="BY_DAY_OF_WEEK"
+export const enum GRAPH_TYPE{
+    LINE="LINE",
+    PIE="PIE",
+    TABLEUR="TABLEUR",
 }
 
 export interface GlobalState{
     isSumOrDistinctByInstance:ACTION_VAL,
     isSumOrDistinctByClientId:ACTION_VAL,
     isSumOrDistinctByRequestType:ACTION_VAL,
-    isAgregate:ACTION_VAL,
-    isGraphType:ACTION_VAL,
+    isAgregate:DATA_TYPE,
+    graphType:GRAPH_TYPE,
     selectedInstances:string[],
     selectedClientsId:string[],
     selectedRequestsType:string[]
@@ -69,7 +67,11 @@ export interface rawData{
     sumByWeek : Map<number,number>,
     sumByMonth : Map<number,number>,
     sumByDayOfWeek : Map<number,number>,
-    sumByDayOfYear : Map<number,number>
+    cptByDayOfWeek : Map<number,number>,
+    avgByDayOfWeek : Map<number,number>,
+    //sumByDayOfWeek : Map<number,number>,
+    //cptByDayOfYear : Map<number,number>,
+    sumAbsolute : number
 } 
 
 export interface minMax{
@@ -91,20 +93,18 @@ export interface pointer{
     h:number
 }
 
-export interface datasetAndLimitsForLine{
+export interface DatasetAndLimitsForLine{
     min:number,
     max:number,
-    datasets:dataset[]
-}
-export interface datasetAndLimitsForPie{
-    datasets:datasetString[]
+    labelsAndDatasets:LabelAndDataset[]
 }
 
-export interface dataset{
+export interface LabelAndDataset{
     label:string,
-    data:Map<number, number>
+    data:Map<number, number>,
+    weight:number
 }
-export interface datasetString{
+export interface LabelAndDatasetString{
     label:string,
     data:Map<string, number>
 }

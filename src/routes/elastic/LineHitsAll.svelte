@@ -1,25 +1,22 @@
 
 <script lang="ts">
-    import type { DATA_TYPE, dataset } from '$lib/elasticStruct';
+    import type { DatasetAndLimitsForLine, LabelAndDataset } from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
 	
-	export let dataType:DATA_TYPE
-    export let borneMin:number
-    export let borneMax:number
-	export let datasets:dataset[]	
+	export let datasetAndLimits:DatasetAndLimitsForLine
 
     const HTMLCanvasElementID = 'lineCountersAllCanevas'+Math.round(Math.random()*1000)
 
-	let labelsSource:dataset = {label:"", data: new Map<number, number>()}
-	if(datasets.length >= 1){
-		labelsSource = datasets[0]
+	let labelsSource:LabelAndDataset = {label:"", data: new Map<number, number>()}
+	if(datasetAndLimits.labelsAndDatasets.length >= 1){
+		labelsSource = datasetAndLimits.labelsAndDatasets[0]
 	} 
 
     const DATA = {
         labels: Array.from(labelsSource.data.keys()).sort().map(row => row),
-        datasets: datasets.map(dataset => {
+        datasets: datasetAndLimits.labelsAndDatasets.map(dataset => {
 			return {
 				label: dataset.label,
 				data: Array.from(dataset.data.keys()).sort().map(row => dataset.data.get(row) ),
@@ -56,7 +53,7 @@
 						y: {
 							//min: Math.round(borneMin / 1.1),
 							min: 0,
-							max: Math.round(borneMax * 1.1),
+							max: Math.round(datasetAndLimits.max * 1.1),
 							title: {
 								display: true,
 								text: 'ClientIds'

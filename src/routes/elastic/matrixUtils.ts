@@ -21,23 +21,24 @@ export function writeDataInMatrix(matrix: number[][][][], date: Date, value:numb
     return matrix
 }
 
-let hasNan=  false
+//let hasNan=  false
 export function readDataOfMatrix(matrix: number[][][][], date: Date):number|null {
     let pointer = dateToPointer(date)
     if( matrix != undefined && matrix[pointer.y] !== undefined 
             && matrix[pointer.y][pointer.m] !== undefined
             && matrix[pointer.y][pointer.m][pointer.d] !== undefined
             && matrix[pointer.y][pointer.m][pointer.d][pointer.h / 3] !== undefined ){
-        if(!isNaN(matrix[pointer.y][pointer.m][pointer.d][pointer.h / 3])){
+        //if(!isNaN(matrix[pointer.y][pointer.m][pointer.d][pointer.h / 3])){
             return matrix[pointer.y][pointer.m][pointer.d][pointer.h / 3]
-        } else {
-            if(!hasNan){
-                console.error ("NaN ", matrix)
-            }
+        //} else {
+        //    if(!hasNan){
+        //        console.error ("NaN ", matrix)
+        //    }
             //hasNan = true
-        }
+       // }
     }
-    return null
+    
+   return null
 }
 
 function dateToPointer(date:Date):pointer{
