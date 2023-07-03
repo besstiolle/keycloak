@@ -5,7 +5,7 @@
 
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
-    import { getEmptyElasticStore } from './elasticStoreFactory';
+    import { getEmptyElasticStore, getWhitelist } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import type { commit } from '$lib/struct';
@@ -15,6 +15,8 @@
     import Side from './side.svelte';
     import { GroupByEngine, runEngine } from './groupByFactory';
     import PieCountersByError from './PieCountersByError.svelte';
+
+	const WHITELIST = browser?getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId):[]
 
 	let addAnother = false
 	
@@ -127,7 +129,7 @@
 			//console.info(datasetsForPie)
 
 		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId))
+			datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, WHITELIST)
 		} else {
 			//cas non gérer
 			console.error("Type of graph not available : ", globalState.graphType)	
@@ -152,20 +154,6 @@
 		
 	}
 
-	function getWhitelist(map:string):string[]{
-		if(map == undefined || map.trim() === ''){
-			return []
-		}
-		let lines = map.split('\n')
-		let vals:string[]
-		let keys:string[] = []
-		lines.forEach(line => {
-			vals = line.split('=')
-			keys.push(vals[0])
-		});
-		//console.info(keys)
-		return keys
-	}
 
 	function initiateFilters(){
 		let listOfClientIdForInstance:string[] = []

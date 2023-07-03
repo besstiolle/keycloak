@@ -8,3 +8,19 @@ export function getEmptyElasticStore():elasticStore {
         errors:new Map<string, number[][][][]>()
     }
 }
+
+
+export function getWhitelist(map:string):string[]{
+    if(map == undefined || map.trim() === ''){
+        return []
+    }
+    let lines = map.split('\n')
+    let vals:string[]
+    let keys:string[] = []
+    lines.forEach(line => {
+        vals = line.split('=')
+        keys.push(vals[0].toLocaleLowerCase())
+    });
+    //console.info(keys)
+    return keys
+}

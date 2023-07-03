@@ -1,7 +1,6 @@
 
 <script lang="ts">
     import type { datasetTableurHit } from '$lib/elasticStruct';
-    import { each } from 'svelte/internal';
     
 	export let datasets:datasetTableurHit[]	
     export let borneMin:Date
