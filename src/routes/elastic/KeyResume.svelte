@@ -9,10 +9,17 @@
     let cpt30 = new Map<String, number>()
     let cpt60 = new Map<String, number>()
     let cptAll = new Map<String, number>()
+    let cpt30_smell = new Map<String, number>()
+    let cpt60_smell = new Map<String, number>()
+    let cptAll_smell = new Map<String, number>()
 
     let sumcpt30 = 0
     let sumcpt60 = 0
     let sumcptAll = 0
+
+    let sumcpt30_smell = 0
+    let sumcpt60_smell = 0
+    let sumcptAll_smell = 0
    
     function init(){
         borneMax.setHours(0)
@@ -34,30 +41,39 @@
                 last.setHours(0)
 
                 if(last !== null && last > j30){
-                    if(!cpt30.has(clientId.instance)) {
-                        cpt30.set(clientId.instance, 1)
-                    } else {
-                        cpt30.set(clientId.instance, cpt30.get(clientId.instance) as number + 1)
-                    }
+                    addToMap(cpt30, clientId.instance)
                     sumcpt30++
+                    if(!clientId.isKnown){
+                        addToMap(cpt30_smell, clientId.instance)
+                        sumcpt30_smell++
+                    }
                 }
                 if(last !== null && last > j60){
-                    if(!cpt60.has(clientId.instance)) {
-                        cpt60.set(clientId.instance, 1)
-                    } else {
-                        cpt60.set(clientId.instance, cpt60.get(clientId.instance) as number + 1)
-                    }
+                    addToMap(cpt60, clientId.instance)
                     sumcpt60++
+                    if(!clientId.isKnown){
+                        addToMap(cpt60_smell, clientId.instance)
+                        sumcpt60_smell++
+                    }
                 }
-                if(!cptAll.has(clientId.instance)) {
-                    cptAll.set(clientId.instance, 1)
-                } else {
-                    cptAll.set(clientId.instance, cptAll.get(clientId.instance) as number + 1)
-                }
+                addToMap(cptAll, clientId.instance)
                 sumcptAll++
+                if(!clientId.isKnown){
+                    addToMap(cptAll_smell, clientId.instance)
+                    sumcptAll_smell++
+                }
             }
         });
 
+    }
+
+    function addToMap(map:Map<String, number>, key:string, value:number = 1):Map<String, number>{
+        if(!map.has(key)) {
+            map.set(key, value)
+        } else {
+            map.set(key, map.get(key) as number + value)
+        }
+        return map
     }
 
     //cpt30.
@@ -68,22 +84,22 @@
 
 </script>
 
-<p>Ces 30 derniers jours il y a eu <b>{sumcpt30} client-Id</b> identifiés sur la plateforme. Dont : </p>
+<p>Ces 30 derniers jours il y a eu <b>{sumcpt30} client-Id</b> identifiés sur la plateforme ({sumcpt30_smell} ☣️). Dont : </p>
 <ul>
     {#each [... cpt30.keys()] as key}
-    <li><b>{cpt30.get(key)}</b> client-Id pour <b>{key}</b></li>
+    <li><b>{cpt30.get(key)}</b> client-Id pour <b>{key}</b> ({cpt30_smell.get(key)} ☣️).</li>
     {/each}
 </ul>
-<p>Ces 60 derniers jours il y a eu <b>{sumcpt60} client-Id</b> identifiés sur la plateforme</p>
+<p>Ces 60 derniers jours il y a eu <b>{sumcpt60} client-Id</b> identifiés sur la plateforme ({sumcpt60_smell} ☣️).</p>
 <ul>
     {#each [... cpt60.keys()] as key}
-    <li><b>{cpt60.get(key)}</b> client-Id pour <b>{key}</b></li>
+    <li><b>{cpt60.get(key)}</b> client-Id pour <b>{key}</b> ({cpt60_smell.get(key)} ☣️).</li>
     {/each}
 </ul>
-<p>Depuis le début il y a eu <b>{sumcptAll} client-Id</b> identifiés sur la plateforme</p>
+<p>Depuis le début il y a eu <b>{sumcptAll} client-Id</b> identifiés sur la plateforme ({sumcptAll_smell} ☣️).</p>
 <ul>
     {#each [... cptAll.keys()] as key}
-    <li><b>{cptAll.get(key)}</b> client-Id pour <b>{key}</b></li>
+    <li><b>{cptAll.get(key)}</b> client-Id pour <b>{key}</b> ({cptAll_smell.get(key)} ☣️).</li>
     {/each}
 </ul>
 

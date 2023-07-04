@@ -3,7 +3,7 @@
     import type { datasetTableurHit } from '$lib/elasticStruct';
     
 	export let datasets:datasetTableurHit[]	
-
+    let displayArray:datasetTableurHit[] = []
    
 	function dateToInternalDate (d:Date){
 		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -92,6 +92,7 @@
         }
 
         initArrOrder()
+        initArray()
     }
 
 
@@ -130,9 +131,19 @@
     function rotateSmell(){
         rotate++
         rotate = rotate % 3
+        initArray()
+    }
+
+    function initArray():void{
+        displayArray = [...datasets]//clone array
+        if(rotate == 0) {
+            return
+        }
+        displayArray = displayArray.filter(value => value.isKnown && rotate == 1 || !value.isKnown && rotate == 2)
     }
 
     initArrOrder()
+    initArray()
 
 </script>
 
@@ -155,7 +166,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each  datasets as data}
+        {#each  displayArray as data}
         <tr class:hide="{(!data.isKnown && rotate==1) || (data.isKnown && rotate==2)}">
             <td class='tl w'>{data.clientId}{data.isKnown?'':' ☣️'}</td>
             <td class='tl'>{data.instance}</td>
@@ -203,8 +214,5 @@
     }
     tr:nth-child(even) {
         background-color: #ccc;
-    }
-    .hide{
-        display: none;
     }
 </style>
