@@ -5,6 +5,30 @@ import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
+interface AllDates{
+    day:number
+    startOfWeek:number
+    startOfMonth:number
+    dayOfWeek:number
+}
+
+let map = new Map<number, AllDates>()
+function findAllDates(date:Date):AllDates{
+    if(map.has(date.valueOf())){
+        return map.get(date.valueOf()) as AllDates
+    }
+
+    let allDate:AllDates = {
+        day : date.getTime(),
+        startOfWeek : getStartOfWeek(date).getTime(),
+        startOfMonth : getStartOfMonth(date).getTime(),
+        dayOfWeek : date.getDay()
+        //dayofYear : getDayOfYear(start)
+    }
+    map.set(date.valueOf(), allDate)
+    return allDate
+}
+
 export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
     let tmp_val:null|number = 0
     let value = 0
@@ -17,30 +41,23 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
     //let sumByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
     //let cptByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
     let sumAbsolute = 0
-
-    let day = 0
-    let startOfWeek = 0
-    let startOfMonth = 0
-    let dayOfWeek = 0
-    let dayofYear = 0
+    let allDate:AllDates
 
     start.setHours(0)
     while (start <= end){
-        day = start.getTime()
-        startOfWeek = getStartOfWeek(start).getTime()
-        startOfMonth = getStartOfMonth(start).getTime()
-        dayOfWeek = start.getDay()
-        dayofYear = getDayOfYear(start)
+        
+        allDate = findAllDates(start)
+
         for(let i=0; i < 8;i++){
             start.setHours(i*3)
             tmp_val = readDataOfMatrix(arr, start)
             value = 0
             if(tmp_val != null){
                 value = tmp_val
-                sumByDay = addToMap(sumByDay, day, value)
-                sumByWeek = addToMap(sumByWeek, startOfWeek, value)
-                sumByMonth = addToMap(sumByMonth, startOfMonth, value)
-                sumByDayOfWeek = addToMap(sumByDayOfWeek, dayOfWeek, value)
+                sumByDay = addToMap(sumByDay, allDate.day, value)
+                sumByWeek = addToMap(sumByWeek, allDate.startOfWeek, value)
+                sumByMonth = addToMap(sumByMonth, allDate.startOfMonth, value)
+                sumByDayOfWeek = addToMap(sumByDayOfWeek, allDate.dayOfWeek, value)
                 
                 //sumByDayOfYear = addToMap(sumByDayOfYear, dayofYear, value)
                 //cptByDayOfYear = addToMap(cptByDayOfWeek, dayOfWeek, 1)
@@ -48,7 +65,7 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
             }
         }
         
-        cptByDayOfWeek = addToMap(cptByDayOfWeek, dayOfWeek, 1)
+        cptByDayOfWeek = addToMap(cptByDayOfWeek, allDate.dayOfWeek, 1)
 
         start.setHours(0)
         start.setDate(start.getDate()+1)
@@ -268,7 +285,7 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
             for(let i=0; i < 8;i++){
                 start.setHours(i*3)
                 keys.forEach(key => {                    
-                    tmp_value = readDataOfMatrix(clientId[key], start)
+                    tmp_value = 0// readDataOfMatrix(clientId[key], start)
                     if(tmp_value !== null){
                         sumOfHitsForDay += tmp_value
                         sumHits += tmp_value
