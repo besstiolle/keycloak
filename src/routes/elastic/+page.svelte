@@ -59,7 +59,7 @@
 		if(!browser){
 			return
 		}
-		let start = new Date()		
+		let start = new Date()
 
 		addAnother = false
 		lastCommit = hydrate($jsonDataStore, $jsonHashNodeDataStore)[0]
@@ -90,7 +90,7 @@
 	}*/
 
 	function drawGraph(){
-
+		let start = new Date()
 		let minMax:minMax = {min:9000000,max:0}
 
 		//isGroupAllInstance:boolean, isGroupClientId:boolean, isGroupRequestType:boolean, dataTypeSelected:DATA_TYPE
@@ -135,17 +135,22 @@
 			console.error("Type of graph not available : ", globalState.graphType)	
 		}
 
-
+		console.debug("drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
 		let allRequestTypes = getKeysOfClientIdElastic()  
 		let rawData:rawData
 		let map = new Map<string, Map<number,number>>()
+		let start = new Date($jsonElasticDataStore.minDate)
+		let end = new Date($jsonElasticDataStore.maxDate)
+
+		start.setHours(0)
+		end.setHours(0)
 
 		$jsonElasticDataStore.container.forEach(clientId => {
 			for(const requestType of allRequestTypes){
-				rawData = getRawData(clientId[requestType] as number[][][][], new Date($jsonElasticDataStore.minDate), new Date($jsonElasticDataStore.maxDate))
+				rawData = getRawData(clientId[requestType] as number[][][][], new Date(start), new Date(end))
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
 			}			
 		})

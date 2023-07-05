@@ -42,15 +42,15 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
     //let cptByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
     let sumAbsolute = 0
     let allDate:AllDates
+    let eightHours:Date[] = []
 
-    start.setHours(0)
+    //start.setHours(0)
     while (start <= end){
         
         allDate = findAllDates(start)
-
-        for(let i=0; i < 8;i++){
-            start.setHours(i*3)
-            tmp_val = readDataOfMatrix(arr, start)
+        eightHours = get8Hours(start)
+        for(let hours of eightHours){
+            tmp_val = readDataOfMatrix(arr, hours)
             value = 0
             if(tmp_val != null){
                 value = tmp_val
@@ -67,7 +67,6 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
         
         cptByDayOfWeek = addToMap(cptByDayOfWeek, allDate.dayOfWeek, 1)
 
-        start.setHours(0)
         start.setDate(start.getDate()+1)
     }
 
@@ -243,7 +242,23 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
     return {min:min, max:max}
 }
 
+const DATE_1900 = new Date("1900-01-01")
+const DATE_2900 = new Date("2900-01-01")
 
+let map8Hours = new Map<number, Date[]>()
+function get8Hours(date:Date):Date[]{
+    if(map8Hours.has(date.valueOf())){
+       return map8Hours.get(date.valueOf()) as Date[] 
+    }
+
+    let start = new Date(date)
+    let dates:Date[] = []
+    for(let i=0; i < 8;i++){
+        dates.push(new Date(start.setHours(i*3)))
+    }
+    map8Hours.set(date.valueOf(), dates)
+    return dates
+}
 
 export function initTableur(store:elasticStore, commit:commit, whitelist:string[]):datasetTableurHit[]{
     
@@ -258,41 +273,49 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
     let lastSeen:Date
     let knownClientId = getListOfClientId(commit, whitelist)
 
+    let sumRolling = new Map<number, number>()
+    let cptRolling = new Map<number, number>()
+    let avgRolling = new Map<number, number>()
+    let keys = getKeysOfClientIdElastic()
+    let eightHours:Date[] = []
+
     store.container.forEach(clientId => {
 
         start = new Date(store.minDate)
-        maxDate = new Date("1900-01-01")
-        firstSeen = new Date("2900-01-01")
-        lastSeen = new Date("1900-01-01")
+        maxDate = new Date(DATE_1900)
+        firstSeen = new Date(DATE_2900)
+        lastSeen = new Date(DATE_1900)
         maxHits = 0
         sumHits = 0
-        let sumRolling:Map<number, number> = new Map<number, number>()
-        let cptRolling:Map<number, number> = new Map<number, number>()
-        let avgRolling:Map<number, number> = new Map<number, number>()
-        let keys = getKeysOfClientIdElastic()
+        sumRolling = new Map<number, number>()
+        cptRolling = new Map<number, number>()
+        avgRolling = new Map<number, number>()
+        //let keys = getKeysOfClientIdElastic()
 
         //Initiate keys for avgRolling
+        start.setHours(0)
         while (start <= store.maxDate){
-            start.setHours(0)
             sumRolling.set(start.getTime(), 0)
             cptRolling.set(start.getTime(), 0)
             start.setDate(start.getDate()+1)
         }
 
         start = new Date(store.minDate)
+        start.setHours(0)
         while (start <= store.maxDate){
             sumOfHitsForDay=0
-            for(let i=0; i < 8;i++){
-                start.setHours(i*3)
+            eightHours = get8Hours(start)
+            for(let hours of eightHours){
                 keys.forEach(key => {                    
-                    tmp_value = 0// readDataOfMatrix(clientId[key], start)
+                    tmp_value = readDataOfMatrix(clientId[key], hours)
                     if(tmp_value !== null){
                         sumOfHitsForDay += tmp_value
                         sumHits += tmp_value
                         if(firstSeen > start){
-                            firstSeen = new Date(start)
+                            console.info()
+                            firstSeen = new Date(hours)
                         }
-                        lastSeen = new Date(start)
+                        lastSeen = new Date(hours)
                     }
                 });
             }
@@ -320,9 +343,10 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
 
         //Processing rolling avg 
         start = new Date(store.minDate)
+        start.setHours(0)
         let sum, cpt =0
         while (start <= store.maxDate){
-            start.setHours(0)
+            
             sum = 0
             cpt = 1
 
