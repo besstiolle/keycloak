@@ -1,6 +1,6 @@
 
 import { getKeysOfClientIdElastic, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
-import type { commit } from '$lib/struct';
+import type { commit, instance } from '$lib/struct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
@@ -260,7 +260,7 @@ function get8Hours(date:Date):Date[]{
     return dates
 }
 
-export function initTableur(store:elasticStore, commit:commit, whitelist:string[]):datasetTableurHit[]{
+export function initTableur(store:elasticStore, instances:instance[], whitelist:string[]):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     let start:Date
@@ -271,7 +271,7 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
     let maxDate:Date
     let firstSeen:Date
     let lastSeen:Date
-    let knownClientId = getListOfClientId(commit, whitelist)
+    let knownClientId = getListOfClientId(instances, whitelist)
 
     let sumRolling = new Map<number, number>()
     let cptRolling = new Map<number, number>()
@@ -393,9 +393,9 @@ export function initTableur(store:elasticStore, commit:commit, whitelist:string[
     return datasetByHit
 }
 
-function getListOfClientId(commit:commit, whitelist:string[]):string[]{
+function getListOfClientId(instances:instance[], whitelist:string[]):string[]{
     let list:string[]=[]
-    commit.instances.forEach(instance => {
+    instances.forEach(instance => {
         instance.royaumes.forEach(r => {
             r.clientIds?.forEach(c => {
                 list.push(c.label.toLocaleLowerCase())

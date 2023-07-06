@@ -1,20 +1,18 @@
 <script lang="ts">
     import { browser } from '$app/environment';
     import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString } from '$lib/elasticStruct';
-    import { jsonElasticDataStore, jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
-
+    import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
     import { getEmptyElasticStore, getWhitelist } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
-    import type { commit } from '$lib/struct';
-    import { getConfigValue, hydrate } from '../HydratationUtils';
     import LineHitsByAll from './LineHitsByAll.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
     import Side from './side.svelte';
     import { GroupByEngine, runEngine } from './groupByFactory';
     import PieCountersByError from './PieCountersByError.svelte';
+    import { getConfigValue } from '../HydratationUtils';
 
 	const WHITELIST = browser?getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId):[]
 
@@ -23,7 +21,6 @@
 	let datasetAndLimits:DatasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
 	let datasetsForPie:LabelAndDatasetString[]
 	let datasetTableurByHits:datasetTableurHit[] = []
-	let lastCommit:commit
 
 	//Filters on left
 	let fInstances:string[] = []
@@ -62,8 +59,6 @@
 		let start = new Date()
 
 		addAnother = false
-		lastCommit = hydrate($jsonDataStore, $jsonHashNodeDataStore)[0]
-		console.debug("hydratation ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 
 		globalMap = getAllRawData()
 		console.debug("getAllRawData ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
@@ -129,7 +124,7 @@
 			//console.info(datasetsForPie)
 
 		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, lastCommit, WHITELIST)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $jsonGitDataStore, WHITELIST)
 		} else {
 			//cas non gérer
 			console.error("Type of graph not available : ", globalState.graphType)	

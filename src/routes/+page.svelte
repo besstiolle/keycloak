@@ -1,13 +1,12 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-	import { jsonDataStore, jsonHashNodeDataStore, jsonConfigDataStore } from '$lib/store';
+	import { jsonGitDataStore, jsonConfigDataStore } from '$lib/store';
 	import FilterBlock from './FilterBlock.svelte'
-    import History from './History.svelte';
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
 	import {StateOfFilters} from './StateOfFilters'
 
-    import { getConfigValue, hydrate } from './HydratationUtils';
+    import { getConfigValue } from './HydratationUtils';
     import type { clientId, env, instance, royaume, commit } from '$lib/struct';
 
 	//Filters
@@ -19,18 +18,29 @@
 	let royaumeToInstance = new Map<String,String>()
 	let hideAll:boolean = false //Set to true if nothing is to be shown
 	let currentSearchValue:string
-	export let allCommits: commit[] = []
-	
-	let historyPosition = 0
 
 	//Counter of ClientIds
     const ID_ALL = 'id_all'
     let mapCounter = new Map<string, number>()
 	mapCounter.set(ID_ALL, 0)
-
-
 	let instances: instance[] = []
 
+	function fixGit(instances:instance[]){
+		
+		//Fix pour les commits
+		let commit:commit = {
+			hash: 'x000',
+			ts: 0,
+			message: '',
+			author: []
+		}
+
+		instances.forEach(instance => {
+			instance.commit = commit
+		});
+
+		$jsonGitDataStore = instances
+	}
 	
 	function initiateJson(){
 		if(!browser){
@@ -38,25 +48,18 @@
 		}
 		
 		let start = new Date()
-		if($jsonDataStore.length > 100){
-			allCommits = hydrate($jsonDataStore, $jsonHashNodeDataStore)
+		if($jsonGitDataStore.length > 0){
+			
+			fixGit($jsonGitDataStore)
 
-			instances = getInstancesByCurrentIndex()
-			console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
-			if(allCommits.length > 0){
-				updateFilters()
-			}
+			//Proper cloning
+			instances = structuredClone($jsonGitDataStore)
+
+
+			updateFilters()
+			
 		}
 		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
-	}
-
-	function getInstancesByCurrentIndex(){
-		return structuredClone(allCommits[historyPosition].instances)
-	}
-	
-	function switchIndex(index:number){
-		historyPosition = index
-		_render()
 	}
 
 	function updateFilters(){
@@ -129,10 +132,11 @@
 	}
 
 	function _render(){
-		//Quick reset of the visiblity value
-		instances = getInstancesByCurrentIndex()
+		//Quick reset of the visiblity value Proper cloning
+		instances = structuredClone($jsonGitDataStore)
+
 		//Refresh state of store
-		instances = SearchEngine.render(instances, currentSearchValue, $jsonDataStore)
+		instances = SearchEngine.render(instances, currentSearchValue)
 		hideAll = SearchEngine.HIDE_ALL
 
 		let clientIdCounter = 0
@@ -170,7 +174,7 @@
         }
 		
 		let path = i.label + '/clients/' + r.label + '/' + c.label + '/' + e.label + '.json' 
-		let url = config.gitUrl2.replace('%hash%',allCommits[historyPosition].hash as string) 
+		let url = config.gitUrl2.replace('%hash%',i.commit.hash as string) 
 		url = url.replace('%path%', path)
 
         return url
@@ -190,7 +194,7 @@
 
 <content>
 {#if browser}
-{#if $jsonDataStore}
+{#if $jsonGitDataStore.length > 0}
 	<side>
 		<h2>Filtres</h2>
 
@@ -200,11 +204,10 @@
 		<FilterBlock filterCode={StateOfFilters.ID_ENVS} filterTitre='Environnements' filterList={fEnvs}  action={filterSearchAction}  action2={()=>{}}/>
 		<FilterBlock filterCode={StateOfFilters.ID_MAPPERS} filterTitre='Mapper' filterList={fMappers}  action={filterSearchAction}  action2={()=>{}}/>
 		
-		<button class='myButton' on:click="{() => {$jsonDataStore = ''; $jsonHashNodeDataStore = ''}}">clear localStorage</button>
+		<button class='myButton' on:click="{() => {$jsonGitDataStore = []}}">clear git localStorage</button>
 	</side>
 
 	<data>
-		<History switchIndexBinder={switchIndex} allCommits={allCommits} />
 
 		<h2>Data</h2>
 		

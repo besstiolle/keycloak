@@ -1,16 +1,16 @@
 //Representation of the JSON data structure	
-export interface commit{
-    hash:string
-    ts:number
-    log?:string[]
-    instances:instance[]
-    message:string
-    author:string[]
-}
 export interface instance{
     label: string
     show: boolean 
     royaumes:royaume[]
+    commit:commit
+}
+export interface commit{
+    hash:string
+    ts:number
+    log?:string[]
+    message:string
+    author:string[]
 }
 export interface royaume { 
     label: string

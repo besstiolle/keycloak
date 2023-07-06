@@ -7,7 +7,7 @@ export module SearchEngine{
 
 	let isSearchwithFullText:boolean
     
-    export function render(instances:instance[], currentSearchValue:string, rawData:string ){
+    export function render(instances:instance[], currentSearchValue:string){
 		HIDE_ALL = false
 		isSearchwithFullText = currentSearchValue !== undefined && currentSearchValue !== ""
 

@@ -3,7 +3,7 @@ import type { clientId, commit, hashNode, config } from "$lib/struct";
 /**
  * Merge nodes information into the commit[] struct.
  */
-export function hydrate(commitJson:string, hashJson:string){
+function hydrate(commitJson:string, hashJson:string){
     let commits:commit[] = JSON.parse(commitJson)
     const hashNodes:hashNode[] = JSON.parse(hashJson)
     const hasNodesMap = new Map<String, clientId>()
@@ -41,7 +41,7 @@ export function hydrate(commitJson:string, hashJson:string){
  * Separate similare leaf of tree into a dictionnary to reduce weight
  * @param json 
  */
-export function dehydrate(json:string){
+function dehydrate(json:string){
 
     console.debug("length before dehydratation was %oKo ", Math.round((json.length / 1000)))
 

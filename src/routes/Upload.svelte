@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
-    import { dehydrate } from './HydratationUtils';
+	import { jsonGitDataStore } from '$lib/store';
+    import type { commit } from '$lib/struct';
 
     export let initiateBinder:Function
 	let fileinput:HTMLInputElement
@@ -14,13 +14,8 @@
 		reader.readAsText(jsonFile);
 		reader.onload = e => {
             
-            //Reduce weight
-            const [commitJson, hashJson] = dehydrate(e.target?.result as string)
+            $jsonGitDataStore = JSON.parse(e.target?.result as string)
             
-            //Saving the commit & hashnode data into localStorage
-            jsonDataStore.set(commitJson)
-            jsonHashNodeDataStore.set(hashJson)
-
             initiateBinder()
 		};
 	}

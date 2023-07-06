@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-	import { jsonDataStore, jsonHashNodeDataStore } from '$lib/store';
+	import { jsonGitDataStore, jsonHashNodeDataStore } from '$lib/store';
     import type { commit } from '$lib/struct';
     import { hydrate } from '../HydratationUtils';
     import Upload from '../Upload.svelte';
@@ -15,8 +15,8 @@
 			return
 		}
 		let start = new Date()
-		if($jsonDataStore.length > 100){
-			allCommits = hydrate($jsonDataStore, $jsonHashNodeDataStore)
+		if($jsonGitDataStore.length > 100){
+			allCommits = hydrate($jsonGitDataStore, $jsonHashNodeDataStore)
 			console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")			
 			prepareDataForAllCommit()
 			prepareDataForLastCommit()
@@ -113,7 +113,7 @@
 <section><h1>Charts</h1></section>
 
 {#if browser}
-	{#if $jsonDataStore}
+	{#if $jsonGitDataStore}
 		<div class="chart-container">
 			<LineCountersAll countersByTs={countersByTs} countersByTsMin={countersByTsMin} countersByTsMax={countersByTsMax}/>
 		</div>
