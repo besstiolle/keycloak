@@ -1,4 +1,4 @@
-import type { instance } from "$lib/struct"
+import type { instance } from "$lib/gitStruct"
 import { StateOfFilters } from "./StateOfFilters"
 
 export module SearchEngine{

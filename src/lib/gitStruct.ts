@@ -1,4 +1,4 @@
-//Representation of the JSON data structure	
+//Representation of the in-memory git data structure	
 export interface instance{
     label: string
     show: boolean 
@@ -31,23 +31,4 @@ export interface env {
     show: boolean
     mapper:string
     uris: string[]
-}
-//Représentation on visual rendering
-export interface visualCommit{
-    hash:string
-    date:string
-    message:string
-    author:string
-    //link:string
-}
-
-export interface hashNode{
-    md5:string
-    clientId:clientId
-}
-
-export interface config{
-    gitUrl1:string
-    gitUrl2:string
-    mapClientId:string
 }

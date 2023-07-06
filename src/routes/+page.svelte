@@ -7,7 +7,7 @@
 	import {StateOfFilters} from './StateOfFilters'
 
     import { getConfigValue } from './HydratationUtils';
-    import type { clientId, env, instance, royaume, commit } from '$lib/struct';
+    import type { clientId, env, instance, royaume } from '$lib/gitStruct';
 
 	//Filters
 	let fInstances:string[] = []

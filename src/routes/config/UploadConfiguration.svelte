@@ -1,4 +1,7 @@
 <script lang="ts">
+    import type { MasterExport } from "$lib/configStruct";
+    import { JSON_CONFIG_DATA, JSON_ELASTIC_DATA, JSON_GIT_DATA } from "$lib/localStorageUtils";
+
 
     export let initiateBinder:Function
     //Type of file supported separated by a COMMA like .json,.jpeg,....
@@ -16,15 +19,14 @@
 		reader.onload = e => {
             
             let json = e.target?.result as string
-            let master = JSON.parse(json)
+            let master:MasterExport = JSON.parse(json)
             //Controle
-            if(master['version'] !== 1){
+            if(master.version !== 2){
                 console.error("not a supported backup")
             } else {
-                localStorage.setItem("jsonData", master["jsonData"])
-                localStorage.setItem("jsonHashNodeData", master["jsonHashNodeData"])
-                localStorage.setItem("jsonConfigData", master["jsonConfigData"])
-                localStorage.setItem("jsonElasticData", master["jsonElasticData"])
+                localStorage.setItem(JSON_GIT_DATA, master.gitData)
+                localStorage.setItem(JSON_CONFIG_DATA, master.configData)
+                localStorage.setItem(JSON_ELASTIC_DATA, master.elasticData)
             }
 
             initiateBinder()

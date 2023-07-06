@@ -1,8 +1,10 @@
 <script lang="ts">
     import { browser } from '$app/environment';
+    import { JSON_CONFIG_DATA, JSON_ELASTIC_DATA, JSON_GIT_DATA } from '$lib/localStorageUtils';
     import { jsonConfigDataStore } from '$lib/store';
     import { getConfigValue } from '../HydratationUtils';
     import UploadConfiguration from './UploadConfiguration.svelte';
+    import type { MasterExport } from '$lib/configStruct';
 	
 	let addAnother = false
 
@@ -51,12 +53,11 @@
     }
 
     function download(){
-        let master = {
-            version:1,
-            jsonData:localStorage.getItem("jsonData") || '',
-            jsonHashNodeData:localStorage.getItem("jsonHashNodeData") || '',
-            jsonConfigData:localStorage.getItem("jsonConfigData") || '',
-            jsonElasticData:localStorage.getItem("jsonElasticData") || '',
+        let master:MasterExport = {
+            version:2,
+            gitData:localStorage.getItem(JSON_GIT_DATA) || '',
+            configData:localStorage.getItem(JSON_CONFIG_DATA) || '',
+            elasticData:localStorage.getItem(JSON_ELASTIC_DATA) || '',
         }
         let blob = new Blob([JSON.stringify(master)], {
             type: 'text/plain'
@@ -70,7 +71,8 @@
                                 + '.json'
         document.body.appendChild(downloadLink)
         downloadLink.click()
-        document.body.removeChild(downloadLink) 
+        document.body.removeChild(downloadLink)
+        //console.info(master) 
     }
 
     /**
@@ -78,7 +80,7 @@
      * @param date the date to parse into a ISO date format YYYYMMDD_HHmm
      * @returns string the format YYYYMMDD_HHmm
      */
-     export function toYYYYMMDD_hhmm(date:Date):string{
+    export function toYYYYMMDD_hhmm(date:Date):string{
         return date.getFullYear().toString().padStart(4, '0')
             + (date.getMonth()+1).toString().padStart(2, '0')
             + date.getDate().toString().padStart(2, '0')

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { instance } from '$lib/struct';
+import type { instance } from '$lib/gitStruct';
 
 import * as i0 from './fullText/i0.json';
 import * as i0_result from './fullText/i0_result.json';

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { clientId, instance } from '$lib/struct';
+import type { clientId, instance } from '$lib/gitStruct';
 import { getFakeDate } from './runner.test';
 
 import { stateOfFiltersAsMap, testResult } from './filteringBySideAppletUtils';

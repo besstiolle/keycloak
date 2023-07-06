@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import * as defaultjson from './struct.json';
-import type { clientId, env, instance, royaume,  } from '$lib/struct';
+import type { clientId, env, instance, royaume,  } from '$lib/gitStruct';
 import { SearchEngine } from '../routes/searchEngine';
 import { StateOfFilters } from '../routes/StateOfFilters';
 

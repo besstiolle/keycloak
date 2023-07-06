@@ -1,6 +1,6 @@
 
 import { getKeysOfClientIdElastic, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
-import type { commit, instance } from '$lib/struct';
+import type { instance } from '$lib/gitStruct';
 import { readDataOfMatrix } from './matrixUtils';
 
 const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...

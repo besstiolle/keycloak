@@ -1,7 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
+    import type { instance } from '$lib/gitStruct';
 	import { jsonGitDataStore } from '$lib/store';
-    import type { commit, instance } from '$lib/struct';
     import Upload from '../Upload.svelte';
     import PieCountersByInstance from './PieCountersByInstance.svelte';
 

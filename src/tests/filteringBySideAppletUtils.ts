@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { clientId, instance } from "$lib/struct"
+import type { clientId, instance } from "$lib/gitStruct"
 import { StateOfFilters } from "../routes/StateOfFilters"
 
 
