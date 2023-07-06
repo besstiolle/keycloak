@@ -8,6 +8,7 @@ export module StateOfFilters{
 	export const ID_MAPPERS = 'Mappers'
 
 	export const VALUE_DEFAULT_NO_MAPPER = "Sans Mapper"
+	export const VALUE_DEFAULT_NO_PROTOCOL = "Sans Protocol"
 
     export let HIDE_ALL = false
     

@@ -1,91 +1,48 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-	import { jsonGitDataStore, jsonHashNodeDataStore } from '$lib/store';
-    import type { commit } from '$lib/struct';
-    import { hydrate } from '../HydratationUtils';
+	import { jsonGitDataStore } from '$lib/store';
+    import type { commit, instance } from '$lib/struct';
     import Upload from '../Upload.svelte';
-    import LineCountersAll from './LineCountersAll.svelte';
     import PieCountersByInstance from './PieCountersByInstance.svelte';
 
-	let allCommits:commit[] = []
+	let instances:instance[] = []
 
 	
 	function initiateJson(){
 		if(!browser){
 			return
 		}
+
 		let start = new Date()
-		if($jsonGitDataStore.length > 100){
-			allCommits = hydrate($jsonGitDataStore, $jsonHashNodeDataStore)
-			console.debug("JSON Parsing ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")			
-			prepareDataForAllCommit()
-			prepareDataForLastCommit()
+		if($jsonGitDataStore.length > 0){
+			//Proper cloning
+			instances = structuredClone($jsonGitDataStore)
+			
+			prepareDataForPie()
 		}
-		
 		console.debug("initiateJson ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 	
 	let countersByInstance = new Map<string,number>()
 	let countersByInstanceAndRoyaume = new Map<string,Map<string, number>>()
-	let countersByTs = new Map<number,number>()
-	let countersByTsMin = 100000000
-	let countersByTsMax = 0
-
-	function prepareDataForAllCommit(){
-		
-		let countersByInstanceByTs = new Map<number,Map<string, number>>()
-		
-		let counterByInstance:number
-		let counterByRoyaumeForInstance:number
-
-		countersByTs = new Map<number,number>()
-		let counter:number
-
-		allCommits.forEach(commit => {
-			counter = 0
-			countersByInstance = new Map<string,number>()
-			commit.instances.forEach((instance) => {
-				instance.royaumes.forEach((royaume) => {
-					counterByRoyaumeForInstance = 0
-					if(royaume.clientIds){
-						royaume.clientIds.forEach((clientId) => {
-							counterByInstance++
-							counterByRoyaumeForInstance++
-							counter++
-						})
-					}
-				})
-			})
-			countersByInstanceByTs.set(commit.ts, countersByInstance)
-			countersByTs.set(commit.ts, counter)
-			if(counter < countersByTsMin){
-				countersByTsMin = counter
-			}
-			if(counter > countersByTsMax){
-				countersByTsMax = counter
-			}
-		});
-		
-	}
 
 	
-	function prepareDataForLastCommit(){
+	function prepareDataForPie(){
 		
 		let countersByRoyaumeForInstance = new Map<string, number>()
 		let counterByInstance:number
 		let counterByRoyaumeForInstance:number
 
 		let counter:number
-		let commit = allCommits[0]
 		counter = 0
 		countersByInstance = new Map<string,number>()
-		commit.instances.forEach((instance) => {
+		instances.forEach((instance) => {
 			counterByInstance=0
 			countersByRoyaumeForInstance = new Map<string, number>()
 			instance.royaumes.forEach((royaume) => {
 				counterByRoyaumeForInstance = 0
 				if(royaume.clientIds){
-					royaume.clientIds.forEach((clientId) => {
+					royaume.clientIds.forEach(() => {
 						counterByInstance++
 						counterByRoyaumeForInstance++
 						counter++
@@ -114,9 +71,6 @@
 
 {#if browser}
 	{#if $jsonGitDataStore}
-		<div class="chart-container">
-			<LineCountersAll countersByTs={countersByTs} countersByTsMin={countersByTsMin} countersByTsMax={countersByTsMax}/>
-		</div>
 		<div class="chart-container">
 			<PieCountersByInstance countersByInstance={countersByInstance} countersByInstanceAndRoyaume={countersByInstanceAndRoyaume}/>
 		</div>

@@ -4,11 +4,12 @@ export interface instance{
     show: boolean 
     royaumes:royaume[]
     commit:commit
+    log?:string[]
+    ts?:number
 }
 export interface commit{
     hash:string
     ts:number
-    log?:string[]
     message:string
     author:string[]
 }

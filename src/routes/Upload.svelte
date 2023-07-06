@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { jsonGitDataStore } from '$lib/store';
-    import type { commit } from '$lib/struct';
+    import type { commit, instance } from '$lib/struct';
+    import { parseLog } from './HydratationUtils';
 
     export let initiateBinder:Function
 	let fileinput:HTMLInputElement
@@ -11,13 +12,45 @@
 	const onFileSelected = (e:any)=>{
 		let jsonFile = e.target.files[0];
 		let reader = new FileReader();
+        let instances:instance[] = []
 		reader.readAsText(jsonFile);
 		reader.onload = e => {
-            
-            $jsonGitDataStore = JSON.parse(e.target?.result as string)
-            
+    
+            instances = JSON.parse(e.target?.result as string)
+
+            instances.forEach(instance => {
+                const parsedValues = parseLog(instance.log as string[])
+                instance.commit = {
+                    author : parsedValues.author,
+                    message : parsedValues.message,
+                    hash : parsedValues.hash,
+                    ts : instance.ts as number
+                }
+                delete instance.ts
+                delete instance.log
+            });
+
+            $jsonGitDataStore = instances
+
             initiateBinder()
 		};
+	}
+
+    function fixGit(instances:instance[]){
+		
+		//Fix pour les commits
+		let commit:commit = {
+			hash: 'x000',
+			ts: 0,
+			message: '',
+			author: []
+		}
+
+		instances.forEach(instance => {
+			instance.commit = commit
+		});
+
+		$jsonGitDataStore = instances
 	}
 
 </script>

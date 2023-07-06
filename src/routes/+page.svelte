@@ -25,23 +25,6 @@
 	mapCounter.set(ID_ALL, 0)
 	let instances: instance[] = []
 
-	function fixGit(instances:instance[]){
-		
-		//Fix pour les commits
-		let commit:commit = {
-			hash: 'x000',
-			ts: 0,
-			message: '',
-			author: []
-		}
-
-		instances.forEach(instance => {
-			instance.commit = commit
-		});
-
-		$jsonGitDataStore = instances
-	}
-	
 	function initiateJson(){
 		if(!browser){
 			return
@@ -49,12 +32,8 @@
 		
 		let start = new Date()
 		if($jsonGitDataStore.length > 0){
-			
-			fixGit($jsonGitDataStore)
-
 			//Proper cloning
 			instances = structuredClone($jsonGitDataStore)
-
 
 			updateFilters()
 			
@@ -70,18 +49,14 @@
 				fRoyaumes.push(royaume.label)
 				royaumeToInstance.set(royaume.label, instance.label)
 				royaume.clientIds?.forEach((clientId) => {
+					if(clientId.protocol !== ''){
 					fProtocols.push(clientId.protocol)
+					}
 					clientId.envs.forEach((env) => {
 						fEnvs.push(env.label)
 						if(env.mapper !== ''){
 							fMappers.push(env.mapper)
-						}
-						if(env.uris){
-							env.uris.forEach((uri) => {
-
-							})
-						}
-						
+						}						
 					})
 				})
 			});
@@ -90,7 +65,7 @@
 		//Remove dupplicat
 		fInstances = fInstances.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fRoyaumes = fRoyaumes.filter((value, index, array) => array.indexOf(value) === index).sort()
-		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort()
+		fProtocols = fProtocols.filter((value, index, array) => array.indexOf(value) === index).sort().concat([StateOfFilters.VALUE_DEFAULT_NO_PROTOCOL])
 		fEnvs = fEnvs.filter((value, index, array) => array.indexOf(value) === index).sort()
 		fMappers = [StateOfFilters.VALUE_DEFAULT_NO_MAPPER].concat(fMappers.filter((value, index, array) => array.indexOf(value) === index).sort())
 		
@@ -223,7 +198,11 @@
 								{#if royaume && royaume.clientIds}
 								{#each royaume.clientIds as clientId}
 								<li class:hide={clientId.show !== null && clientId.show === false}><span>{@html markerHtml(clientId.label)}</span>
-									<span class='tag {clientId.protocol}'>{clientId.protocol}</span><ul>
+									{#if clientId.protocol !== ''}
+										<span class='tag {clientId.protocol}'>{clientId.protocol}</span>
+									{:else}
+										<span class='tag noProtocol'>No protocol</span>
+									{/if}<ul>
 										{#each clientId.envs as env}
 										<li class:hide={env.show !== null && env.show === false}>
 											{env.label} 
@@ -293,6 +272,9 @@ data{
 }
 .saml{
 	background-color: #555;
+}
+.noProtocol{
+	background-color: #2a4431;
 }
 .mapper{
 	background-color: #ca5050;

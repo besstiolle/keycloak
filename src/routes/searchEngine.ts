@@ -48,10 +48,17 @@ export module SearchEngine{
 					royaume.show=false 	
 				}
 				royaume.clientIds?.forEach((clientId) => {
-					if(map.get(StateOfFilters.ID_PROTOCOLES)?.get(clientId.protocol) === false){
-						
+					if(clientId.protocol === ''){
+						if(map.get(StateOfFilters.ID_PROTOCOLES)?.get(StateOfFilters.VALUE_DEFAULT_NO_PROTOCOL) === false){
 						//It can still be null (default) or true
-						clientId.show=false 	
+						clientId.show=false
+					} 
+					}else {
+						if(map.get(StateOfFilters.ID_PROTOCOLES)?.get(clientId.protocol) === false){
+							
+							//It can still be null (default) or true
+							clientId.show=false 	
+						}
 					}
 					clientId.envs.forEach((env) => {
 						if(map.get(StateOfFilters.ID_ENVS)?.get(env.label) === false){
