@@ -1,7 +1,7 @@
 import type { pointer } from "$lib/elasticStruct"
 
 
-export function writeDataInMatrix(matrix: number[][][][], date: Date, value:number): number[][][][]{
+function writeDataInMatrix(matrix: number[][][][], date: Date, value:number): number[][][][]{
     let pointer = dateToPointer(date)
     if( matrix == undefined) {
         matrix = []
@@ -21,7 +21,7 @@ export function writeDataInMatrix(matrix: number[][][][], date: Date, value:numb
     return matrix
 }
 
-export function readDataOfMatrix(matrix: number[][][][], date: Date):number|null {
+function readDataOfMatrix(matrix: number[][][][], date: Date):number|null {
     let pointer = dateToPointer(date)
     let val:number|null = matrix?.[pointer.y]?.[pointer.m]?.[pointer.d]?.[pointer.h / 3]
     return val?val:null

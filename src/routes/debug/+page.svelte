@@ -1,29 +1,16 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { jsonElasticDataStore } from '$lib/store';
+    import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
+    import { jsonElasticDataStore, timelineStore } from '$lib/store';
+    
+	let clientId = $jsonElasticDataStore.container.get('foagan') as clientIdElastic
+	let keys = getKeysOfClientIdElastic()
+	let timeline = $timelineStore
 
-
-
-	let start = new Date(2023,3,1)
-	let end = new Date(2023,4,1)
-	let data = $jsonElasticDataStore.container.get("foagan")?.LOGIN[2023][4]
-	let titles:Date[] = []
-
-	while(start < end){
-		titles.push(new Date(start))
-		start.setHours(start.getHours() + 3)
+	function toDate(ts:number):string{
+		let date = new Date(ts)
+		return date.getDay()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+" "+date.getHours()+"h"
 	}
-
-	console.info(data)
-
-	const padL = (nr:number, len = 2, chr = `0`) => `${nr}`.padStart(2, chr);
-	function toString(dt:Date){
-		return `${
-			dt.getDate()}/${
-			dt.getMonth()+1} ${
-			dt.getHours()}h`
-	}
-
 
 </script>
 
@@ -32,49 +19,36 @@
 	<meta name="description" content="Keycloak demo app"/>
 </svelte:head>
 
-<section><h1>Elastic</h1></section>
+<section><h1>Debug</h1></section>
 
 <content>
 
 {#if browser}
-<table>
-<thead>
-	<tr>
-		<td></td><td></td><td></td><td></td>
-		<td></td><td></td><td></td><td></td>
-		{#each titles as title}
-		<td>{toString(title)}</td>
-		{/each}
-	</tr>
-</thead>
-<tbody>
-	<tr>
-		{#each data as entry}
-			{#if entry != undefined}
-				{#each entry as hours}
-					{#if hours != undefined}
-						<td>{hours}</td>
-					{:else}
-						<td>X</td>
-					{/if}
+	<table>
+		<thead>
+			<td>Date</td>
+			{#each keys as key}
+			<td>{key}</td>
+			{/each}
+		</thead>
+		<tbody>
+			{#each timeline.getTimestampsOfDay() as timestamp, i}
+			<tr>
+				<td>{toDate(timestamp)}</td>
+			
+				{#each keys as key}
+				<td>{clientId[key][i]}</td>
 				{/each}
-				{#if entry.length == 7}<td>0</td>{/if}
-				{#if entry.length == 6}<td>0</td><td>0</td>{/if}
-				{#if entry.length == 5}<td>0</td><td>0</td><td>0</td>{/if}
-				{#if entry.length == 4}<td>0</td><td>0</td><td>0</td><td>0</td>{/if}
-				{#if entry.length == 3}<td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>{/if}
-			{:else}
-			<td>-</td><td>-</td><td>-</td><td>-</td>
-			<td>0</td><td>0</td><td>0</td><td>0</td>
-			{/if}
-		{/each}
-	</tr>
-</tbody>
-</table>
-
+			<tr>
+			{/each}
+		</tbody>
+	</table>
 {/if}
 </content>
 
 <style>
+	table, td{
+		border:1px #000
+	}
 
 </style>

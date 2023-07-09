@@ -1,6 +1,5 @@
 import { REQUEST_TYPE, type clientIdElastic, type elasticStore} from "$lib/elasticStruct"
 import { emptyClientIdElastic } from "./clientIdElasticFactory"
-import { readDataOfMatrix, writeDataInMatrix } from "./matrixUtils"
 
 interface locaStorageValue extends Record<string,string> { //could be extends Record<string,any> but here it's not necessary,  allow adding member of object in TS
         clientId:string,
@@ -12,7 +11,7 @@ interface localStorageError{
     data:string
 }
 
-export function toJson(store:elasticStore):string{
+export function fromElasticStoretoJson(store:elasticStore):string{
     //console.info("toJson")
 
     let lsValue:locaStorageValue
@@ -28,7 +27,8 @@ export function toJson(store:elasticStore):string{
         }
 
         for(const requestType in REQUEST_TYPE){
-            tmp_str = reduceArray(clientIdElastic[requestType], store.minDate, store.maxDate)
+            //tmp_str = reduceArray(clientIdElastic[requestType], store.minDate, store.maxDate)
+            tmp_str = clientIdElastic[requestType].join('|')
             if(tmp_str !== ''){
                 lsValue[requestType] = tmp_str
             }             
@@ -38,7 +38,8 @@ export function toJson(store:elasticStore):string{
     })
 
     store.errors.forEach((error, key) => {
-        tmp_str = reduceArray(error, store.minDate, store.maxDate)
+        //tmp_str = reduceArray(error, store.minDate, store.maxDate)
+        tmp_str = error.join('|')
         if(tmp_str !== ''){
             allErrors.push({
                 type: key,
@@ -58,53 +59,26 @@ export function toJson(store:elasticStore):string{
     return json
 }
 
-function reduceArray(arr:number[][][][], minDate:Date, maxDate:Date):string{
-    let values:any[] = []
-    let hasValue:boolean = false
-    let start = new Date(minDate)
-    while(start <= maxDate){
-        for(let i=0; i < 8;i++){
-            start.setHours(i*3)
-            let val = readDataOfMatrix(arr,start)
-            if(isNaN(val as any)){
-                console.error("NAN for ", arr, start)
-                val=null
-            }
-            if(val !== null){
-                hasValue = true
-            }
-            values.push(val)
-        }
-        start.setHours(0)
-        start.setDate(start.getDate()+1)
-    }
-    if(!hasValue){
-        return ''
-    }
-    return values.join('|')
-}
-
-
-export function fromJsonMixedObject(json:any):elasticStore{
+export function fromJsonToElasticStore(json:any):elasticStore{
     let container = new Map<string,clientIdElastic>()
-    let errors = new Map<string,number[][][][]>()
+    let errors = new Map<string,number[]>()
     let tmp_clientIdElastic:clientIdElastic
     let minDate = new Date(json['minDate'])
     let maxDate = new Date(json['maxDate'])
-
+ 
     json['container'].forEach((lsValue:locaStorageValue) => {
 
         tmp_clientIdElastic = emptyClientIdElastic(lsValue.clientId, lsValue.instance)
 
         for(const requestType in REQUEST_TYPE){
-            tmp_clientIdElastic[requestType] = inflateArray(lsValue[requestType], minDate, maxDate)
+            tmp_clientIdElastic[requestType] = inflateArray2(lsValue[requestType])
         }
 
         container.set(tmp_clientIdElastic.clientId, tmp_clientIdElastic)
     })
     
     json['errors'].forEach((lsValue:localStorageError) => {
-        errors.set(lsValue.type, inflateArray(lsValue.data, minDate, maxDate))
+        errors.set(lsValue.type, inflateArray2(lsValue.data))
     })
 
     let elasticStore:elasticStore = {
@@ -116,32 +90,18 @@ export function fromJsonMixedObject(json:any):elasticStore{
     return elasticStore
 }
 
-function inflateArray(str: string, minDate:Date, maxDate:Date): number[][][][] {
+function inflateArray2(str: string): number[] {
     
-    let matrix:number[][][][] = []
+    let matrix:number[] = []
     if(str === undefined){
         return matrix
     }
-    let start = new Date(minDate)
-    let values = str.split('|')
-    let pos = 0
-    
-    while(start <= maxDate){
-        for(let i=0; i < 8;i++){
-            start.setHours(i*3)
-            
-            let val = values[pos]
 
-            if(val !== null && val !== ''){
-                matrix = writeDataInMatrix(matrix,start,parseInt(val))
-            }
-
-            pos++
+    str.split('|').forEach((val, index)=>{
+        if(val !== null && val !== ''){
+            matrix[index] = parseInt(val)
         }
-        start.setHours(0)
-        start.setDate(start.getDate()+1)
-    }
-    
-    return matrix
+    })
 
+    return matrix
 }

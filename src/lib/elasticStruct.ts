@@ -1,3 +1,5 @@
+import type { Timeline } from "./Timeline.class"
+
 export enum CSV_TYPE {
     REQUESTS,ERRORS
 }
@@ -83,7 +85,7 @@ export interface elasticStore{
     minDate:Date,
     maxDate:Date,
     container:Map<string, clientIdElastic>,
-    errors:Map<string, number[][][][]>
+    errors:Map<string, number[]>
 }
 
 export interface pointer{
@@ -127,28 +129,28 @@ export interface clientIdElastic extends Record<string,any>{
     instance:string
 
     //DATA array
-    HABILITATIONS:number[][][][] //habilitation 
-    STRONGBOX:number[][][][] //strongbox
+    HABILITATIONS:number[] //habilitation 
+    STRONGBOX:number[] //strongbox
     //other differents type of requests
-    USER_INFO_REQUEST:number[][][][],
-    LOGIN_ERROR:number[][][][],
-    CODE_TO_TOKEN:number[][][][],
-    LOGIN:number[][][][],
-    REFRESH_TOKEN:number[][][][],
-    CLIENT_LOGIN:number[][][][],
-    RESET_PASSWORD_ERROR:number[][][][],
-    TOKEN_EXCHANGE:number[][][][],
-    UPDATE_PROFILE:number[][][][],
-    REFRESH_TOKEN_ERROR:number[][][][],
-    CUSTOM_REQUIRED_ACTION_ERROR:number[][][][],
-    CODE_TO_TOKEN_ERROR:number[][][][],
-    SEND_RESET_PASSWORD_ERROR:number[][][][],
-    SEND_VERIFY_EMAIL_ERROR:number[][][][],
-    UPDATE_PASSWORD:number[][][][],
-    LOGOUT:number[][][][],
-    CUSTOM_REQUIRED_ACTION:number[][][][],
-    VERIFY_EMAIL_ERROR:number[][][][],
-    SEND_RESET_PASSWORD:number[][][][]
+    USER_INFO_REQUEST:number[],
+    LOGIN_ERROR:number[],
+    CODE_TO_TOKEN:number[],
+    LOGIN:number[],
+    REFRESH_TOKEN:number[],
+    CLIENT_LOGIN:number[],
+    RESET_PASSWORD_ERROR:number[],
+    TOKEN_EXCHANGE:number[],
+    UPDATE_PROFILE:number[],
+    REFRESH_TOKEN_ERROR:number[],
+    CUSTOM_REQUIRED_ACTION_ERROR:number[],
+    CODE_TO_TOKEN_ERROR:number[],
+    SEND_RESET_PASSWORD_ERROR:number[],
+    SEND_VERIFY_EMAIL_ERROR:number[],
+    UPDATE_PASSWORD:number[],
+    LOGOUT:number[],
+    CUSTOM_REQUIRED_ACTION:number[],
+    VERIFY_EMAIL_ERROR:number[],
+    SEND_RESET_PASSWORD:number[]
 }
 
 export function getKeysOfClientIdElastic(){

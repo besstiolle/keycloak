@@ -267,5 +267,6 @@ function _run7(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
         data: fusionMap(tmp_maps),
         weight : weight
     })
+    
     return allLabelsAndDatasets
 }

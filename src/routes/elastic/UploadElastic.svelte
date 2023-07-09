@@ -1,9 +1,9 @@
 <script lang="ts">
+    import { Timeline } from '$lib/Timeline.class';
     import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
-    import { jsonElasticDataStore } from '$lib/store';
+    import { jsonElasticDataStore, timelineStore } from '$lib/store';
     import { emptyClientIdElastic } from './clientIdElasticFactory';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
-    import { writeDataInMatrix } from './matrixUtils';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function
@@ -12,7 +12,7 @@
     let minDate:Date = new Date("2099-01-01 00:00")
     let maxDate:Date = new Date("2000-01-01 00:00")
     let container:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
-    let errors:Map<string,number[][][][]> = new Map<string,number[][][][]>()
+    let errors:Map<string,number[]> = new Map<string,number[]>()
     let RC:string
 
 
@@ -49,7 +49,9 @@
             } 
             
             csvToContainer(csv, currentType)
-   
+            //Refresh timeline in Store
+            $timelineStore =  new Timeline(minDate, maxDate)
+
             let elasticStoreCloned:elasticStore = {
                 minDate: minDate,
                 maxDate: maxDate,
@@ -110,7 +112,7 @@
     function runnerErrorsHits(headers:string[], line:string):void{
         let elts:string[] = line.split(COMMA)
         let errorType=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
-        let arr:number[][][][] = []
+        let arr:number[] = []
 
         if(!errors.has(errorType)){
             errors.set(errorType, arr)
@@ -120,9 +122,11 @@
             if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-            arr = errors.get(errorType) as  number[][][][]
+            arr = errors.get(errorType) as  number[]
             
-            errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
+            //errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
+            arr[$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
+            errors.set(errorType, arr)
         }
 
     }
@@ -150,7 +154,9 @@
             if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-            clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))           
+
+            //clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))           
+            clientId[requestType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
         }
 
         container.set(clientIdLabel, clientId)

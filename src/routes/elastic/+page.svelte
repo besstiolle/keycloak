@@ -1,7 +1,7 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString } from '$lib/elasticStruct';
-    import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore } from '$lib/store';
+    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE } from '$lib/elasticStruct';
+    import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
     import { getEmptyElasticStore, getWhitelist } from './elasticStoreFactory';
@@ -61,34 +61,20 @@
 		addAnother = false
 
 		globalMap = getAllRawData()
-		console.debug("getAllRawData ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
-		//let weightMap = getWeightMap()
-		//console.debug("getWeightMap ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		console.debug("getAllRawData ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
 
 		initiateFilters()
-		console.debug("initiateFilters ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		console.debug("initiateFilters ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
 		globalState.selectedInstances = fInstances
 
 		drawGraph()
-
-		console.debug("initiatePage ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		console.debug("initiatePage ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
 	}
-
-	/*function getWeightMap(){
-		let newKey = ''
-		globalMap.forEach((value, key) => {
-			if(key.endsWith(DATA_TYPE.ABSOLUTE_SUM)){
-				newKey = key.substring(0,key.length - DATA_TYPE.ABSOLUTE_SUM.length)
-				console.info(newKey, value.get(0))
-			}
-		});
-	}*/
 
 	function drawGraph(){
 		let start = new Date()
 		let minMax:minMax = {min:9000000,max:0}
 
-		//isGroupAllInstance:boolean, isGroupClientId:boolean, isGroupRequestType:boolean, dataTypeSelected:DATA_TYPE
 		let engine = new GroupByEngine(globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
 										globalState.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
 										globalState.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
@@ -114,23 +100,21 @@
 			datasetsForPie = []
 			let mapData = new Map<string, number>()
 			labelsAndDatasets.forEach(labelAndDataset => {
-				mapData.set(labelAndDataset.label, labelAndDataset.weight)	//labelAndDataset.data.
+				mapData.set(labelAndDataset.label, labelAndDataset.weight)
 			});
 			datasetsForPie.push({
 				label:'Ratio by selected field',
 				data:mapData
 			})
 
-			//console.info(datasetsForPie)
-
 		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $jsonGitDataStore, WHITELIST)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, WHITELIST, globalMap)
 		} else {
 			//cas non gérer
 			console.error("Type of graph not available : ", globalState.graphType)	
 		}
 
-		console.debug("drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
@@ -145,11 +129,10 @@
 
 		$jsonElasticDataStore.container.forEach(clientId => {
 			for(const requestType of allRequestTypes){
-				rawData = getRawData(clientId[requestType] as number[][][][], new Date(start), new Date(end))
+				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
 			}			
 		})
-
 		return map
 		
 	}

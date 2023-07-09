@@ -1,36 +1,10 @@
 
+import type { Timeline } from '$lib/Timeline.class';
 import { getKeysOfClientIdElastic, type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
 import type { instance } from '$lib/gitStruct';
-import { readDataOfMatrix } from './matrixUtils';
 
-const DAY_OF_WEEK = [7,1,2,3,4,5,6] //Sunday, Monday ...
 
-interface AllDates{
-    day:number
-    startOfWeek:number
-    startOfMonth:number
-    dayOfWeek:number
-}
-
-let map = new Map<number, AllDates>()
-function findAllDates(date:Date):AllDates{
-    if(map.has(date.valueOf())){
-        return map.get(date.valueOf()) as AllDates
-    }
-
-    let allDate:AllDates = {
-        day : date.getTime(),
-        startOfWeek : getStartOfWeek(date).getTime(),
-        startOfMonth : getStartOfMonth(date).getTime(),
-        dayOfWeek : date.getDay()
-        //dayofYear : getDayOfYear(start)
-    }
-    map.set(date.valueOf(), allDate)
-    return allDate
-}
-
-export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
-    let tmp_val:null|number = 0
+export function getRawData(arr:number[], timeline:Timeline):rawData{
     let value = 0
     let sumByDay = new Map<number,number>()  // eg : today 0:00
     let sumByWeek = new Map<number,number>() // eg : monday 0:00
@@ -38,37 +12,24 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
     let sumByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
     let cptByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
     let avgByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
-    //let sumByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
-    //let cptByDayOfYear = new Map<number,number>() // 1 -> 365, 365 indexes
     let sumAbsolute = 0
-    let allDate:AllDates
-    let eightHours:Date[] = []
 
-    //start.setHours(0)
-    while (start <= end){
-        
-        allDate = findAllDates(start)
-        eightHours = get8Hours(start)
-        for(let hours of eightHours){
-            tmp_val = readDataOfMatrix(arr, hours)
-            value = 0
-            if(tmp_val != null){
-                value = tmp_val
-                sumByDay = addToMap(sumByDay, allDate.day, value)
-                sumByWeek = addToMap(sumByWeek, allDate.startOfWeek, value)
-                sumByMonth = addToMap(sumByMonth, allDate.startOfMonth, value)
-                sumByDayOfWeek = addToMap(sumByDayOfWeek, allDate.dayOfWeek, value)
-                
-                //sumByDayOfYear = addToMap(sumByDayOfYear, dayofYear, value)
-                //cptByDayOfYear = addToMap(cptByDayOfWeek, dayOfWeek, 1)
-                sumAbsolute += value
+    let currentDayOfWeek = -1
+    timeline.getTimestampsOfDay().forEach((timestamp:number, index) => {
+        value = arr[index]
+        if(value != null){
+            sumByDay = addToMap(sumByDay, timestamp, value)
+            sumByWeek = addToMap(sumByWeek, timeline.getTimestampOfWeekByIndex(index), value)
+            sumByMonth = addToMap(sumByMonth, timeline.getTimestampOfMonthByIndex(index), value)
+            sumByDayOfWeek = addToMap(sumByDayOfWeek, timeline.getDayOfWeekByIndex(index), value)
+            sumAbsolute += value
+
+            if(currentDayOfWeek == -1 || currentDayOfWeek !== timeline.getDayOfWeekByIndex(index)){
+                cptByDayOfWeek = addToMap(cptByDayOfWeek, timeline.getDayOfWeekByIndex(index), 1)
+                currentDayOfWeek = timeline.getDayOfWeekByIndex(index)
             }
         }
-        
-        cptByDayOfWeek = addToMap(cptByDayOfWeek, allDate.dayOfWeek, 1)
-
-        start.setDate(start.getDate()+1)
-    }
+    })
 
     //Post traitement pour AVG
     sumByDayOfWeek.forEach((value, key) => {
@@ -84,8 +45,6 @@ export function getRawData(arr:number[][][][], start:Date, end:Date):rawData{
         sumByDayOfWeek:sumByDayOfWeek,
         cptByDayOfWeek:cptByDayOfWeek,
         avgByDayOfWeek:avgByDayOfWeek,
-        //sumByDayOfYear:sumByDayOfYear,
-        //cptByDayOfYear:cptByDayOfYear,
         sumAbsolute:sumAbsolute
     }
 }
@@ -100,25 +59,6 @@ function addToMap(map:Map<number, number>, key:number, value:number){
     return map
 }
 
-function getStartOfMonth(now:Date){
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-}
-
-function getStartOfWeek(date:Date){
-    let now  = new Date(date)
-    now.setDate(now.getDate() - (now.getDay() + 6) % 7)
-    return now
-}
-
-function getDayOfYear(now:Date):number{
-    let start = new Date(now.getFullYear(), 0, 0)
-    let diff = (now.getTime() - start.getTime()) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000)
-    const oneDay = 1000 * 60 * 60 * 24
-    return Math.floor(diff / oneDay)
-}
-
-
-
 export function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawData:rawData, instance:string, clientId:string, requestType:string):Map<string, Map<number,number>>{
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDay, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY)
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_WEEK)
@@ -130,35 +70,17 @@ export function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawDa
     let tmp_map = new Map<number, number>()
     tmp_map.set(0,rawData.sumAbsolute)
     map = processRawDataAndDataTypeIntoMap(map, tmp_map, instance, clientId, requestType, DATA_TYPE.ABSOLUTE_SUM)
-    //map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfYear, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_YEAR)
-
-    //console.info(rawData.cptByDayOfWeek)
 
     return map
 }
 
 function processRawDataAndDataTypeIntoMap(map:Map<string, Map<number,number>>,  mapValue:Map<number,number>, instance:string, clientId:string, requestType:string, dataType:string):Map<string, Map<number,number>>{
-    //	6 Types of keys
-    //Key 1 : Instance only + type of data 						=> x||*||*||¤
-    //Key 2 : client ID only + type of data 				    => *||y||*||¤
-    //Key 3 : RequestType only + type of data 					=> *||*||z||¤
-    //Key 4 : Instance + RequestType + type of data 			=> x||*||z||¤
-    //Key 5 : client ID + RequestType + type of data 			=> *||y||z||¤
-    //Key 6 : Instance + client ID + RequesType + type of data 	=> x||y||z||¤
 
-   // let key1 = getHashKey(instance, null, null, dataType)
-  //  let key2 = getHashKey(null, clientId, null, dataType)
-  //  let key3 = getHashKey(null, null, requestType, dataType)
-  //  let key4 = getHashKey(instance, null, requestType, dataType)
-    let key5 = getHashKey(null, clientId, requestType, dataType)
-   // let key6 = getHashKey(instance, clientId, requestType, dataType)
+    let key1 = getHashKey(null, clientId, requestType, dataType)
+    map = updateMapWithKey(map, key1, mapValue)
 
-  //  map = updateMapWithKey(map, key1, mapValue)
-  //  map = updateMapWithKey(map, key2, mapValue)
-  //  map = updateMapWithKey(map, key3, mapValue)
-  //  map = updateMapWithKey(map, key4, mapValue)
-    map = updateMapWithKey(map, key5, mapValue)
-  //  map = updateMapWithKey(map, key6, mapValue)
+    let key2 = getHashKey(null, clientId, null, dataType)
+    map = updateMapWithKey(map, key2, mapValue)
 
     return map
 }
@@ -242,136 +164,121 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
     return {min:min, max:max}
 }
 
-const DATE_1900 = new Date("1900-01-01")
-const DATE_2900 = new Date("2900-01-01")
-
-let map8Hours = new Map<number, Date[]>()
-function get8Hours(date:Date):Date[]{
-    if(map8Hours.has(date.valueOf())){
-       return map8Hours.get(date.valueOf()) as Date[] 
-    }
-
-    let start = new Date(date)
-    let dates:Date[] = []
-    for(let i=0; i < 8;i++){
-        dates.push(new Date(start.setHours(i*3)))
-    }
-    map8Hours.set(date.valueOf(), dates)
-    return dates
-}
-
-export function initTableur(store:elasticStore, instances:instance[], whitelist:string[]):datasetTableurHit[]{
+const DATE_1900:number = new Date("1900-01-01").valueOf()
+const DATE_2900:number = new Date("2900-01-01").valueOf()
+export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], whitelist:string[], globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
     
+    let start = new Date()
     let datasetByHit : datasetTableurHit[] = []
-    let start:Date
+    
     let tmp_value:number|null
     let sumOfHitsForDay:number
     let maxHits:number
     let sumHits:number
-    let maxDate:Date
-    let firstSeen:Date
-    let lastSeen:Date
+    let maxDate:number
+    let firstSeenTS:number
+    let lastSeenTS:number
     let knownClientId = getListOfClientId(instances, whitelist)
 
     let sumRolling = new Map<number, number>()
     let cptRolling = new Map<number, number>()
     let avgRolling = new Map<number, number>()
     let keys = getKeysOfClientIdElastic()
-    let eightHours:Date[] = []
+
+    //console.debug(" > before foreach container ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 
     store.container.forEach(clientId => {
-
-        start = new Date(store.minDate)
-        maxDate = new Date(DATE_1900)
-        firstSeen = new Date(DATE_2900)
-        lastSeen = new Date(DATE_1900)
+        let start2 = new Date()
+        //start = new Date(store.minDate)
+        maxDate = DATE_1900
+        firstSeenTS = DATE_2900
+        lastSeenTS = DATE_1900
         maxHits = 0
         sumHits = 0
         sumRolling = new Map<number, number>()
         cptRolling = new Map<number, number>()
         avgRolling = new Map<number, number>()
-        //let keys = getKeysOfClientIdElastic()
+
 
         //Initiate keys for avgRolling
-        start.setHours(0)
-        while (start <= store.maxDate){
-            sumRolling.set(start.getTime(), 0)
-            cptRolling.set(start.getTime(), 0)
-            start.setDate(start.getDate()+1)
-        }
+        timeline.getTimestampsOfDay().forEach((timestamp:number, index) => {
+            sumRolling.set(timestamp, 0)
+            cptRolling.set(timestamp, 0)
+        })
 
-        start = new Date(store.minDate)
-        start.setHours(0)
-        while (start <= store.maxDate){
-            sumOfHitsForDay=0
-            eightHours = get8Hours(start)
-            for(let hours of eightHours){
-                keys.forEach(key => {                    
-                    tmp_value = readDataOfMatrix(clientId[key], hours)
-                    if(tmp_value !== null){
-                        sumOfHitsForDay += tmp_value
-                        sumHits += tmp_value
-                        if(firstSeen > start){
-                            console.info()
-                            firstSeen = new Date(hours)
-                        }
-                        lastSeen = new Date(hours)
+        let switchDay = false
+        timeline.getTimestampsOfDay().forEach((timestamp:number, index) => {
+
+            //Changement de jour la prochaine itération
+            switchDay = (timeline.getTimestampOfDayByIndex(index) !== timeline.getTimestampOfDayByIndex(index+1))
+           
+            keys.forEach(key => {                    
+                tmp_value = clientId[key][index]
+                if(tmp_value !== null && tmp_value !== undefined && !isNaN(tmp_value)){
+                    sumOfHitsForDay += tmp_value
+                    sumHits += tmp_value
+                    if(firstSeenTS > timestamp){
+                        firstSeenTS = timestamp
                     }
-                });
-            }
-            start.setHours(0)
-
-
-            let tmp_d:Date = new Date(start)
-            for(let j=0; j<30;j++){
-                tmp_d.setDate(start.getDate() + j)
-                if(sumRolling.has(tmp_d.getTime())) {
-                    sumRolling.set(tmp_d.getTime(), sumRolling.get(tmp_d.getTime()) as number + sumOfHitsForDay)
-                } 
-                if(cptRolling.has(tmp_d.getTime())) {
-                    cptRolling.set(tmp_d.getTime(), cptRolling.get(tmp_d.getTime()) as number + 1)
+                    lastSeenTS = timestamp
                 }
+            });
+            //console.debug(" > 1st loop ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+
+            if(switchDay){
+                let timeStampIn30Days = 0
+                for(let j=0; j<(30*8);j++){
+                    timeStampIn30Days = timeline.getTimestampOfDayByIndex(j+index)
+                    if(sumRolling.has(timeStampIn30Days)) {
+                        sumRolling.set(timeStampIn30Days, sumRolling.get(timeStampIn30Days) as number + sumOfHitsForDay)
+                    } 
+                    if(cptRolling.has(timeStampIn30Days)) {
+                        cptRolling.set(timeStampIn30Days, cptRolling.get(timeStampIn30Days) as number + 1)
+                    }
+                }
+                
+                if(sumOfHitsForDay > maxHits){
+                    maxHits = sumOfHitsForDay
+                    maxDate = timestamp
+                }
+
+                //Reset var
+                sumOfHitsForDay=0
+
             }
-
-            if(sumOfHitsForDay > maxHits){
-                maxHits = sumOfHitsForDay
-                maxDate = new Date(start)
-            }
-
-            start.setDate(start.getDate()+1)
-        }
-
-        //Processing rolling avg 
-        start = new Date(store.minDate)
-        start.setHours(0)
-        let sum, cpt =0
-        while (start <= store.maxDate){
+            //console.debug(" > 2nd loop ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
             
+        })
+
+        let sum, cpt = 0
+        timeline.getTimestampsOfDay().forEach((timestamp:number, index) => {
             sum = 0
             cpt = 1
 
-            if(sumRolling.has(start.getTime())){
-                sum = sumRolling.get(start.getTime()) as number
-            } 
-            if(cptRolling.has(start.getTime())){
-                cpt = cptRolling.get(start.getTime()) as number
+            if(!avgRolling.has(timestamp)){
+                if(sumRolling.has(timestamp)){
+                    sum = sumRolling.get(timestamp) as number
+                } 
+                if(cptRolling.has(timestamp)){
+                    cpt = cptRolling.get(timestamp) as number
+                }
+                avgRolling.set(timestamp, sum/cpt)
             }
+        })
+        //console.debug(" > 3th loop ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 
-            avgRolling.set(start.getTime(), sum/cpt)
-
-            start.setDate(start.getDate()+1)
-        }
 
         //Find rolling avg J-30
-        let end = new Date(store.maxDate)
-        end.setHours(0)
-        end.setDate(start.getDate()-30)
+        // 1 : Get index of "30 day before the end"
+        let index30d = timeline.length() -1 - (30*8)
+        // 2 : Find the TS of the day 0h00
+        let ts30d = timeline.getTimestampOfDayByIndex(index30d)
         let avgHit30d = -1
-        if(avgRolling.has(end.getTime())){
-            avgHit30d = Math.round(avgRolling.get(end.getTime()) as number)
+        if(avgRolling.has(ts30d)){
+            avgHit30d = Math.round(avgRolling.get(ts30d) as number)
         }
 
-        let duration = Math.round((lastSeen.getTime() - firstSeen.getTime()) / 86400000) + 1
+        let duration =  Math.round((lastSeenTS - firstSeenTS) / 86400000) + 1
         
         //Find if the current clientId is a well-known and recognized clientId
         let isKnown = knownClientId.includes(clientId.clientId.toLocaleLowerCase())
@@ -379,16 +286,19 @@ export function initTableur(store:elasticStore, instances:instance[], whitelist:
         datasetByHit.push({
             clientId: clientId.clientId.trim(),
             instance: clientId.instance,
-            firstSeen: firstSeen,
-            lastSeen: lastSeen,
+            firstSeen: new Date(firstSeenTS),
+            lastSeen: new Date(lastSeenTS),
             duration:duration,
             avgAll:Math.round(sumHits / duration),
             avgHit30d: avgHit30d,
             maxhit: maxHits,
-            maxDate: maxDate,
+            maxDate: new Date(maxDate),
             sumHits:sumHits,
             isKnown:isKnown
         })
+        
+        //console.debug(" > 4th part ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+        //console.debug(" > round ended in " + ((new Date()).getTime() - start2.getTime()) + "ms since start")
     });
     return datasetByHit
 }
