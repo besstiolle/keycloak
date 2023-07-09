@@ -321,7 +321,7 @@
 
 /**********************/
 
-.hide{
+:global(.hide){
   display: none;
 }
 hr{
