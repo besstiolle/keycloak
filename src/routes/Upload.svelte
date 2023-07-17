@@ -1,6 +1,6 @@
 <script lang="ts">
+    import type { commit, instance } from '$lib/gitStruct';
 	import { jsonGitDataStore } from '$lib/store';
-    import type { commit, instance } from '$lib/struct';
     import { parseLog } from './HydratationUtils';
 
     export let initiateBinder:Function

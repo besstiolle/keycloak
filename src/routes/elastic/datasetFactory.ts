@@ -181,7 +181,6 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
     let avgHit30d = 0
 
     store.container.forEach(clientId => {
-        let start2 = new Date()
         maxDate = DATE_1900
         firstSeenTS = DATE_2900
         lastSeenTS = DATE_1900
