@@ -2,13 +2,16 @@
     import { Timeline } from '$lib/Timeline.class';
     import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
+    import UploadGeneric from '../UploadGeneric.svelte';
     import { emptyClientIdElastic } from './clientIdElasticFactory';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function
+    //Type of file supported separated by a COMMA like .json,.jpeg,....
+    const extensionAccepted = '.csv'
+	const invite:string = 'Choose a Elastic exported CSV file'
 
-	let fileinput:HTMLInputElement
     let minDate:Date = new Date("2099-01-01 00:00")
     let maxDate:Date = new Date("2000-01-01 00:00")
     let container:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
@@ -16,9 +19,8 @@
     let RC:string
 
 
-	const invite:string = 'Choose a Elastic exported CSV file'
 	
-	const onFileSelected = (e:any)=>{
+    function customInitiator(fileName:string, contentFile:string){
 
         if($jsonElasticDataStore.container.size > 0 || $jsonElasticDataStore.errors.size > 0){
             container = $jsonElasticDataStore.container
@@ -26,43 +28,37 @@
             maxDate = $jsonElasticDataStore.maxDate
             errors = $jsonElasticDataStore.errors
         }
-
-
-		let jsonFile = e.target.files[0];
-		let reader = new FileReader();
-		reader.readAsText(jsonFile);
-		reader.onload = e => {
             
-            let csv = e.target?.result as string
+        let csv = contentFile
 
-            //Detect return chariot type windows or unix
-            RC = isLN(csv) ? LN : RCLN
+        //Detect return chariot type windows or unix
+        RC = isLN(csv) ? LN : RCLN
 
-            //Expurge string like "12,012" to real number like 12012
-            csv = cleanUnformatedNumbers(csv)
-   
-            let currentType = CSV_TYPE.REQUESTS
-            if(jsonFile.name.indexOf('LOGIN_ERROR') !== -1) {
-                currentType = CSV_TYPE.ERRORS
-            } else if(jsonFile.name.indexOf('code erreur') !== -1) {
-                currentType = CSV_TYPE.ERRORS
-            } 
-            
-            csvToContainer(csv, currentType)
-            //Refresh timeline in Store
-            $timelineStore =  new Timeline(minDate, maxDate)
+        //Expurge string like "12,012" to real number like 12012
+        csv = cleanUnformatedNumbers(csv)
 
-            let elasticStoreCloned:elasticStore = {
-                minDate: minDate,
-                maxDate: maxDate,
-                container: container,
-                errors: errors
-            }
+        let currentType = CSV_TYPE.REQUESTS
+        if(fileName.indexOf('LOGIN_ERROR') !== -1) {
+            currentType = CSV_TYPE.ERRORS
+        } else if(fileName.indexOf('code erreur') !== -1) {
+            currentType = CSV_TYPE.ERRORS
+        } 
+        
+        csvToContainer(csv, currentType)
+        //Refresh timeline in Store
+        $timelineStore =  new Timeline(minDate, maxDate)
 
-            $jsonElasticDataStore = elasticStoreCloned
+        let elasticStoreCloned:elasticStore = {
+            minDate: minDate,
+            maxDate: maxDate,
+            container: container,
+            errors: errors
+        }
 
-            initiateBinder()
-		};
+        $jsonElasticDataStore = elasticStoreCloned
+
+        initiateBinder()
+
 	}
 
     function csvToContainer(csvContent:string , type:CSV_TYPE, delimiter:string = COMMA): void{
@@ -163,30 +159,4 @@
     }
 </script>
 
-
-<div id="box" on:click={()=>{fileinput.click();}} on:keydown={()=>{fileinput.click();}}>
-    <div><img src='./download.png' alt={invite} title={invite}/></div>
-    <div>
-        <input type="file" name="files[]" accept=".csv" id="file" on:change={(e)=>onFileSelected(e)}  bind:this={fileinput} />
-        <label for="file">{invite}</label>
-    </div>
-    <button type="submit">Upload</button>
-</div>
-
-<style>
-    #box{
-      min-height: 100%;
-      font-size: 1.5rem;
-      background-color: #c8dadf;
-      position: relative;
-      text-align:center;
-      cursor: pointer;
-      padding: 5%;
-    }
-
-    #box input,
-    #box button{
-        display: none;
-    }
-</style>
-    
+<UploadGeneric initiateBinder={customInitiator} invite={invite} type={extensionAccepted} />

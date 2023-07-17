@@ -103,7 +103,7 @@
 
 <section><h1>Config</h1></section>
 {#if addAnother}
-<UploadConfiguration initiateBinder={initiateVoid} extensionAccepted='.json'/>
+<UploadConfiguration initiateBinder={initiateVoid}/>
 {:else}
 <content>
     <label for='gitUrl1'>link to custom commit -using %hash%-</label>
