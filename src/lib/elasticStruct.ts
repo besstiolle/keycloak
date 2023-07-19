@@ -1,7 +1,7 @@
 import type { Timeline } from "./Timeline.class"
 
 export enum CSV_TYPE {
-    REQUESTS,ERRORS
+    REQUESTS,ERRORS,USERS
 }
 export enum REQUEST_TYPE {
     STRONGBOX='STRONGBOX',

@@ -42,7 +42,9 @@
             currentType = CSV_TYPE.ERRORS
         } else if(fileName.indexOf('code erreur') !== -1) {
             currentType = CSV_TYPE.ERRORS
-        } 
+        } else if(fileName.indexOf("Nombre d'utilisateur")) {
+            currentType = CSV_TYPE.USERS
+        }
         
         csvToContainer(csv, currentType)
         //Refresh timeline in Store
@@ -81,6 +83,11 @@
         } else if(type === CSV_TYPE.ERRORS){
             tmp_date = headers[1]
             runner = runnerErrorsHits
+        } else if(type === CSV_TYPE.USERS){
+            /*tmp_date = headers[1]
+            runner = runnerErrorsHits*/
+            //TODO
+            return
         } else {
             throw new Error('case not implemented for type', type);
         }
@@ -135,8 +142,8 @@
 
         //Strict control to avoid unwanted data inside our container
         if(!(requestType in REQUEST_TYPE)){
-            console.error("requestType is unknown", requestType)
-            throw Error("requestType is unknown")
+            console.error("requestType is unknown and will be ignore", requestType)
+            return 
         }
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel, instance)
