@@ -194,10 +194,6 @@
   <hr/>
 </div>
 <div class="noTableur">
-  <button class="button-off" disabled>Show x̄</button>
-  <hr/>
-</div>
-<div class="noTableur">
   <FilterBlock filterCode={StateOfFiltersElastic.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={updateInstanceInState} action2={()=>{}}/>
   <button class="sumOrDistinctInstance button-on" on:click={switchforSumByInstance} data-val={ACTION_VAL.SUM_BY_INSTANCE}>Sum</button>
   <button class="sumOrDistinctInstance button-off" on:click={switchforSumByInstance} data-val={ACTION_VAL.DISTINCT_BY_INSTANCE}>Distinct</button>
