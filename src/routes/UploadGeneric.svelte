@@ -15,10 +15,6 @@
 		};
     }
 
-	function onFileSelected(e:any) {
-		readFile(e.target.files[0])
-	}
-
     function readFiles(filesPassed:FileList){
         for(let i = 0; i < filesPassed.length; i++){
             readFile(filesPassed[i])
@@ -83,7 +79,7 @@
 <div id="box" on:click={()=>{fileinput.click();}} on:keydown={()=>{fileinput.click();}}>
     <div><img src='./download.png' alt={invite} title={invite}/></div>
     <div>
-        <input type="file" name="files[]" accept="{type}" id="file" on:change={(e)=>onFileSelected(e)}  bind:this={fileinput} />
+        <input type="file" name="files[]" accept="{type}" id="file" bind:this={fileinput} />
         <label for="file">{invite}</label>
     </div>
     <button type="submit">Upload</button>
