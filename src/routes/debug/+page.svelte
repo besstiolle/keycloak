@@ -2,14 +2,14 @@
     import { browser } from '$app/environment';
     import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
-    
-	let clientId = $jsonElasticDataStore.container.get('foagan') as clientIdElastic
+    const clientIdLabel = 'foagan'
+	let clientId = $jsonElasticDataStore.container.get(clientIdLabel) as clientIdElastic
 	let keys = getKeysOfClientIdElastic()
 	let timeline = $timelineStore
 
 	function toDate(ts:number):string{
 		let date = new Date(ts)
-		return date.getDay()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+" "+date.getHours()+"h"
+		return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+" "+date.getHours()+"h"
 	}
 
 </script>
@@ -19,7 +19,7 @@
 	<meta name="description" content="Keycloak demo app"/>
 </svelte:head>
 
-<section><h1>Debug</h1></section>
+<section><h1>Debug for {clientIdLabel}</h1></section>
 
 <content>
 
