@@ -7,12 +7,12 @@
     import { getEmptyElasticStore, getWhitelist } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
-    import LineHitsByAll from './LineHitsByAll.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
     import Side from './side.svelte';
     import { GroupByEngine, runEngine } from './groupByFactory';
     import PieCountersByError from './PieCountersByError.svelte';
     import { getConfigValue } from '../HydratationUtils';
+    import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
 
 	const WHITELIST = browser?getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId):[]
 
@@ -195,7 +195,7 @@
 			<h2>Evolution des requetes dans le temps</h2>
 			{#key datasetAndLimits}
 				{#if globalState.isAgregate == DATA_TYPE.SUM_BY_DAY_OF_WEEK || globalState.isAgregate == DATA_TYPE.AVG_BY_DAY_OF_WEEK}
-					<LineHitsByAll datasetAndLimits={datasetAndLimits} dataType={globalState.isAgregate}/>	
+					<LineHitsByDayOWeek datasetAndLimits={datasetAndLimits} dataType={globalState.isAgregate}/>	
 				{:else}
 					<LineHitsAll datasetAndLimits={datasetAndLimits}/>	
 				{/if}
