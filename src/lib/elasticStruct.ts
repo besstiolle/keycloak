@@ -1,6 +1,6 @@
 
 export enum CSV_TYPE {
-    REQUESTS,ERRORS,USERS
+    REQUESTS,ERRORS_BY_CLIENTID,ERRORS_SOC,USERS
 }
 export enum REQUEST_TYPE {
     STRONGBOX='STRONGBOX',
@@ -26,6 +26,39 @@ export enum REQUEST_TYPE {
     SEND_RESET_PASSWORD='SEND_RESET_PASSWORD' //update 20 mai 2023
 }
 
+export enum ERROR_BY_CLIENTID_TYPE{
+    CLIENT_NOT_FOUND='CLIENT_NOT_FOUND',
+    COOKIE='COOKIE',
+    DIFF_USER_AUTH='DIFF_USER_AUTH',
+    EXPIRED_CODE='EXPIRED_CODE',
+    IDP_ERROR='IDP_ERROR',
+    INVALID_CODE='INVALID_CODE',
+    INVALID_REDIRECT_URI='INVALID_REDIRECT_URI',
+    INVALID_USER_CRED='INVALID_USER_CRED',
+    NOT_ALLOWED='NOT_ALLOWED',
+    REQUEST_INVALID='REQUEST_INVALID',
+    USER_DISABLED='USER_DISABLED',
+    USER_NOT_FOUND='USER_NOT_FOUND',
+    USER_DISABLED_TMP='USER_DISABLED_TMP',
+    USERNAME_IN_USE='USERNAME_IN_USE'
+}
+
+export const ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP:Map<string,ERROR_BY_CLIENTID_TYPE> = new Map([
+    ['CLIENT NOT FOUND', ERROR_BY_CLIENTID_TYPE.CLIENT_NOT_FOUND],
+    ['COOKIE', ERROR_BY_CLIENTID_TYPE.COOKIE],
+    ['DIFFERENT USER AUTHENTICATED', ERROR_BY_CLIENTID_TYPE.DIFF_USER_AUTH],
+    ['EXPIRED CODE', ERROR_BY_CLIENTID_TYPE.EXPIRED_CODE],
+    ['IDENTITY PROVIDER ERROR', ERROR_BY_CLIENTID_TYPE.IDP_ERROR],
+    ['INVALID CODE', ERROR_BY_CLIENTID_TYPE.INVALID_CODE],
+    ['INVALID REDIRECT URI', ERROR_BY_CLIENTID_TYPE.INVALID_REDIRECT_URI],
+    ['INVALID USER CREDENTIALS', ERROR_BY_CLIENTID_TYPE.INVALID_USER_CRED],
+    ['NOT ALLOWED', ERROR_BY_CLIENTID_TYPE.NOT_ALLOWED],
+    ['REQUÊTE INVALIDE', ERROR_BY_CLIENTID_TYPE.REQUEST_INVALID],
+    ['USER DISABLED', ERROR_BY_CLIENTID_TYPE.USER_DISABLED],
+    ['USER NOT FOUND', ERROR_BY_CLIENTID_TYPE.USER_NOT_FOUND],
+    ['USER TEMPORARILY DISABLED', ERROR_BY_CLIENTID_TYPE.USER_DISABLED_TMP],
+    ['USERNAME IN USE', ERROR_BY_CLIENTID_TYPE.USERNAME_IN_USE],
+])
 	
 export enum DATA_TYPE {
     SUM_BY_DAY='SUM_BY_DAY',
@@ -83,8 +116,9 @@ export interface minMax{
 export interface elasticStore{
     minDate:Date,
     maxDate:Date,
-    container:Map<string, clientIdElastic>,
-    errors:Map<string, number[]>
+    containerClientId:Map<string, clientIdElastic>,
+    containerErrorsByClientId:Map<string, clientIdError>,
+    containerErrorsSoc:Map<string, number[]>
 }
 
 export interface pointer{
@@ -121,6 +155,45 @@ export interface datasetTableurHit{
     maxDate:Date
     sumHits:number,
     isKnown:boolean
+}
+
+export interface clientIdError extends Record<string, any>{
+    clientId:string
+    instance:string
+
+    CLIENT_NOT_FOUND:number[]
+    COOKIE:number[]
+    DIFF_USER_AUTH:number[]
+    EXPIRED_CODE:number[]
+    IDP_ERROR:number[]
+    INVALID_CODE:number[]
+    INVALID_REDIRECT_URI:number[]
+    INVALID_USER_CRED:number[]
+    NOT_ALLOWED:number[]
+    REQUEST_INVALID:number[]
+    USER_DISABLED:number[]
+    USER_NOT_FOUND:number[]
+    USER_DISABLED_TMP:number[]
+    USERNAME_IN_USE:number[]
+}
+
+export function getKeysOfclientIdError(){
+
+    return ['CLIENT_NOT_FOUND',
+            'COOKIE',
+            'DIFF_USER_AUTH',
+            'EXPIRED_CODE',
+            'IDP_ERROR',
+            'INVALID_CODE',
+            'INVALID_REDIRECT_URI',
+            'INVALID_USER_CRED',
+            'NOT_ALLOWED',
+            'REQUEST_INVALID',
+            'USER_DISABLED',
+            'USER_NOT_FOUND',
+            'USER_DISABLED_TMP',
+            'USERNAME_IN_USE'
+    ]
 }
 
 export interface clientIdElastic extends Record<string,any>{

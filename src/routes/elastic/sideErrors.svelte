@@ -5,7 +5,7 @@
 
     export let fInstances:string[]
     export let fClientIds:string[]
-    export let fRequestTypes:string[]
+    export let fErrorsType:string[]
     export let instanceToClientId:Map<string,string[]>
     
     export let drawGraph:Function;
@@ -46,16 +46,16 @@
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
 		sideState.isSumOrDistinctByClientId = button.getAttribute("data-val") as ACTION_VAL
-        sideState.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE
+        sideState.isSumOrDistinctByErrorsType = ACTION_VAL.SUM_BY_REQUESTTYPE
 		drawGraph()
 
 	}
 
-	function switchforSumByRequestType(e:Event, className:string='sumOrDistinctRequestType'){
+	function switchforSumByErrorsType(e:Event, className:string='sumOrDistinctErrorsType'){
 		let button = e.target as HTMLButtonElement
 		switchFor(button, className)
-		sideState.isSumOrDistinctByRequestType = button.getAttribute("data-val") as ACTION_VAL
-		updateRequestTypeInState()
+		sideState.isSumOrDistinctByErrorsType = button.getAttribute("data-val") as ACTION_VAL
+		updateErrorsTypeInState()
 
 	}
 
@@ -141,6 +141,7 @@
         }
         
         updateClientIdInState()
+        updateErrorsTypeInState()
     }
 
     function updateClientIdInState(){
@@ -157,10 +158,10 @@
             }
         }
 
-        updateRequestTypeInState()
+        drawGraph()
     }
 
-    function updateRequestTypeInState(){
+    function updateErrorsTypeInState(){
       //Reset information info state
       sideState.selectedRequestsType=[]
       
@@ -199,10 +200,11 @@
   <FilterBlock filterCode={StateOfFiltersElastic.ID_CLIENTIDS} filterTitre='ClientIds' filterList={fClientIds}  action={updateClientIdInState} action2={()=>{}}/>
   <button class="sumOrDistinctClientId button-on hide" on:click={switchforSumByClientId} data-val={ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
   <button class="sumOrDistinctClientId button-off hide" on:click={switchforSumByClientId} data-val={ACTION_VAL.DISTINCT_BY_CLIENTID}>Distinct</button>
-  <FilterBlock filterCode={StateOfFiltersElastic.ID_REQUESTTYPE} filterTitre='RequestTypes' filterList={fRequestTypes}  action={updateRequestTypeInState} action2={()=>{}}/>
-  <button class="sumOrDistinctRequestType button-on" on:click={switchforSumByRequestType} data-val={ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
-  <button class="sumOrDistinctRequestType button-off" on:click={switchforSumByRequestType} data-val={ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
+  <FilterBlock filterCode={StateOfFiltersElastic.ID_REQUESTTYPE} filterTitre='ErrorsTypes' filterList={fErrorsTypes}  action={updateErrorsTypeInState} action2={()=>{}}/>
+  <button class="sumOrDistinctErrorsType button-on" on:click={switchforSumByErrorsType} data-val={ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
+  <button class="sumOrDistinctErrorsType button-off" on:click={switchforSumByErrorsType} data-val={ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
 </div>
+
 <style>
 /* CSS https://getcssscan.com/css-buttons-examples */
 .button-on {

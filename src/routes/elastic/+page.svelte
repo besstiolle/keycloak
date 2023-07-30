@@ -8,7 +8,7 @@
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
-    import Side from './side.svelte';
+    import SideHits from './sideHits.svelte';
     import { GroupByEngine, runEngine } from './groupByFactory';
     import PieCountersByError from './PieCountersByError.svelte';
     import { getConfigValue } from '../HydratationUtils';
@@ -127,7 +127,7 @@
 		start.setHours(0)
 		end.setHours(0)
 
-		$jsonElasticDataStore.container.forEach(clientId => {
+		$jsonElasticDataStore.containerClientId.forEach(clientId => {
 			for(const requestType of allRequestTypes){
 				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
@@ -140,7 +140,7 @@
 
 	function initiateFilters(){
 		let listOfClientIdForInstance:string[] = []
-		$jsonElasticDataStore.container.forEach(clientId => {
+		$jsonElasticDataStore.containerClientId.forEach(clientId => {
 			if(!fClientIds.includes(clientId.clientId)){
 				fClientIds.push(clientId.clientId)
 			}
@@ -182,7 +182,7 @@
 <UploadElastic initiateBinder={initiatePage}/>
 {:else}
 <side>
-	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} instanceToClientId={instanceToClientId}
+	<SideHits fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} instanceToClientId={instanceToClientId}
 			drawGraph={drawGraph} bind:sideState={globalState}/>
 	
 	<h2>Options</h2>
