@@ -3,7 +3,7 @@
     import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
     
-	let clientId = $jsonElasticDataStore.container.get('foagan') as clientIdElastic
+	let clientId = $jsonElasticDataStore.containerClientId.get('foagan') as clientIdElastic
 	let keys = getKeysOfClientIdElastic()
 	let timeline = $timelineStore
 

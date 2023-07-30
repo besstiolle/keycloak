@@ -1,9 +1,10 @@
 <script lang="ts">
     import { Timeline } from '$lib/Timeline.class';
-    import { CSV_TYPE, REQUEST_TYPE, type clientIdElastic, type elasticStore } from '$lib/elasticStruct';
+    import { CSV_TYPE, ERROR_BY_CLIENTID_TYPE, ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP, REQUEST_TYPE, type clientIdElastic, type clientIdError, type elasticStore } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
     import UploadGeneric from '../UploadGeneric.svelte';
     import { emptyClientIdElastic } from './clientIdElasticFactory';
+    import { emptyClientIdError } from './clientIdErrorFactory';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
@@ -14,19 +15,21 @@
 
     let minDate:Date = new Date("2099-01-01 00:00")
     let maxDate:Date = new Date("2000-01-01 00:00")
-    let container:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
-    let errors:Map<string,number[]> = new Map<string,number[]>()
+    let containerClientId:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
+    let containerErrorByClientID:Map<string, clientIdError> = new Map<string, clientIdError>()
+    let containerErrorsSoc:Map<string,number[]> = new Map<string,number[]>()
     let RC:string
 
 
 	
     function customInitiator(fileName:string, contentFile:string){
 
-        if($jsonElasticDataStore.container.size > 0 || $jsonElasticDataStore.errors.size > 0){
-            container = $jsonElasticDataStore.container
+        if($jsonElasticDataStore.containerClientId.size > 0 || $jsonElasticDataStore.containerErrorsSoc.size > 0){
+            containerClientId = $jsonElasticDataStore.containerClientId
+            containerErrorByClientID = $jsonElasticDataStore.containerErrorsByClientId
+            containerErrorsSoc = $jsonElasticDataStore.containerErrorsSoc
             minDate = $jsonElasticDataStore.minDate
             maxDate = $jsonElasticDataStore.maxDate
-            errors = $jsonElasticDataStore.errors
         }
             
         let csv = contentFile
@@ -38,10 +41,10 @@
         csv = cleanUnformatedNumbers(csv)
 
         let currentType = CSV_TYPE.REQUESTS
-        if(fileName.indexOf('LOGIN_ERROR') !== -1) {
-            currentType = CSV_TYPE.ERRORS
+        if(fileName.indexOf('LOGIN_ERROR') !== -1) { 
+            currentType = CSV_TYPE.ERRORS_BY_CLIENTID
         } else if(fileName.indexOf('code erreur') !== -1) {
-            currentType = CSV_TYPE.ERRORS
+            currentType = CSV_TYPE.ERRORS_SOC
         } else if(fileName.indexOf("Nombre d'utilisateur")) {
             currentType = CSV_TYPE.USERS
         }
@@ -53,8 +56,9 @@
         let elasticStoreCloned:elasticStore = {
             minDate: minDate,
             maxDate: maxDate,
-            container: container,
-            errors: errors
+            containerClientId: containerClientId,
+            containerErrorsByClientId: containerErrorByClientID,
+            containerErrorsSoc: containerErrorsSoc
         }
 
         $jsonElasticDataStore = elasticStoreCloned
@@ -80,9 +84,12 @@
         if(type === CSV_TYPE.REQUESTS){
             tmp_date = headers[3]
             runner = runnerKeyCloackHits
-        } else if(type === CSV_TYPE.ERRORS){
+        } else if(type === CSV_TYPE.ERRORS_BY_CLIENTID){
+            tmp_date = headers[3]
+            runner = runnerErrorsByClientIdHits
+        } else if(type === CSV_TYPE.ERRORS_SOC){
             tmp_date = headers[1]
-            runner = runnerErrorsHits
+            runner = runnerErrorsSocHits
         } else if(type === CSV_TYPE.USERS){
             /*tmp_date = headers[1]
             runner = runnerErrorsHits*/
@@ -112,26 +119,59 @@
         })
     }
 
-    function runnerErrorsHits(headers:string[], line:string):void{
+    function runnerErrorsSocHits(headers:string[], line:string):void{
         let elts:string[] = line.split(COMMA)
         let errorType=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
         let arr:number[] = []
 
-        if(!errors.has(errorType)){
-            errors.set(errorType, arr)
+        if(!containerErrorsSoc.has(errorType)){
+            containerErrorsSoc.set(errorType, arr)
         } 
 
         for(let i=1; i<elts.length; i++){
             if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-            arr = errors.get(errorType) as  number[]
+            arr = containerErrorsSoc.get(errorType) as  number[]
             
-            //errors.set(errorType, writeDataInMatrix(arr, headerToDate(headers[i]), parseInt(elts[i])))
             arr[$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
-            errors.set(errorType, arr)
+            containerErrorsSoc.set(errorType, arr)
         }
 
+    }
+
+    function runnerErrorsByClientIdHits(headers:string[], line:string):void{
+        let elts:string[] = line.split(COMMA)
+        let instance=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let clientIdLabel=elts[1].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let errorTypeLabel=elts[2].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim().toUpperCase()
+        let errorType:ERROR_BY_CLIENTID_TYPE
+
+        //Strict control to avoid unwanted data inside our container
+        if(!ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP.has(errorTypeLabel)) {
+            console.error("errorTypeLabel is unknown and will be ignore", errorTypeLabel)
+            return 
+        }
+
+        errorType = ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP.get(errorTypeLabel) as ERROR_BY_CLIENTID_TYPE
+
+        let clientId:clientIdError = emptyClientIdError(clientIdLabel, instance)
+
+        if(containerErrorByClientID.has(clientIdLabel)){
+            clientId = containerErrorByClientID.get(clientIdLabel) as clientIdError
+            clientId.instance = instance //Update for security
+        } 
+
+        for(let i=3; i<elts.length; i++){
+            //Fixme :  le parseInt(elts[i]) == 0 ne semble pas fonctionner ?
+            if(elts[i].trim() === EMPTY_STRING || parseInt(elts[i]) == 0){
+                continue
+            }
+        
+            clientId[errorType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
+        }
+
+        containerErrorByClientID.set(clientIdLabel, clientId)
     }
 
     function runnerKeyCloackHits(headers:string[], line:string):void{
@@ -148,8 +188,8 @@
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel, instance)
 
-        if(container.has(clientIdLabel)){
-            clientId = container.get(clientIdLabel) as clientIdElastic
+        if(containerClientId.has(clientIdLabel)){
+            clientId = containerClientId.get(clientIdLabel) as clientIdElastic
             clientId.instance = instance //Update for security
         } 
 
@@ -157,12 +197,11 @@
             if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-
-            //clientId[requestType] = writeDataInMatrix(clientId[requestType], headerToDate(headers[i]), parseInt(elts[i]))           
+        
             clientId[requestType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
         }
 
-        container.set(clientIdLabel, clientId)
+        containerClientId.set(clientIdLabel, clientId)
     }
 </script>
 
