@@ -66,7 +66,7 @@ export function fromJsonToElasticStore(json:any):elasticStore{
     let minDate = new Date(json['minDate'])
     let maxDate = new Date(json['maxDate'])
  
-    json['container'].forEach((lsValue:locaStorageValue) => {
+    json['container']?.forEach((lsValue:locaStorageValue) => {
 
         tmp_clientIdElastic = emptyClientIdElastic(lsValue.clientId, lsValue.instance)
 
@@ -77,7 +77,7 @@ export function fromJsonToElasticStore(json:any):elasticStore{
         container.set(tmp_clientIdElastic.clientId, tmp_clientIdElastic)
     })
     
-    json['errors'].forEach((lsValue:localStorageError) => {
+    json['errors']?.forEach((lsValue:localStorageError) => {
         errors.set(lsValue.type, inflateArray2(lsValue.data))
     })
 
