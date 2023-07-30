@@ -141,7 +141,6 @@
         }
         
         updateClientIdInState()
-        updateRequestTypeInState()
     }
 
     function updateClientIdInState(){
@@ -158,7 +157,7 @@
             }
         }
 
-        drawGraph()
+        updateRequestTypeInState()
     }
 
     function updateRequestTypeInState(){
