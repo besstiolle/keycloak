@@ -47,6 +47,7 @@ export class Timeline{
         return this.getIndexByTimestamp(date.valueOf())
     }
 
+    getTimestamps():number[]{  return this.timeline }
     getTimestampsOfDay():number[] { return this.timeline_day}
     getTimestampOfDayByIndex(index:number):number{ return this.timeline_day[index]}
     getTimestampOfWeekByIndex(index:number):number{ return this.timeline_week[index]}

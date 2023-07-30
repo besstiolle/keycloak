@@ -2,8 +2,9 @@
     import { browser } from '$app/environment';
     import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
-    const clientIdLabel = 'foagan'
+    const clientIdLabel = 'chanels-svc-diffusion'
 	let clientId = $jsonElasticDataStore.container.get(clientIdLabel) as clientIdElastic
+
 	let keys = getKeysOfClientIdElastic()
 	let timeline = $timelineStore
 
@@ -32,7 +33,7 @@
 			{/each}
 		</thead>
 		<tbody>
-			{#each timeline.getTimestampsOfDay() as timestamp, i}
+			{#each timeline.getTimestamps() as timestamp, i}
 			<tr>
 				<td>{toDate(timestamp)}</td>
 			
