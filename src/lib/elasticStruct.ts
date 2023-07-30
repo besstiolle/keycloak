@@ -1,4 +1,3 @@
-import type { Timeline } from "./Timeline.class"
 
 export enum CSV_TYPE {
     REQUESTS,ERRORS,USERS
