@@ -11,19 +11,22 @@
 
     const HTMLCanvasElementID = 'lineCountersAllCanevas'+Math.round(Math.random()*1000)
 
-	let labelsSource:LabelAndDataset = {label:"", data: new Map<number, number>(),weight:0}
-		if(datasetAndLimits.labelsAndDatasets.length >= 1){
-		labelsSource = datasetAndLimits.labelsAndDatasets[0]
+	let labels:number[] = []
+	let allInOn:number[] = []
+	if(datasetAndLimits.labelsAndDatasets.length >= 1){
+		datasetAndLimits.labelsAndDatasets.forEach(array => {
+			allInOn = allInOn.concat(Array.from(array.data.keys()))
+		});
+		labels = [...new Set<number>(allInOn)].sort()
 	} 
 
     const DATA = {
-        labels: Array.from(labelsSource.data.keys()).sort().map(row => getLabelValue(row)),
+		labels: labels.map(row => getLabelValue(row)),
         datasets: datasetAndLimits.labelsAndDatasets.map(dataset => {
 			return {
 				label: dataset.label,
-				data: Array.from(labelsSource.data.keys()).sort().map(
-						row => 
-							dataset.data.get(row)?dataset.data.get(row):0 ),
+				data: labels.map(
+						row => dataset.data.get(row)?dataset.data.get(row):0 ),
 				cubicInterpolationMode: 'monotone',
 			}
 		})
