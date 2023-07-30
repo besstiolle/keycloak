@@ -42,7 +42,7 @@
             currentType = CSV_TYPE.ERRORS
         } else if(fileName.indexOf('code erreur') !== -1) {
             currentType = CSV_TYPE.ERRORS
-        } else if(fileName.indexOf("Nombre d'utilisateur")) {
+        } else if(fileName.indexOf("Nombre d'utilisateur") !== -1) {
             currentType = CSV_TYPE.USERS
         }
         
@@ -77,13 +77,13 @@
         //Update min date & max date
         let tmp_date:string
         let runner:Function
-        if(type === CSV_TYPE.REQUESTS){
+        if(type == CSV_TYPE.REQUESTS){
             tmp_date = headers[3]
             runner = runnerKeyCloackHits
-        } else if(type === CSV_TYPE.ERRORS){
+        } else if(type  == CSV_TYPE.ERRORS){
             tmp_date = headers[1]
             runner = runnerErrorsHits
-        } else if(type === CSV_TYPE.USERS){
+        } else if(type  == CSV_TYPE.USERS){
             /*tmp_date = headers[1]
             runner = runnerErrorsHits*/
             //TODO
