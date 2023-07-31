@@ -23,7 +23,8 @@ export enum REQUEST_TYPE {
     LOGOUT='LOGOUT',
     CUSTOM_REQUIRED_ACTION='CUSTOM_REQUIRED_ACTION',
     VERIFY_EMAIL_ERROR='VERIFY_EMAIL_ERROR', //update 20 mai 2023
-    SEND_RESET_PASSWORD='SEND_RESET_PASSWORD' //update 20 mai 2023
+    SEND_RESET_PASSWORD='SEND_RESET_PASSWORD', //update 20 mai 2023
+    UPDATE_PASSWORD_ERROR='UPDATE_PASSWORD_ERROR' //update 31 juillet 2023
 }
 
 export enum ERROR_BY_CLIENTID_TYPE{
@@ -221,8 +222,9 @@ export interface clientIdElastic extends Record<string,any>{
     UPDATE_PASSWORD:number[],
     LOGOUT:number[],
     CUSTOM_REQUIRED_ACTION:number[],
-    VERIFY_EMAIL_ERROR:number[],
-    SEND_RESET_PASSWORD:number[]
+    VERIFY_EMAIL_ERROR:number[],//update 20 mai 2023
+    SEND_RESET_PASSWORD:number[],//update 20 mai 2023
+    UPDATE_PASSWORD_ERROR:number[], //update 31 juillet 2023
 }
 
 export function getKeysOfClientIdElastic(){
@@ -248,6 +250,7 @@ export function getKeysOfClientIdElastic(){
         'LOGOUT',
         'CUSTOM_REQUIRED_ACTION',
         'VERIFY_EMAIL_ERROR',
-        'SEND_RESET_PASSWORD'
+        'SEND_RESET_PASSWORD',
+        'UPDATE_PASSWORD_ERROR'
     ]
 }
