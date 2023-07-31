@@ -2,8 +2,8 @@
     import { browser } from '$app/environment';
     import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
-    const clientIdLabel = 'chanels-svc-diffusion'
-	let clientId = $jsonElasticDataStore.container.get(clientIdLabel) as clientIdElastic
+    const clientIdLabel = 'foagan'
+	let clientId = $jsonElasticDataStore.containerClientId.get(clientIdLabel) as clientIdElastic
 
 	let keys = getKeysOfClientIdElastic()
 	let timeline = $timelineStore
