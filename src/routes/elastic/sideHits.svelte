@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, type GlobalState } from "$lib/elasticStruct";
+    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, TRINAIRE_VAL, type GlobalState } from "$lib/elasticStruct";
+    import { jsonGitDataStore, jsonConfigDataStore } from "$lib/store";
     import FilterBlock from "../FilterBlock.svelte";
     import { StateOfFiltersElastic } from "./StateOfFiltersElastic";
+    import { SmellEngine } from "./smellEngine";
 
     export let fInstances:string[]
     export let fClientIds:string[]
@@ -11,6 +13,14 @@
     export let drawGraph:Function;
 
     export let sideState:GlobalState;
+
+  function switchforSmell(e:Event, choice:TRINAIRE_VAL){
+    let button = e.target as HTMLButtonElement
+    switchFor(button, 'typeOfSmell')
+
+    sideState.showSmell = choice
+    updateInstanceInState()
+  }
 
 	function switchforSumByInstance(e:Event, className:string='sumOrDistinctInstance'){
 		let button = e.target as HTMLButtonElement
@@ -105,40 +115,61 @@
         //Reset information info state
         sideState.selectedInstances=[]
         sideState.selectedClientsId=[]
-        let inputsInstance:HTMLCollectionOf<HTMLInputElement> = 
+        let inputsInstanceHTMLElement:HTMLCollectionOf<HTMLInputElement> = 
                 document.getElementById("filterFor"+StateOfFiltersElastic.ID_INSTANCES)
                     ?.getElementsByTagName("input") as HTMLCollectionOf<HTMLInputElement>
         
 
         //Show or Hide 
-        let inputsClientId:HTMLCollectionOf<HTMLInputElement> = 
+        let inputsClientIdHTMLElement:HTMLCollectionOf<HTMLInputElement> = 
                 document.getElementById("filterFor"+StateOfFiltersElastic.ID_CLIENTIDS)
                     ?.getElementsByTagName("input") as HTMLCollectionOf<HTMLInputElement>
 
         let currentInstance = ""
-        let currentClientId:string[] = []
-        for(let item of inputsInstance){
+        let clientIdOfInstance:string[] = []
+        let smellEngine = new SmellEngine().initWithGitInstances($jsonGitDataStore, $jsonConfigDataStore)
+
+        let mapClientToShow = new Map<HTMLInputElement,boolean>()
+        
+        for(let item of inputsInstanceHTMLElement){
             currentInstance = item.value
-            currentClientId = instanceToClientId.get(currentInstance) as string[]
+            clientIdOfInstance = instanceToClientId.get(currentInstance) as string[]
 
-            if (item.checked){
-                sideState.selectedInstances.push(currentInstance)
-                for(let clientId of inputsClientId){
-                    if(currentClientId.includes(clientId.value)){
-                        clientId.disabled=false
-                        clientId.parentElement?.classList.remove("hide")
-                    }
+            for(let clientIdHTMLElement of inputsClientIdHTMLElement){
+                if(clientIdOfInstance.includes(clientIdHTMLElement.value)){
+                  mapClientToShow.set(clientIdHTMLElement, item.checked)
+                  if (item.checked && !sideState.selectedInstances.includes(currentInstance)){
+                      sideState.selectedInstances.push(currentInstance)
+                  }
                 }
-            } else {
-                for(let clientId of inputsClientId){
-                    if(currentClientId.includes(clientId.value)){
-                        clientId.disabled=true
-                        clientId.parentElement?.classList.add("hide")
-                    }
-                }
-
-            } 
+            }
         }
+
+        //If desired : remove/maintain smell clientId
+        if(sideState.showSmell == TRINAIRE_VAL.TRUE) { //Show only smell
+          mapClientToShow.forEach((toShow, htmlElement) => {
+            if(toShow && !smellEngine.isSmellByLabel(htmlElement.value)){
+              mapClientToShow.set(htmlElement, false)
+            }
+          })
+        } else if(sideState.showSmell == TRINAIRE_VAL.FALSE) { //don't show smell
+          mapClientToShow.forEach((toShow, htmlElement) => {
+            if(toShow && smellEngine.isSmellByLabel(htmlElement.value)){
+              mapClientToShow.set(htmlElement, false)
+            }
+          })
+        } 
+
+        // Refres state of clientId HTML nodes
+        mapClientToShow.forEach((toShow, htmlElement) => {
+          if(toShow){
+            htmlElement.disabled=false
+            htmlElement.parentElement?.classList.remove("hide")
+          } else {            
+            htmlElement.disabled=true
+            htmlElement.parentElement?.classList.add("hide")
+          }
+        });
         
         updateClientIdInState()
     }
@@ -173,7 +204,7 @@
                 sideState.selectedRequestsType.push(item.value)
             }
         }
-
+        
         drawGraph()
     }
 
@@ -191,6 +222,12 @@
   <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.SUM_BY_DAY_OF_WEEK}>By Day of Week</button>
   <button class="typeOfAgregate button-off" on:click={switchforTypeAgregate} data-val={DATA_TYPE.AVG_BY_DAY_OF_WEEK}>x̄ By Day of Week</button>
   <hr/>
+</div>
+<div class="noTableur">
+  <h3>Smell clientId</h3>
+  <button class="typeOfSmell button-on" on:click={(e) => switchforSmell(e,TRINAIRE_VAL.UNDEF)} data-val={ACTION_VAL.SUM_BY_INSTANCE}>Show</button>
+  <button class="typeOfSmell button-off" on:click={(e) => switchforSmell(e,TRINAIRE_VAL.FALSE)} data-val={ACTION_VAL.DISTINCT_BY_INSTANCE}>Hide</button>
+  <button class="typeOfSmell button-off" on:click={(e) => switchforSmell(e,TRINAIRE_VAL.TRUE)} data-val={ACTION_VAL.DISTINCT_BY_INSTANCE}>Only</button>
 </div>
 <div class="noTableur">
   <FilterBlock filterCode={StateOfFiltersElastic.ID_INSTANCES} filterTitre='Instances' filterList={fInstances}  action={updateInstanceInState} action2={()=>{}}/>

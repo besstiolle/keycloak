@@ -1,20 +1,17 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE } from '$lib/elasticStruct';
+    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE, TRINAIRE_VAL } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
-    import { getEmptyElasticStore, getWhitelist } from './elasticStoreFactory';
+    import { getEmptyElasticStore } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
     import SideHits from './sideHits.svelte';
     import { GroupByEngine, runEngine } from './groupByFactory';
     import PieCountersByError from './PieCountersByError.svelte';
-    import { getConfigValue } from '../HydratationUtils';
     import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
-
-	const WHITELIST = browser?getWhitelist(getConfigValue($jsonConfigDataStore).mapClientId):[]
 
 	let addAnother = false
 	
@@ -38,7 +35,8 @@
 		isAgregate : DATA_TYPE.SUM_BY_WEEK,
 		selectedInstances: fInstances,
 		selectedClientsId: fClientIds,
-		selectedRequestsType: fRequestTypes
+		selectedRequestsType: fRequestTypes,
+		showSmell: TRINAIRE_VAL.UNDEF
 	}
 
 	
@@ -108,7 +106,7 @@
 			})
 
 		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, WHITELIST, globalMap)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
 		} else {
 			//cas non gérer
 			console.error("Type of graph not available : ", globalState.graphType)	

@@ -70,7 +70,11 @@ export enum DATA_TYPE {
     ABSOLUTE_SUM='ABSOLUTE_SUM'
 }
 
-
+export const enum TRINAIRE_VAL{
+    UNDEF="UNDEFINED",
+    TRUE="TRUE",
+    FALSE="FALSE"
+}
 export const enum ACTION_VAL{
     SUM_BY_INSTANCE="SUM_BY_INSTANCE",
     DISTINCT_BY_INSTANCE="DISTINCT_BY_INSTANCE",
@@ -94,7 +98,8 @@ export interface GlobalState{
     graphType:GRAPH_TYPE,
     selectedInstances:string[],
     selectedClientsId:string[],
-    selectedRequestsType:string[]
+    selectedRequestsType:string[],
+    showSmell:TRINAIRE_VAL
 }
 
 export interface rawData{

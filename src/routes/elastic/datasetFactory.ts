@@ -2,6 +2,7 @@
 import type { Timeline } from '$lib/Timeline.class';
 import { type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
 import type { instance } from '$lib/gitStruct';
+import { SmellEngine } from './smellEngine';
 
 
 export function getRawData(arr:number[], timeline:Timeline):rawData{
@@ -166,7 +167,7 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
 
 const DATE_1900:number = new Date("1900-01-01").valueOf()
 const DATE_2900:number = new Date("2900-01-01").valueOf()
-export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], whitelist:string[], globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
+export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], jsonConfigDataStore:string, globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     
@@ -175,7 +176,7 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
     let maxDate:number
     let firstSeenTS:number
     let lastSeenTS:number
-    let knownClientId = getListOfClientId(instances, whitelist)
+    let smellEngine = new SmellEngine().initWithGitInstances(instances, jsonConfigDataStore)
     let sum30:number = 0
     let cpt30 = 0
     let avgHit30d = 0
@@ -228,7 +229,7 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
         let duration =  Math.round((lastSeenTS - firstSeenTS) / 86400000) + 1
         
         //Find if the current clientId is a well-known and recognized clientId
-        let isKnown = knownClientId.includes(clientId.clientId.toLocaleLowerCase())
+        let isKnown = !smellEngine.isSmellByClientIdElastic(clientId)
 
         datasetByHit.push({
             clientId: clientId.clientId.trim(),
@@ -245,20 +246,4 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
         })
     });
     return datasetByHit
-}
-
-function getListOfClientId(instances:instance[], whitelist:string[]):string[]{
-    let list:string[]=[]
-    instances.forEach(instance => {
-        instance.royaumes.forEach(r => {
-            r.clientIds?.forEach(c => {
-                list.push(c.label.toLocaleLowerCase())
-            });
-        });
-    });
-
-    //Add whitelist
-    list = list.concat(whitelist)
-
-    return list
 }
