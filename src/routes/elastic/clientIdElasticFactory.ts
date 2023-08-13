@@ -25,6 +25,7 @@ export function emptyClientIdElastic(label:string, instance:string = "unknown"):
         LOGOUT:[],
         CUSTOM_REQUIRED_ACTION:[],
         VERIFY_EMAIL_ERROR:[],
-        SEND_RESET_PASSWORD:[]
+        SEND_RESET_PASSWORD:[],
+        UPDATE_PASSWORD_ERROR:[]
     }
 }

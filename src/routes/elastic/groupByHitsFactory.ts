@@ -3,7 +3,7 @@ import { VERTICAL_TWO_DOT } from "./const"
 import { fusionMap, getHashKey } from "./datasetFactory"
 
 
-export class GroupByEngine{
+export class GroupByHitsEngine{
 
     isGroupAllInstance:boolean = true
     isGroupClientId:boolean = true
@@ -31,7 +31,7 @@ export class GroupByEngine{
 }
 
 const MAX_VALUES = 10
-export function runEngine(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+export function runGroupByHitsEngine(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
 
     /*
      * Can be : 
@@ -94,7 +94,7 @@ export function runEngine(engine:GroupByEngine, globalMap:Map<string, Map<number
  * @param globalMap 
  * @returns 
  */
-function _run0(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run0(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     for(let instance of engine.selectedInstances){
         for(let clientId of engine.selectedClientsId){
@@ -118,7 +118,7 @@ function _run0(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
  * @param globalMap 
  * @returns 
  */
-function _run2(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run2(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -149,7 +149,7 @@ function _run2(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
  * @param globalMap 
  * @returns 
  */
-function _run3(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run3(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -165,11 +165,13 @@ function _run3(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
                 }
             }
         }
-        allLabelsAndDatasets.push({
-            label: requestType,
-            data: fusionMap(tmp_maps),
-            weight : weight
-        })
+        if(weight > 0){
+            allLabelsAndDatasets.push({
+                label: requestType,
+                data: fusionMap(tmp_maps),
+                weight : weight
+            })
+        }
     }
     return allLabelsAndDatasets
 }
@@ -181,7 +183,7 @@ function _run3(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
  * @param globalMap 
  * @returns 
  */
-function _run4(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run4(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -214,7 +216,7 @@ function _run4(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
  * @param globalMap 
  * @returns 
  */
-function _run6(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run6(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
     let weight = 0
@@ -247,7 +249,7 @@ function _run6(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>)
  * @param globalMap 
  * @returns 
  */
-function _run7(engine:GroupByEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run7(engine:GroupByHitsEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
     let weight = 0

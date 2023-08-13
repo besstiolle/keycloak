@@ -1,11 +1,11 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { getKeysOfClientIdElastic, type clientIdElastic } from '$lib/elasticStruct';
+    import { getKeysOfClientIdRequestType, type clientIdElastic } from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
-    const clientIdLabel = 'foagan'
+    const clientIdLabel = 'isi'
 	let clientId = $jsonElasticDataStore.containerClientId.get(clientIdLabel) as clientIdElastic
 
-	let keys = getKeysOfClientIdElastic()
+	let keys = getKeysOfClientIdRequestType()
 	let timeline = $timelineStore
 
 	function toDate(ts:number):string{

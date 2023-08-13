@@ -1,17 +1,18 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { getKeysOfClientIdElastic, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, type GlobalState, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE, TRINAIRE_VAL } from '$lib/elasticStruct';
-    import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore } from '$lib/store';
+    import { getKeysOfClientIdRequestType, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE, TRINAIRE_VAL, SOURCE_CONTAINER, getKeysOfclientIdError, type DisplaybleItems } from '$lib/elasticStruct';
+    import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
-    import { getRawData, initTableur, processRawDataIntoMap as processRawDataIntoMap, getMinMax } from './datasetFactory';
+    import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
     import { getEmptyElasticStore } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
-    import SideHits from './sideHits.svelte';
-    import { GroupByEngine, runEngine } from './groupByFactory';
-    import PieCountersByError from './PieCountersByError.svelte';
+    import Side from './side.svelte';
+    import { GroupByHitsEngine, runGroupByHitsEngine } from './groupByHitsFactory';
+    import PieCountersByError from './PieCountersBySetOfElements.svelte';
     import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
+    import { GroupByErrorsByClientIdEngine, runGroupByErrorsByClientIdEngine } from './groupByErrorsByClientIdFactory';
 
 	let addAnother = false
 	
@@ -22,22 +23,16 @@
 	//Filters on left
 	let fInstances:string[] = []
 	let fClientIds:string[] = []
-	let fRequestTypes:string[] = getKeysOfClientIdElastic().sort()
-	let instanceToClientId:Map<string,string[]> = new Map<string,string[]>()
+	let fRequestTypes:string[] = getKeysOfClientIdRequestType().sort()
+	let fErrorsByClientId:string[] = getKeysOfclientIdError().sort()
+	let instanceToClientId = new Map<string,string[]>()
+	let clientIdToInstance = new Map<string,string>()
 
 	let globalMap = new Map<string, Map<number, number>>()
 
-	let globalState:GlobalState = {
-		isSumOrDistinctByInstance : ACTION_VAL.SUM_BY_INSTANCE,
-		isSumOrDistinctByClientId : ACTION_VAL.SUM_BY_CLIENTID,
-		isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
-		graphType : GRAPH_TYPE.LINE,
-		isAgregate : DATA_TYPE.SUM_BY_WEEK,
-		selectedInstances: fInstances,
-		selectedClientsId: fClientIds,
-		selectedRequestsType: fRequestTypes,
-		showSmell: TRINAIRE_VAL.UNDEF
-	}
+
+	let idTimeout:NodeJS.Timeout|number = 0
+    stateOfsideStore.subscribe(value => {idTimeout = prepareForDrawing(idTimeout)})
 
 	
 	function emptyDatasetAndLimitsForLine():DatasetAndLimitsForLine{
@@ -63,27 +58,55 @@
 
 		initiateFilters()
 		console.debug("initiateFilters ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
-		globalState.selectedInstances = fInstances
 
-		drawGraph()
 		console.debug("initiatePage ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
+	}
+	
+	function prepareForDrawing(id:NodeJS.Timeout|number){
+		if(id){clearTimeout(id)}
+		id = setTimeout(() => {drawGraph()}, 100)
+		return id
+	}
+
+	function selectedAndVisibleItemsFromMap(map:Map<string,DisplaybleItems>):string[]{
+		let arr:string[] = []
+
+		map.forEach(displaybleItem =>{
+			if(displaybleItem.isChecked && displaybleItem.isVisible){arr.push(displaybleItem.value)}
+		})
+
+		return arr
 	}
 
 	function drawGraph(){
 		let start = new Date()
 		let minMax:minMax = {min:9000000,max:0}
 
-		let engine = new GroupByEngine(globalState.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
-										globalState.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
-										globalState.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
-										globalState.selectedInstances,
-										globalState.selectedClientsId,
-										globalState.selectedRequestsType,
-										globalState.isAgregate,
+		let labelsAndDatasets = null
+		if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS){
+			let engineByHits = new GroupByHitsEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+										$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
+										$stateOfsideStore.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
+										selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
+										$stateOfsideStore.isAgregate,
 										instanceToClientId)
-		let labelsAndDatasets = runEngine(engine, globalMap)
+			labelsAndDatasets = runGroupByHitsEngine(engineByHits, globalMap)
+		} else {
+			let engineByErrorsByClientId = new GroupByErrorsByClientIdEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+											$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
+											$stateOfsideStore.isSumOrDistinctByErrorsByClientId == ACTION_VAL.SUM_BY_ERRORSBYCLIENTID, 
+											selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
+											selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
+											selectedAndVisibleItemsFromMap($stateOfsideStore.errorsByClientId),
+											$stateOfsideStore.isAgregate,
+											instanceToClientId)
+			labelsAndDatasets = runGroupByErrorsByClientIdEngine(engineByErrorsByClientId, globalMap)
+		}
 
-		if(globalState.graphType == GRAPH_TYPE.LINE){
+
+		if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()
 			labelsAndDatasets.forEach(labelAndDataset => {
@@ -93,7 +116,7 @@
 			datasetAndLimits.labelsAndDatasets = labelsAndDatasets
 			datasetAndLimits.min = minMax.min
 			datasetAndLimits.max = minMax.max
-		} else if (globalState.graphType == GRAPH_TYPE.PIE) {
+		} else if ($stateOfsideStore.graphType == GRAPH_TYPE.PIE) {
 			
 			datasetsForPie = []
 			let mapData = new Map<string, number>()
@@ -105,18 +128,19 @@
 				data:mapData
 			})
 
-		} else if (globalState.graphType == GRAPH_TYPE.TABLEUR) {
+		} else if ($stateOfsideStore.graphType == GRAPH_TYPE.TABLEUR) {
 			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
 		} else {
 			//cas non gérer
-			console.error("Type of graph not available : ", globalState.graphType)	
+			console.error("Type of graph not available : ", $stateOfsideStore.graphType)	
 		}
-
+ 
 		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
-		let allRequestTypes = getKeysOfClientIdElastic()  
+		let allRequestTypes = getKeysOfClientIdRequestType()
+		let allErrorsByClientid = getKeysOfclientIdError()
 		let rawData:rawData
 		let map = new Map<string, Map<number,number>>()
 		let start = new Date($jsonElasticDataStore.minDate)
@@ -129,7 +153,13 @@
 			for(const requestType of allRequestTypes){
 				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
-			}			
+			}
+		})
+		$jsonElasticDataStore.containerErrorsByClientId.forEach(clientId => {
+			for(const errorByClientId of allErrorsByClientid){
+				rawData = getRawData(clientId[errorByClientId] as number[], $timelineStore)
+				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, errorByClientId)
+			}
 		})
 		return map
 		
@@ -155,6 +185,7 @@
 				listOfClientIdForInstance.push(clientId.clientId)
 			}
 			instanceToClientId.set(clientId.instance, listOfClientIdForInstance)
+			clientIdToInstance.set(clientId.clientId, clientId.instance)
 		});
 
 		fInstances.sort()
@@ -180,33 +211,38 @@
 <UploadElastic initiateBinder={initiatePage}/>
 {:else}
 <side>
-	<SideHits fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} instanceToClientId={instanceToClientId}
-			drawGraph={drawGraph} bind:sideState={globalState}/>
+	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} fErrorsByClientId={fErrorsByClientId} />
 	
 	<h2>Options</h2>
 	<button class='myButton' on:click="{() => {addAnother = true}}">add Data</button>
 	<button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button>
 </side>
 <data>
-	{#if globalState.graphType == GRAPH_TYPE.LINE} 
+	{#if $stateOfsideStore.graphType == GRAPH_TYPE.LINE} 
 		<div class="chart-container">
+			{#if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS}
 			<h2>Evolution des requetes dans le temps</h2>
+			{:else}
+			<h2>Evolution des erreurs par ClientId dans le temps</h2>
+			{/if}
 			{#key datasetAndLimits}
-				{#if globalState.isAgregate == DATA_TYPE.SUM_BY_DAY_OF_WEEK || globalState.isAgregate == DATA_TYPE.AVG_BY_DAY_OF_WEEK}
-					<LineHitsByDayOWeek datasetAndLimits={datasetAndLimits} dataType={globalState.isAgregate}/>	
+				{#if $stateOfsideStore.isAgregate == DATA_TYPE.SUM_BY_DAY_OF_WEEK || $stateOfsideStore.isAgregate == DATA_TYPE.AVG_BY_DAY_OF_WEEK}
+					<LineHitsByDayOWeek datasetAndLimits={datasetAndLimits} dataType={$stateOfsideStore.isAgregate}/>	
 				{:else}
 					<LineHitsAll datasetAndLimits={datasetAndLimits}/>	
 				{/if}
 			{/key}
 			
 		</div>
-	{:else if globalState.graphType == GRAPH_TYPE.PIE}
+	{:else if $stateOfsideStore.graphType == GRAPH_TYPE.PIE && datasetsForPie}
 		
 		<div class="chart-container">
 			<h2>Ratio des entrées sélectionnées</h2>
+			{#key datasetsForPie}
 			<PieCountersByError datasets={datasetsForPie} />
+			{/key}
 		</div>
-	{:else if globalState.graphType == GRAPH_TYPE.TABLEUR}
+	{:else if $stateOfsideStore.graphType == GRAPH_TYPE.TABLEUR}{#key datasetTableurByHits}
 		<div >
 			<h2>Key Resume</h2>
 			<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
@@ -215,7 +251,7 @@
 			<h2>List of clientId</h2>
 			<TableClientIdBy datasets={datasetTableurByHits}/>
 		</div>
-	{/if}
+	{/key}{/if}
 			
 
 	

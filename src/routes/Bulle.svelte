@@ -1,9 +1,9 @@
 <script lang="ts">
+    import type { commit } from "$lib/gitStruct";
     import { jsonConfigDataStore } from "$lib/store";
-    import type { visualCommit } from "$lib/struct";
     import { getConfigValue } from "./HydratationUtils";
 
-    export let commit:visualCommit
+    export let commit:commit
 
     function url():string{
         let config = getConfigValue($jsonConfigDataStore)
@@ -21,7 +21,7 @@
     {:else}
         #{commit.hash.substring(0,6)}<br/>
     {/if}
-    {commit.date}<br/>
+    {commit.ts}<br/>
     {commit.author}<br/>
     {commit.message}<br/>
 </div>

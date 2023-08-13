@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import type { elasticStore } from "./elasticStruct";
+import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, TRINAIRE_VAL, type GlobalState, type elasticStore, SOURCE_CONTAINER, type DisplaybleItems } from "./elasticStruct";
 
 import { fromJsonToElasticStore, fromElasticStoretoJson } from "../routes/elastic/jsonParser";
 import { getEmptyElasticStore } from "../routes/elastic/elasticStoreFactory";
@@ -38,3 +38,20 @@ if(isBrowser){
     jsonConfigDataStore.subscribe(value => {localStorage.setItem(JSON_CONFIG_DATA, value)})
     jsonElasticDataStore.subscribe(value => {localStorage.setItem(JSON_ELASTIC_DATA, fromElasticStoretoJson(value))})
 }
+
+//Initiate states store
+let globalState:GlobalState = {
+    isSumOrDistinctByInstance : ACTION_VAL.SUM_BY_INSTANCE,
+    isSumOrDistinctByClientId : ACTION_VAL.SUM_BY_CLIENTID,
+    isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
+    isSumOrDistinctByErrorsByClientId : ACTION_VAL.SUM_BY_ERRORSBYCLIENTID,
+    graphType : GRAPH_TYPE.LINE,
+    isAgregate : DATA_TYPE.SUM_BY_WEEK,
+    instances: new Map<string, DisplaybleItems>(),
+    clientIds: new Map<string, DisplaybleItems>(),
+    requestsType: new Map<string, DisplaybleItems>(),
+    errorsByClientId:new Map<string, DisplaybleItems>(),
+    showSmell: TRINAIRE_VAL.UNDEF,
+    sourceContainer: SOURCE_CONTAINER.HITS
+}
+export const stateOfsideStore = writable(globalState)

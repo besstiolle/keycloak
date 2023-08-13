@@ -1,5 +1,5 @@
 import type { clientIdElastic } from "$lib/elasticStruct";
-import type { clientId, instance } from "$lib/gitStruct";
+import type { instance } from "$lib/gitStruct";
 import { getConfigValue } from "../HydratationUtils";
 import { getWhitelist } from "./elasticStoreFactory";
 

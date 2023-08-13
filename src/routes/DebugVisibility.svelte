@@ -1,6 +1,6 @@
 <script lang="ts">
+    import type { instance } from "$lib/gitStruct";
 
-	import type { instance } from "$lib/struct"
 	export let instances:instance[]
 </script>
 

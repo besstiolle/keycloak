@@ -5,10 +5,9 @@
 	import { onMount } from 'svelte';
     
 	export let datasets:LabelAndDatasetString[]	
-    let countersByError:Map<string, number> = datasets[0].data
-   // export let countersByInstanceAndRoyaume:Map<string,Map<string, number>>
+    let countersBySetOfElements:Map<string, number> = datasets[0].data
 
-    const HTMLCanvasElementID = 'pieCountersByErrors'+Math.round(Math.random()*1000)
+    const HTMLCanvasElementID = 'pieCountersBySetOfElements'+Math.round(Math.random()*1000)
     const COLORS = [
                 'rgba(71, 96, 136, %o)', 
                 'rgba(255, 197, 98, %o)', 
@@ -42,10 +41,10 @@
         let colors:string[] = []
     
         let j=0
-        Array.from(countersByError.keys()).map(typeError => {
-            labels.push(typeError + ' (' + countersByError.get(typeError) + ')')
+        Array.from(countersBySetOfElements.keys()).map(element => {
+            labels.push(element + ' (' + countersBySetOfElements.get(element) + ')')
             colors.push(COLORS[j%COLORS.length].replace('%o', '1'))
-            values.push(countersByError.get(typeError) as number)
+            values.push(countersBySetOfElements.get(element) as number)
             j++
         })
 

@@ -75,6 +75,11 @@ export const enum TRINAIRE_VAL{
     TRUE="TRUE",
     FALSE="FALSE"
 }
+export const enum SOURCE_CONTAINER{
+    HITS="HITS",
+    ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID"
+}
+
 export const enum ACTION_VAL{
     SUM_BY_INSTANCE="SUM_BY_INSTANCE",
     DISTINCT_BY_INSTANCE="DISTINCT_BY_INSTANCE",
@@ -82,6 +87,8 @@ export const enum ACTION_VAL{
     DISTINCT_BY_CLIENTID="DISTINCT_BY_CLIENTID",
     SUM_BY_REQUESTTYPE="SUM_BY_REQUESTTYPE",
     DISTINCT_BY_REQUESTTYPE="DISTINCT_BY_REQUESTTYPE",
+    SUM_BY_ERRORSBYCLIENTID="SUM_BY_ERRORSBYCLIENTID",
+    DISTINCT_BY_ERRORSBYCLIENTID="DISTINCT_BY_ERRORSBYCLIENTID",
 }
 
 export const enum GRAPH_TYPE{
@@ -90,16 +97,25 @@ export const enum GRAPH_TYPE{
     TABLEUR="TABLEUR",
 }
 
+export interface DisplaybleItems{
+    value:string,
+    isVisible:boolean
+    isChecked:boolean
+}
+
 export interface GlobalState{
     isSumOrDistinctByInstance:ACTION_VAL,
     isSumOrDistinctByClientId:ACTION_VAL,
     isSumOrDistinctByRequestType:ACTION_VAL,
+    isSumOrDistinctByErrorsByClientId:ACTION_VAL,
     isAgregate:DATA_TYPE,
     graphType:GRAPH_TYPE,
-    selectedInstances:string[],
-    selectedClientsId:string[],
-    selectedRequestsType:string[],
+    instances:Map<string,DisplaybleItems>,
+    clientIds:Map<string,DisplaybleItems>,
+    requestsType:Map<string,DisplaybleItems>,
+    errorsByClientId:Map<string,DisplaybleItems>,
     showSmell:TRINAIRE_VAL
+    sourceContainer:SOURCE_CONTAINER
 }
 
 export interface rawData{
@@ -232,7 +248,7 @@ export interface clientIdElastic extends Record<string,any>{
     UPDATE_PASSWORD_ERROR:number[], //update 31 juillet 2023
 }
 
-export function getKeysOfClientIdElastic(){
+export function getKeysOfClientIdRequestType(){
 
     return [
         'HABILITATIONS',
