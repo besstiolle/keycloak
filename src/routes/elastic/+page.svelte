@@ -9,10 +9,9 @@
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
     import Side from './side.svelte';
-    import { GroupByHitsEngine, runGroupByHitsEngine } from './groupByHitsFactory';
     import PieCountersByError from './PieCountersBySetOfElements.svelte';
     import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
-    import { GroupByErrorsByClientIdEngine, runGroupByErrorsByClientIdEngine } from './groupByErrorsByClientIdFactory';
+    import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionFactory';
 
 	let addAnother = false
 	
@@ -82,9 +81,9 @@
 		let start = new Date()
 		let minMax:minMax = {min:9000000,max:0}
 
-		let labelsAndDatasets = null
+		let engine = null
 		if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS){
-			let engineByHits = new GroupByHitsEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
 										$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
 										$stateOfsideStore.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
 										selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
@@ -92,9 +91,9 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
 										instanceToClientId)
-			labelsAndDatasets = runGroupByHitsEngine(engineByHits, globalMap)
+
 		} else {
-			let engineByErrorsByClientId = new GroupByErrorsByClientIdEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
 											$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
 											$stateOfsideStore.isSumOrDistinctByErrorsByClientId == ACTION_VAL.SUM_BY_ERRORSBYCLIENTID, 
 											selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
@@ -102,9 +101,9 @@
 											selectedAndVisibleItemsFromMap($stateOfsideStore.errorsByClientId),
 											$stateOfsideStore.isAgregate,
 											instanceToClientId)
-			labelsAndDatasets = runGroupByErrorsByClientIdEngine(engineByErrorsByClientId, globalMap)
 		}
 
+		let labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
 
 		if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
