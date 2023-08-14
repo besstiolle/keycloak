@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { getKeysOfClientIdRequestType, type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, REQUEST_TYPE, TRINAIRE_VAL, SOURCE_CONTAINER, getKeysOfclientIdError, type DisplaybleItems } from '$lib/elasticStruct';
+    import { type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, SOURCE_CONTAINER, type DisplaybleItems, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
@@ -22,8 +22,8 @@
 	//Filters on left
 	let fInstances:string[] = []
 	let fClientIds:string[] = []
-	let fRequestTypes:string[] = getKeysOfClientIdRequestType().sort()
-	let fErrorsByClientId:string[] = getKeysOfclientIdError().sort()
+	let fRequestTypes:string[] = Object.values(REQUEST_TYPE).sort()
+	let fErrorsByClientId:string[] = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
 	let instanceToClientId = new Map<string,string[]>()
 	let clientIdToInstance = new Map<string,string>()
 
@@ -138,8 +138,9 @@
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
-		let allRequestTypes = getKeysOfClientIdRequestType()
-		let allErrorsByClientid = getKeysOfclientIdError()
+		let allRequestTypes = Object.values(REQUEST_TYPE).sort()
+		let allErrorsByClientid = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
+		//let allErrors = getK
 		let rawData:rawData
 		let map = new Map<string, Map<number,number>>()
 		let start = new Date($jsonElasticDataStore.minDate)

@@ -77,7 +77,8 @@ export const enum TRINAIRE_VAL{
 }
 export const enum SOURCE_CONTAINER{
     HITS="HITS",
-    ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID"
+    ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID",
+
 }
 
 export const enum ACTION_VAL{
@@ -125,8 +126,6 @@ export interface rawData{
     sumByDayOfWeek : Map<number,number>,
     cptByDayOfWeek : Map<number,number>,
     avgByDayOfWeek : Map<number,number>,
-    //sumByDayOfWeek : Map<number,number>,
-    //cptByDayOfYear : Map<number,number>,
     sumAbsolute : number
 } 
 
@@ -141,13 +140,6 @@ export interface elasticStore{
     containerClientId:Map<string, clientIdElastic>,
     containerErrorsByClientId:Map<string, clientIdError>,
     containerErrorsSoc:Map<string, number[]>
-}
-
-export interface pointer{
-    y:number,
-    m:number,
-    d:number,
-    h:number
 }
 
 export interface DatasetAndLimitsForLine{
@@ -183,6 +175,7 @@ export interface clientIdError extends Record<string, any>{
     clientId:string
     instance:string
 
+    /*
     CLIENT_NOT_FOUND:number[]
     COOKIE:number[]
     DIFF_USER_AUTH:number[]
@@ -196,32 +189,13 @@ export interface clientIdError extends Record<string, any>{
     USER_DISABLED:number[]
     USER_NOT_FOUND:number[]
     USER_DISABLED_TMP:number[]
-    USERNAME_IN_USE:number[]
-}
-
-export function getKeysOfclientIdError(){
-
-    return ['CLIENT_NOT_FOUND',
-            'COOKIE',
-            'DIFF_USER_AUTH',
-            'EXPIRED_CODE',
-            'IDP_ERROR',
-            'INVALID_CODE',
-            'INVALID_REDIRECT_URI',
-            'INVALID_USER_CRED',
-            'NOT_ALLOWED',
-            'REQUEST_INVALID',
-            'USER_DISABLED',
-            'USER_NOT_FOUND',
-            'USER_DISABLED_TMP',
-            'USERNAME_IN_USE'
-    ]
+    USERNAME_IN_USE:number[]*/
 }
 
 export interface clientIdElastic extends Record<string,any>{
     clientId:string
     instance:string
-
+/*
     //DATA array
     HABILITATIONS:number[] //habilitation 
     STRONGBOX:number[] //strongbox
@@ -246,32 +220,6 @@ export interface clientIdElastic extends Record<string,any>{
     VERIFY_EMAIL_ERROR:number[],//update 20 mai 2023
     SEND_RESET_PASSWORD:number[],//update 20 mai 2023
     UPDATE_PASSWORD_ERROR:number[], //update 31 juillet 2023
+    */
 }
 
-export function getKeysOfClientIdRequestType(){
-
-    return [
-        'HABILITATIONS',
-        'STRONGBOX',
-        'USER_INFO_REQUEST',
-        'LOGIN_ERROR',
-        'CODE_TO_TOKEN',
-        'LOGIN',
-        'REFRESH_TOKEN',
-        'CLIENT_LOGIN',
-        'RESET_PASSWORD_ERROR',
-        'TOKEN_EXCHANGE',
-        'UPDATE_PROFILE',
-        'REFRESH_TOKEN_ERROR',
-        'CUSTOM_REQUIRED_ACTION_ERROR',
-        'CODE_TO_TOKEN_ERROR',
-        'SEND_RESET_PASSWORD_ERROR',
-        'SEND_VERIFY_EMAIL_ERROR',
-        'UPDATE_PASSWORD',
-        'LOGOUT',
-        'CUSTOM_REQUIRED_ACTION',
-        'VERIFY_EMAIL_ERROR',
-        'SEND_RESET_PASSWORD',
-        'UPDATE_PASSWORD_ERROR'
-    ]
-}

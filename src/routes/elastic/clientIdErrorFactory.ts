@@ -4,7 +4,7 @@ import type { clientIdError } from "$lib/elasticStruct";
 export function emptyClientIdError(label:string, instance:string = "unknown"):clientIdError{
     return {
         clientId:label,
-        instance:instance,
+        instance:instance/*,
         CLIENT_NOT_FOUND:[],
         COOKIE:[],
         DIFF_USER_AUTH:[],
@@ -18,6 +18,6 @@ export function emptyClientIdError(label:string, instance:string = "unknown"):cl
         USER_DISABLED:[],
         USER_NOT_FOUND:[],
         USER_DISABLED_TMP:[],
-        USERNAME_IN_USE:[]
+        USERNAME_IN_USE:[],*/
     }
 }

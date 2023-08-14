@@ -4,7 +4,7 @@ import type { clientIdElastic } from "$lib/elasticStruct";
 export function emptyClientIdElastic(label:string, instance:string = "unknown"):clientIdElastic{
     return {
         clientId:label,
-        instance:instance,
+        instance:instance/*,
         HABILITATIONS:[],
         STRONGBOX:[],
         USER_INFO_REQUEST:[],
@@ -26,6 +26,6 @@ export function emptyClientIdElastic(label:string, instance:string = "unknown"):
         CUSTOM_REQUIRED_ACTION:[],
         VERIFY_EMAIL_ERROR:[],
         SEND_RESET_PASSWORD:[],
-        UPDATE_PASSWORD_ERROR:[]
+        UPDATE_PASSWORD_ERROR:[]*/
     }
 }
