@@ -105,7 +105,9 @@
 
 		let labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
 
-		if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
+		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
+		} else if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()
 			labelsAndDatasets.forEach(labelAndDataset => {
@@ -127,8 +129,6 @@
 				data:mapData
 			})
 
-		} else if ($stateOfsideStore.graphType == GRAPH_TYPE.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
 		} else {
 			//cas non gérer
 			console.error("Type of graph not available : ", $stateOfsideStore.graphType)	
@@ -218,7 +218,17 @@
 	<button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button>
 </side>
 <data>
-	{#if $stateOfsideStore.graphType == GRAPH_TYPE.LINE} 
+	{#if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR}{#key datasetTableurByHits}
+		<div >
+			<h2>Key Resume</h2>
+			<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
+		</div>
+		<div >
+			<h2>List of clientId</h2>
+			<TableClientIdBy datasets={datasetTableurByHits}/>
+		</div>
+	{/key}
+	{:else if $stateOfsideStore.graphType == GRAPH_TYPE.LINE} 
 		<div class="chart-container">
 			{#if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS}
 			<h2>Evolution des requetes dans le temps</h2>
@@ -242,17 +252,7 @@
 			<PieCountersByError datasets={datasetsForPie} />
 			{/key}
 		</div>
-	{:else if $stateOfsideStore.graphType == GRAPH_TYPE.TABLEUR}{#key datasetTableurByHits}
-		<div >
-			<h2>Key Resume</h2>
-			<KeyResume datasets={datasetTableurByHits} borneMin={$jsonElasticDataStore.minDate} borneMax={$jsonElasticDataStore.maxDate}/>
-		</div>
-		<div >
-			<h2>List of clientId</h2>
-			<TableClientIdBy datasets={datasetTableurByHits}/>
-		</div>
-	{/key}{/if}
-			
+	{/if}	
 
 	
 </data>

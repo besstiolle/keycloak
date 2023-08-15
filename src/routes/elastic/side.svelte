@@ -93,17 +93,17 @@
 <div>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits By ClientId</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_BY_CLIENTID}>Errors By ClientId</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.TABLEUR} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.TABLEUR}>Table</button>
   <hr/>
 </div>
 
 <div>
   <button class:button-on={$stateOfsideStore.graphType === GRAPH_TYPE.LINE} on:click={() => $stateOfsideStore.graphType = GRAPH_TYPE.LINE}>Lines</button>
   <button class:button-on={$stateOfsideStore.graphType === GRAPH_TYPE.PIE} on:click={() => $stateOfsideStore.graphType = GRAPH_TYPE.PIE}>Charts</button>
-  <button class:button-on={$stateOfsideStore.graphType === GRAPH_TYPE.TABLEUR} on:click={() => $stateOfsideStore.graphType = GRAPH_TYPE.TABLEUR}>Table</button>
   
   <hr/>
 </div>
-{#if $stateOfsideStore.graphType !== GRAPH_TYPE.TABLEUR}
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
 <div>
   <button class:button-on={$stateOfsideStore.isAgregate === DATA_TYPE.SUM_BY_DAY} on:click={() => $stateOfsideStore.isAgregate = DATA_TYPE.SUM_BY_DAY}>By Day</button>
   <button class:button-on={$stateOfsideStore.isAgregate === DATA_TYPE.SUM_BY_WEEK} on:click={() => $stateOfsideStore.isAgregate = DATA_TYPE.SUM_BY_WEEK}>By Week</button>
@@ -114,7 +114,7 @@
 </div>
 {/if}
 
-{#if $stateOfsideStore.graphType !== GRAPH_TYPE.TABLEUR}
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
 <div>
   <h3>Smell clientId</h3>
   <button class:button-on={$stateOfsideStore.showSmell === TRINAIRE_VAL.UNDEF} on:click={() => $stateOfsideStore.showSmell = TRINAIRE_VAL.UNDEF}>Show</button>
@@ -123,7 +123,7 @@
 </div>
 {/if}
 
-{#if $stateOfsideStore.graphType !== GRAPH_TYPE.TABLEUR}
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
 <div>
   {#key $stateOfsideStore.instances}
     <FilterBlock3 title='Instances' items={$stateOfsideStore.instances} callback={callbackInstances} />

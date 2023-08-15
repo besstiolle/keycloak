@@ -78,6 +78,7 @@ export const enum TRINAIRE_VAL{
 export const enum SOURCE_CONTAINER{
     HITS="HITS",
     ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID",
+    TABLEUR="TABLEUR"
 
 }
 
@@ -94,8 +95,7 @@ export const enum ACTION_VAL{
 
 export const enum GRAPH_TYPE{
     LINE="LINE",
-    PIE="PIE",
-    TABLEUR="TABLEUR",
+    PIE="PIE"
 }
 
 export interface DisplaybleItems{
