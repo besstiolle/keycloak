@@ -107,7 +107,7 @@ export function fromJsonToElasticStore(json:any):elasticStore{
         containerErrorsByClientId.set(tmp_clientIdError.clientId, tmp_clientIdError)
     })
     
-    json['errors']?.forEach((lsValue:localStorageError) => {
+    json['containerErrorsSoc']?.forEach((lsValue:localStorageError) => {
         containerErrorsSoc.set(lsValue.type, inflateArray(lsValue.data))
     })
 

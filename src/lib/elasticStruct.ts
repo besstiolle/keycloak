@@ -60,7 +60,20 @@ export const ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP:Map<string,ERROR_BY_CLIEN
     ['USER TEMPORARILY DISABLED', ERROR_BY_CLIENTID_TYPE.USER_DISABLED_TMP],
     ['USERNAME IN USE', ERROR_BY_CLIENTID_TYPE.USERNAME_IN_USE],
 ])
-	
+
+export enum ERROR_SOC_TYPE{
+    SGMC='SGMC',
+    FMC='FMC',
+    NOT_AUTHORIZED='Non autorisé',
+    WRONG_PASSWORD='Mauvais mot de passe',
+    ACCOUNT_BLOCKED='Compte bloqué',
+    WRONG_TIPING='Mauvaise saisie',
+    WRONG_ROYAUME='Mauvais royaume -_-',
+    PASSWORD_EXPIRED='Mot de passe expiré',
+    USER_NEVER_CONNECTED='Utilisateur jamais connecté',
+    BANQUE_ERR_UNKNOWN='Banque ??'
+}
+
 export enum DATA_TYPE {
     SUM_BY_DAY='SUM_BY_DAY',
     SUM_BY_WEEK='SUM_BY_WEEK',
@@ -78,6 +91,7 @@ export const enum TRINAIRE_VAL{
 export const enum SOURCE_CONTAINER{
     HITS="HITS",
     ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID",
+    ERRORS_SOC="ERRORS_SOC",
     TABLEUR="TABLEUR"
 
 }
@@ -91,6 +105,8 @@ export const enum ACTION_VAL{
     DISTINCT_BY_REQUESTTYPE="DISTINCT_BY_REQUESTTYPE",
     SUM_BY_ERRORSBYCLIENTID="SUM_BY_ERRORSBYCLIENTID",
     DISTINCT_BY_ERRORSBYCLIENTID="DISTINCT_BY_ERRORSBYCLIENTID",
+    SUM_BY_ERRORSSOC="SUM_BY_ERRORSSOC",
+    DISTINCT_BY_ERRORSSOC="DISTINCT_BY_ERRORSSOC",
 }
 
 export const enum GRAPH_TYPE{
@@ -109,12 +125,14 @@ export interface GlobalState{
     isSumOrDistinctByClientId:ACTION_VAL,
     isSumOrDistinctByRequestType:ACTION_VAL,
     isSumOrDistinctByErrorsByClientId:ACTION_VAL,
+    isSumOrDistinctByErrorsSoc:ACTION_VAL,
     isAgregate:DATA_TYPE,
     graphType:GRAPH_TYPE,
     instances:Map<string,DisplaybleItems>,
     clientIds:Map<string,DisplaybleItems>,
     requestsType:Map<string,DisplaybleItems>,
     errorsByClientId:Map<string,DisplaybleItems>,
+    errorsSoc:Map<string,DisplaybleItems>,
     showSmell:TRINAIRE_VAL
     sourceContainer:SOURCE_CONTAINER
 }

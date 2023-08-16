@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, SOURCE_CONTAINER, type DisplaybleItems, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE } from '$lib/elasticStruct';
+    import { type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, SOURCE_CONTAINER, type DisplaybleItems, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE, type LabelAndDataset, ERROR_SOC_TYPE } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
@@ -12,6 +12,7 @@
     import PieCountersByError from './PieCountersBySetOfElements.svelte';
     import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
     import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionFactory';
+    import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocFactory';
 
 	let addAnother = false
 	
@@ -24,6 +25,7 @@
 	let fClientIds:string[] = []
 	let fRequestTypes:string[] = Object.values(REQUEST_TYPE).sort()
 	let fErrorsByClientId:string[] = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
+	let fErrorsSoc:string[] = Object.values(ERROR_SOC_TYPE).sort()
 	let instanceToClientId = new Map<string,string[]>()
 	let clientIdToInstance = new Map<string,string>()
 
@@ -62,6 +64,7 @@
 	}
 	
 	function prepareForDrawing(id:NodeJS.Timeout|number){
+		console.debug("prepareForDrawing with id :", id)
 		if(id){clearTimeout(id)}
 		id = setTimeout(() => {drawGraph()}, 100)
 		return id
@@ -82,7 +85,8 @@
 		let minMax:minMax = {min:9000000,max:0}
 
 		let engine = null
-		if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS){
+		let labelsAndDatasets:LabelAndDataset[] = []
+		if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS) {
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
 										$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
 										$stateOfsideStore.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
@@ -91,8 +95,9 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
 										instanceToClientId)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
 
-		} else {
+		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_BY_CLIENTID){
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
 											$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
 											$stateOfsideStore.isSumOrDistinctByErrorsByClientId == ACTION_VAL.SUM_BY_ERRORSBYCLIENTID, 
@@ -101,9 +106,18 @@
 											selectedAndVisibleItemsFromMap($stateOfsideStore.errorsByClientId),
 											$stateOfsideStore.isAgregate,
 											instanceToClientId)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
+		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_SOC){
+			engine = new GroupByErrorsSocEngine($stateOfsideStore.isSumOrDistinctByErrorsSoc == ACTION_VAL.SUM_BY_ERRORSSOC, 
+												selectedAndVisibleItemsFromMap($stateOfsideStore.errorsSoc),
+												$stateOfsideStore.isAgregate)
+			labelsAndDatasets = runGroupByErrorsSocEngine(engine, globalMap)
+		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR){
+			//Nothing to do
+		} else {
+			console.error("case unexpected in DrawaGraph")
+			return
 		}
-
-		let labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
 
 		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
 			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
@@ -161,6 +175,10 @@
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, errorByClientId)
 			}
 		})
+		$jsonElasticDataStore.containerErrorsSoc.forEach((value, key) => {
+			rawData = getRawData(value, $timelineStore)
+			map = processRawDataIntoMap(map, rawData, "", "", key)
+		})
 		return map
 		
 	}
@@ -211,7 +229,7 @@
 <UploadElastic initiateBinder={initiatePage}/>
 {:else}
 <side>
-	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} fErrorsByClientId={fErrorsByClientId} />
+	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} fErrorsByClientId={fErrorsByClientId} fErrorsSoc={fErrorsSoc}/>
 	
 	<h2>Options</h2>
 	<button class='myButton' on:click="{() => {addAnother = true}}">add Data</button>

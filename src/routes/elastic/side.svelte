@@ -10,6 +10,7 @@
     export let fClientIds:string[]
     export let fErrorsByClientId:string[]
     export let fRequestTypes:string[] 
+    export let fErrorsSoc:string[]
     
     let smellEngine = new SmellEngine().initWithGitInstances($jsonGitDataStore, $jsonConfigDataStore)
     let previousStateSmells = TRINAIRE_VAL.UNDEF
@@ -67,6 +68,7 @@
   $stateOfsideStore.clientIds = fromStringArrayToMapStringDisplaybleItems(fClientIds)
   $stateOfsideStore.requestsType = fromStringArrayToMapStringDisplaybleItems(fRequestTypes)
   $stateOfsideStore.errorsByClientId = fromStringArrayToMapStringDisplaybleItems(fErrorsByClientId)
+  $stateOfsideStore.errorsSoc = fromStringArrayToMapStringDisplaybleItems(fErrorsSoc)
 
   function callbackInstances(map:Map<string, DisplaybleItems>){
     let disp:DisplaybleItems
@@ -88,11 +90,15 @@
   function callbackErrorsByClientId(map:Map<string, DisplaybleItems>){
     $stateOfsideStore.errorsByClientId = map
   }
+  function callbackErrorsSoc(map:Map<string, DisplaybleItems>){
+    $stateOfsideStore.errorsSoc = map
+  }
 </script>
 
 <div>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits By ClientId</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_BY_CLIENTID}>Errors By ClientId</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_SOC} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_SOC}>Errors Societaire</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.TABLEUR} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.TABLEUR}>Table</button>
   <hr/>
 </div>
@@ -114,7 +120,7 @@
 </div>
 {/if}
 
-{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR && $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.ERRORS_SOC}
 <div>
   <h3>Smell clientId</h3>
   <button class:button-on={$stateOfsideStore.showSmell === TRINAIRE_VAL.UNDEF} on:click={() => $stateOfsideStore.showSmell = TRINAIRE_VAL.UNDEF}>Show</button>
@@ -123,34 +129,43 @@
 </div>
 {/if}
 
-{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
-<div>
-  {#key $stateOfsideStore.instances}
-    <FilterBlock3 title='Instances' items={$stateOfsideStore.instances} callback={callbackInstances} />
-  {/key}
-  
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE} on:click={() => $stateOfsideStore.isSumOrDistinctByInstance = ACTION_VAL.SUM_BY_INSTANCE}>Sum</button>
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.DISTINCT_BY_INSTANCE} on:click={() => $stateOfsideStore.isSumOrDistinctByInstance = ACTION_VAL.DISTINCT_BY_INSTANCE}>Distinct</button>
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR && $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.ERRORS_SOC}
+  <div>
+    {#key $stateOfsideStore.instances}
+      <FilterBlock3 title='Instances' items={$stateOfsideStore.instances} callback={callbackInstances} />
+    {/key}
+    
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE} on:click={() => $stateOfsideStore.isSumOrDistinctByInstance = ACTION_VAL.SUM_BY_INSTANCE}>Sum</button>
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.DISTINCT_BY_INSTANCE} on:click={() => $stateOfsideStore.isSumOrDistinctByInstance = ACTION_VAL.DISTINCT_BY_INSTANCE}>Distinct</button>
 
-  {#key $stateOfsideStore.clientIds}
-    <FilterBlock3 title='ClientIds' items={$stateOfsideStore.clientIds}  callback={callbackClientsId} />
-  {/key}
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.SUM_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.DISTINCT_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.DISTINCT_BY_CLIENTID} 
-    disabled={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE}
-    >Distinct</button>
-{#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS}
-  <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsType} />
- 
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.SUM_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.DISTINCT_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
+    {#key $stateOfsideStore.clientIds}
+      <FilterBlock3 title='ClientIds' items={$stateOfsideStore.clientIds}  callback={callbackClientsId} />
+    {/key}
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.SUM_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID}>Sum</button>
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.DISTINCT_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.DISTINCT_BY_CLIENTID} 
+      disabled={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE}
+      >Distinct</button>
+  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS}
+    <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsType} />
+  
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.SUM_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.DISTINCT_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.DISTINCT_BY_REQUESTTYPE}>Distinct</button>
+  {/if}
+  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID}
+    <FilterBlock3 title='Errors' items={$stateOfsideStore.errorsByClientId} callback={callbackErrorsByClientId} />
+    
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.SUM_BY_ERRORSBYCLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.SUM_BY_ERRORSBYCLIENTID}>Sum</button>
+    <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID}>Distinct</button>
+  {/if}
+  </div>
 {/if}
-{#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID}
-  <FilterBlock3 title='Errors' items={$stateOfsideStore.errorsByClientId} callback={callbackErrorsByClientId} />
-   
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.SUM_BY_ERRORSBYCLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.SUM_BY_ERRORSBYCLIENTID}>Sum</button>
-  <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID}>Distinct</button>
-{/if}
+
+{#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_SOC}
+<div>
+  <FilterBlock3 title='Errors Societaire' items={$stateOfsideStore.errorsSoc} callback={callbackErrorsSoc} />
+
+  <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsSoc === ACTION_VAL.SUM_BY_ERRORSSOC} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsSoc = ACTION_VAL.SUM_BY_ERRORSSOC}>Sum</button>
+  <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsSoc === ACTION_VAL.DISTINCT_BY_ERRORSSOC} on:click={() => $stateOfsideStore.isSumOrDistinctByErrorsSoc = ACTION_VAL.DISTINCT_BY_ERRORSSOC}>Distinct</button>
 </div>
 {/if}
 

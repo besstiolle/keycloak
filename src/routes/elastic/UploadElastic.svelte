@@ -137,7 +137,6 @@
             arr[$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
             containerErrorsSoc.set(errorType, arr)
         }
-
     }
 
     function runnerErrorsByClientIdHits(headers:string[], line:string):void{

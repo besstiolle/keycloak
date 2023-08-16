@@ -45,12 +45,14 @@ let globalState:GlobalState = {
     isSumOrDistinctByClientId : ACTION_VAL.SUM_BY_CLIENTID,
     isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
     isSumOrDistinctByErrorsByClientId : ACTION_VAL.SUM_BY_ERRORSBYCLIENTID,
+    isSumOrDistinctByErrorsSoc : ACTION_VAL.SUM_BY_ERRORSSOC,
     graphType : GRAPH_TYPE.LINE,
     isAgregate : DATA_TYPE.SUM_BY_WEEK,
     instances: new Map<string, DisplaybleItems>(),
     clientIds: new Map<string, DisplaybleItems>(),
     requestsType: new Map<string, DisplaybleItems>(),
     errorsByClientId:new Map<string, DisplaybleItems>(),
+    errorsSoc:new Map<string, DisplaybleItems>(),
     showSmell: TRINAIRE_VAL.UNDEF,
     sourceContainer: SOURCE_CONTAINER.HITS
 }
