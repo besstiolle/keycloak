@@ -1,11 +1,10 @@
 <script lang="ts">
     import { Timeline } from '$lib/Timeline.class';
-    import { CSV_TYPE, ERROR_BY_CLIENTID_TYPE, ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP, REQUEST_TYPE, type clientIdElastic, type clientIdError, type elasticStore } from '$lib/elasticStruct';
+    import { CSV_TYPE, ERROR_BY_CLIENTID_TYPE, ERROR_BY_CLIENTID_TYPE_HUMAN_READABLE_MAP, REQUEST_TYPE} from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
     import UploadGeneric from '../UploadGeneric.svelte';
-    import { emptyClientIdElastic } from './clientIdElasticFactory';
-    import { emptyClientIdError } from './clientIdErrorFactory';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
+    import { emptyClientIdError, type clientIdElastic, type clientIdError, type elasticStore, emptyClientIdElastic } from './elasticStoreFactory';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function

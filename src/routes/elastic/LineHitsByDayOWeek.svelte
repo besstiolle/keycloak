@@ -1,9 +1,10 @@
 
 <script lang="ts">
-    import { DATA_TYPE, type DatasetAndLimitsForLine, type LabelAndDataset} from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
+    import { DATA_TYPE } from './sideStateFactory';
+    import type { DatasetAndLimitsForLine } from '$lib/elasticStruct';
 	const DAY_OF_WEEK = ["Dimanche","Lundi","Mardi","Mercredi", "Jeudi", "Vendredi", "Samedi"]
 
 	export let datasetAndLimits:DatasetAndLimitsForLine

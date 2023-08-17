@@ -1,7 +1,6 @@
-import type { clientIdElastic } from "$lib/elasticStruct";
 import type { instance } from "$lib/gitStruct";
 import { getConfigValue } from "../HydratationUtils";
-import { getWhitelist } from "./elasticStoreFactory";
+import { getWhitelist, type clientIdElastic } from "./elasticStoreFactory";
 
 
 export class SmellEngine{

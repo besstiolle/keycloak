@@ -1,6 +1,7 @@
-import { DATA_TYPE, type LabelAndDataset } from "$lib/elasticStruct"
+import type { LabelAndDataset } from "$lib/elasticStruct"
 import { VERTICAL_TWO_DOT } from "./const"
 import { fusionMap, getHashKey } from "./datasetFactory"
+import { DATA_TYPE } from "./sideStateFactory"
 
 
 export class GroupByCollectionEngine{

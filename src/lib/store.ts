@@ -1,11 +1,11 @@
 import { writable } from "svelte/store";
-import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, TRINAIRE_VAL, type GlobalState, type elasticStore, SOURCE_CONTAINER, type DisplaybleItems } from "./elasticStruct";
 
 import { fromJsonToElasticStore, fromElasticStoretoJson } from "../routes/elastic/jsonParser";
-import { getEmptyElasticStore } from "../routes/elastic/elasticStoreFactory";
+import { getEmptyElasticStore, type elasticStore } from "../routes/elastic/elasticStoreFactory";
 import type { instance } from "./gitStruct";
 import { JSON_CONFIG_DATA, JSON_ELASTIC_DATA, JSON_GIT_DATA } from "./localStorageUtils";
 import { Timeline } from "./Timeline.class";
+import { initGlobalState } from "../routes/elastic/sideStateFactory";
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -32,28 +32,10 @@ export const jsonGitDataStore = writable(storedGitJsonData)
 export const jsonConfigDataStore = writable(storedConfigJsonData)
 export const jsonElasticDataStore = writable(storedElasticJsonData)
 export const timelineStore = writable(storedTimeline)
+export const stateOfsideStore = writable( initGlobalState() )
 
 if(isBrowser){
     jsonGitDataStore.subscribe(value => {localStorage.setItem(JSON_GIT_DATA, JSON.stringify(value))})
     jsonConfigDataStore.subscribe(value => {localStorage.setItem(JSON_CONFIG_DATA, value)})
     jsonElasticDataStore.subscribe(value => {localStorage.setItem(JSON_ELASTIC_DATA, fromElasticStoretoJson(value))})
 }
-
-//Initiate states store
-let globalState:GlobalState = {
-    isSumOrDistinctByInstance : ACTION_VAL.SUM_BY_INSTANCE,
-    isSumOrDistinctByClientId : ACTION_VAL.SUM_BY_CLIENTID,
-    isSumOrDistinctByRequestType : ACTION_VAL.SUM_BY_REQUESTTYPE,
-    isSumOrDistinctByErrorsByClientId : ACTION_VAL.SUM_BY_ERRORSBYCLIENTID,
-    isSumOrDistinctByErrorsSoc : ACTION_VAL.SUM_BY_ERRORSSOC,
-    graphType : GRAPH_TYPE.LINE,
-    isAgregate : DATA_TYPE.SUM_BY_WEEK,
-    instances: new Map<string, DisplaybleItems>(),
-    clientIds: new Map<string, DisplaybleItems>(),
-    requestsType: new Map<string, DisplaybleItems>(),
-    errorsByClientId:new Map<string, DisplaybleItems>(),
-    errorsSoc:new Map<string, DisplaybleItems>(),
-    showSmell: TRINAIRE_VAL.UNDEF,
-    sourceContainer: SOURCE_CONTAINER.HITS
-}
-export const stateOfsideStore = writable(globalState)

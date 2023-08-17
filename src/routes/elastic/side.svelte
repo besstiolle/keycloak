@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, TRINAIRE_VAL, SOURCE_CONTAINER, type DisplaybleItems } from "$lib/elasticStruct";
     import { jsonGitDataStore, jsonConfigDataStore, stateOfsideStore } from "$lib/store";
     import FilterBlock3 from "../FilterBlock3.svelte";
+    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, SOURCE_CONTAINER, TRINAIRE_VAL, type DisplaybleItems } from "./sideStateFactory";
     import { SmellEngine } from "./smellEngine";
 
     export let clientIdToInstance:Map<string,string>

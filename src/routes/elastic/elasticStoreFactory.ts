@@ -1,4 +1,25 @@
-import type { clientIdElastic, clientIdError, elasticStore } from "$lib/elasticStruct";
+
+export interface elasticStore{
+    minDate:Date,
+    maxDate:Date,
+    containerClientId:Map<string, clientIdElastic>,
+    containerErrorsByClientId:Map<string, clientIdError>,
+    containerErrorsSoc:Map<string, number[]>
+}
+
+
+export interface clientIdError extends Record<string, any>{
+    clientId:string
+    instance:string
+}
+
+export interface clientIdElastic extends Record<string,any>{
+    clientId:string
+    instance:string
+}
+
+
+
 
 export function getEmptyElasticStore():elasticStore {
     return {
@@ -7,6 +28,19 @@ export function getEmptyElasticStore():elasticStore {
         containerClientId:new Map<string, clientIdElastic>(),
         containerErrorsByClientId:new Map<string, clientIdError>(),
         containerErrorsSoc:new Map<string, number[]>()
+    }
+}
+
+export function emptyClientIdElastic(label:string, instance:string = "unknown"):clientIdElastic{
+    return {
+        clientId:label,
+        instance:instance
+    }
+}
+export function emptyClientIdError(label:string, instance:string = "unknown"):clientIdError{
+    return {
+        clientId:label,
+        instance:instance
     }
 }
 

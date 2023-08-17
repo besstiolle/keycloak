@@ -1,7 +1,9 @@
 
 import type { Timeline } from '$lib/Timeline.class';
-import { type datasetTableurHit, type elasticStore, DATA_TYPE, type minMax, type rawData } from '$lib/elasticStruct';
+import type { datasetTableurHit, minMax, rawData } from '$lib/elasticStruct';
 import type { instance } from '$lib/gitStruct';
+import type { elasticStore } from './elasticStoreFactory';
+import { DATA_TYPE } from './sideStateFactory';
 import { SmellEngine } from './smellEngine';
 
 

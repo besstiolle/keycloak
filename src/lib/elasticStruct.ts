@@ -74,68 +74,6 @@ export enum ERROR_SOC_TYPE{
     BANQUE_ERR_UNKNOWN='Banque ??'
 }
 
-export enum DATA_TYPE {
-    SUM_BY_DAY='SUM_BY_DAY',
-    SUM_BY_WEEK='SUM_BY_WEEK',
-    SUM_BY_MONTH='SUM_BY_MONTH',
-    SUM_BY_DAY_OF_WEEK='SUM_BY_DAY_OF_WEEK',
-    AVG_BY_DAY_OF_WEEK='AVG_BY_DAY_OF_WEEK',
-    ABSOLUTE_SUM='ABSOLUTE_SUM'
-}
-
-export const enum TRINAIRE_VAL{
-    UNDEF="UNDEFINED",
-    TRUE="TRUE",
-    FALSE="FALSE"
-}
-export const enum SOURCE_CONTAINER{
-    HITS="HITS",
-    ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID",
-    ERRORS_SOC="ERRORS_SOC",
-    TABLEUR="TABLEUR"
-
-}
-
-export const enum ACTION_VAL{
-    SUM_BY_INSTANCE="SUM_BY_INSTANCE",
-    DISTINCT_BY_INSTANCE="DISTINCT_BY_INSTANCE",
-    SUM_BY_CLIENTID="SUM_BY_CLIENTID",
-    DISTINCT_BY_CLIENTID="DISTINCT_BY_CLIENTID",
-    SUM_BY_REQUESTTYPE="SUM_BY_REQUESTTYPE",
-    DISTINCT_BY_REQUESTTYPE="DISTINCT_BY_REQUESTTYPE",
-    SUM_BY_ERRORSBYCLIENTID="SUM_BY_ERRORSBYCLIENTID",
-    DISTINCT_BY_ERRORSBYCLIENTID="DISTINCT_BY_ERRORSBYCLIENTID",
-    SUM_BY_ERRORSSOC="SUM_BY_ERRORSSOC",
-    DISTINCT_BY_ERRORSSOC="DISTINCT_BY_ERRORSSOC",
-}
-
-export const enum GRAPH_TYPE{
-    LINE="LINE",
-    PIE="PIE"
-}
-
-export interface DisplaybleItems{
-    value:string,
-    isVisible:boolean
-    isChecked:boolean
-}
-
-export interface GlobalState{
-    isSumOrDistinctByInstance:ACTION_VAL,
-    isSumOrDistinctByClientId:ACTION_VAL,
-    isSumOrDistinctByRequestType:ACTION_VAL,
-    isSumOrDistinctByErrorsByClientId:ACTION_VAL,
-    isSumOrDistinctByErrorsSoc:ACTION_VAL,
-    isAgregate:DATA_TYPE,
-    graphType:GRAPH_TYPE,
-    instances:Map<string,DisplaybleItems>,
-    clientIds:Map<string,DisplaybleItems>,
-    requestsType:Map<string,DisplaybleItems>,
-    errorsByClientId:Map<string,DisplaybleItems>,
-    errorsSoc:Map<string,DisplaybleItems>,
-    showSmell:TRINAIRE_VAL
-    sourceContainer:SOURCE_CONTAINER
-}
 
 export interface rawData{
     sumByDay : Map<number,number>,
@@ -150,14 +88,6 @@ export interface rawData{
 export interface minMax{
     min:number,
     max:number
-}
-
-export interface elasticStore{
-    minDate:Date,
-    maxDate:Date,
-    containerClientId:Map<string, clientIdElastic>,
-    containerErrorsByClientId:Map<string, clientIdError>,
-    containerErrorsSoc:Map<string, number[]>
 }
 
 export interface DatasetAndLimitsForLine{
@@ -188,56 +118,3 @@ export interface datasetTableurHit{
     sumHits:number,
     isKnown:boolean
 }
-
-export interface clientIdError extends Record<string, any>{
-    clientId:string
-    instance:string
-
-    /*
-    CLIENT_NOT_FOUND:number[]
-    COOKIE:number[]
-    DIFF_USER_AUTH:number[]
-    EXPIRED_CODE:number[]
-    IDP_ERROR:number[]
-    INVALID_CODE:number[]
-    INVALID_REDIRECT_URI:number[]
-    INVALID_USER_CRED:number[]
-    NOT_ALLOWED:number[]
-    REQUEST_INVALID:number[]
-    USER_DISABLED:number[]
-    USER_NOT_FOUND:number[]
-    USER_DISABLED_TMP:number[]
-    USERNAME_IN_USE:number[]*/
-}
-
-export interface clientIdElastic extends Record<string,any>{
-    clientId:string
-    instance:string
-/*
-    //DATA array
-    HABILITATIONS:number[] //habilitation 
-    STRONGBOX:number[] //strongbox
-    //other differents type of requests
-    USER_INFO_REQUEST:number[],
-    LOGIN_ERROR:number[],
-    CODE_TO_TOKEN:number[],
-    LOGIN:number[],
-    REFRESH_TOKEN:number[],
-    CLIENT_LOGIN:number[],
-    RESET_PASSWORD_ERROR:number[],
-    TOKEN_EXCHANGE:number[],
-    UPDATE_PROFILE:number[],
-    REFRESH_TOKEN_ERROR:number[],
-    CUSTOM_REQUIRED_ACTION_ERROR:number[],
-    CODE_TO_TOKEN_ERROR:number[],
-    SEND_RESET_PASSWORD_ERROR:number[],
-    SEND_VERIFY_EMAIL_ERROR:number[],
-    UPDATE_PASSWORD:number[],
-    LOGOUT:number[],
-    CUSTOM_REQUIRED_ACTION:number[],
-    VERIFY_EMAIL_ERROR:number[],//update 20 mai 2023
-    SEND_RESET_PASSWORD:number[],//update 20 mai 2023
-    UPDATE_PASSWORD_ERROR:number[], //update 31 juillet 2023
-    */
-}
-

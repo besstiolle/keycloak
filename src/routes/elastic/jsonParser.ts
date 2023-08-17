@@ -1,6 +1,6 @@
-import { ERROR_BY_CLIENTID_TYPE, REQUEST_TYPE, type clientIdElastic, type clientIdError, type elasticStore} from "$lib/elasticStruct"
-import { emptyClientIdElastic } from "./clientIdElasticFactory"
-import { emptyClientIdError } from "./clientIdErrorFactory"
+import { ERROR_BY_CLIENTID_TYPE, REQUEST_TYPE} from "$lib/elasticStruct"
+import { emptyClientIdError, type clientIdElastic, type clientIdError, type elasticStore, emptyClientIdElastic } from "./elasticStoreFactory"
+
 
 interface locaStorageValue extends Record<string,string> { //could be extends Record<string,any> but here it's not necessary,  allow adding member of object in TS
         clientId:string,

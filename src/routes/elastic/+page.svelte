@@ -1,6 +1,6 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { type DatasetAndLimitsForLine, type datasetTableurHit, DATA_TYPE, type rawData, type minMax, ACTION_VAL, GRAPH_TYPE, type LabelAndDatasetString, SOURCE_CONTAINER, type DisplaybleItems, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE, type LabelAndDataset, ERROR_SOC_TYPE } from '$lib/elasticStruct';
+    import { type DatasetAndLimitsForLine, type datasetTableurHit, type rawData, type minMax, type LabelAndDatasetString, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE, type LabelAndDataset, ERROR_SOC_TYPE } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
@@ -11,9 +11,17 @@
     import Side from './side.svelte';
     import PieCountersByError from './PieCountersBySetOfElements.svelte';
     import LineHitsByDayOWeek from './LineHitsByDayOWeek.svelte';
-    import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionFactory';
-    import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocFactory';
-
+    import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionEngine';
+    import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocEngine';
+    import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
+/*
+	import { page } from '$app/stores'
+    import { goto } from '$app/navigation';
+    import { ACTION_VAL, DATA_TYPE, GRAPH_TYPE, SOURCE_CONTAINER, type DisplaybleItems } from './sideStateFactory';
+	if(browser){
+    	const isBeta = $page.url.searchParams.has('beta')
+		goto("?foo=bar&foo2=bar2",{keepFocus:true})
+	}*/
 	let addAnother = false
 	
 	let datasetAndLimits:DatasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
