@@ -10,6 +10,7 @@ export interface GlobalState{
     instances:Map<string,DisplaybleItems>,
     clientIds:Map<string,DisplaybleItems>,
     requestsType:Map<string,DisplaybleItems>,
+    requestsUsers: Map<string, DisplaybleItems>,
     errorsByClientId:Map<string,DisplaybleItems>,
     errorsSoc:Map<string,DisplaybleItems>,
     showSmell:TRINAIRE_VAL
@@ -30,6 +31,7 @@ export function initGlobalState():GlobalState {
         instances: new Map<string, DisplaybleItems>(),
         clientIds: new Map<string, DisplaybleItems>(),
         requestsType: new Map<string, DisplaybleItems>(),
+        requestsUsers: new Map<string, DisplaybleItems>(),
         errorsByClientId:new Map<string, DisplaybleItems>(),
         errorsSoc:new Map<string, DisplaybleItems>(),
         showSmell: TRINAIRE_VAL.UNDEF,
@@ -54,6 +56,7 @@ export const enum TRINAIRE_VAL{
 }
 export const enum SOURCE_CONTAINER{
     HITS="HITS",
+    REQUEST_USERS="REQUEST_USERS",
     ERRORS_BY_CLIENTID="ERRORS_BY_CLIENTID",
     ERRORS_SOC="ERRORS_SOC",
     TABLEUR="TABLEUR"

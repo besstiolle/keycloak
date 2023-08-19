@@ -4,7 +4,7 @@
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
     import UploadGeneric from '../UploadGeneric.svelte';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
-    import { emptyClientIdError, type clientIdElastic, type clientIdError, type elasticStore, emptyClientIdElastic } from './elasticStoreFactory';
+    import { emptyClientIdError, type clientIdElastic, type clientIdError, type elasticStore, emptyClientIdElastic, emptyClientRequestUsers, type clientIdRequestUsers } from './elasticStoreFactory';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function
@@ -14,7 +14,8 @@
 
     let minDate:Date = new Date("2099-01-01 00:00")
     let maxDate:Date = new Date("2000-01-01 00:00")
-    let containerClientId:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
+    let containerRequestHits:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
+    let containerRequestUsers:Map<string, clientIdElastic> = new Map<string, clientIdElastic>()
     let containerErrorByClientID:Map<string, clientIdError> = new Map<string, clientIdError>()
     let containerErrorsSoc:Map<string,number[]> = new Map<string,number[]>()
     let RC:string
@@ -24,7 +25,8 @@
     function customInitiator(fileName:string, contentFile:string){
 
         if($jsonElasticDataStore.containerClientId.size > 0 || $jsonElasticDataStore.containerErrorsSoc.size > 0){
-            containerClientId = $jsonElasticDataStore.containerClientId
+            containerRequestHits = $jsonElasticDataStore.containerClientId
+            containerRequestUsers = $jsonElasticDataStore.containerRequestUsers            
             containerErrorByClientID = $jsonElasticDataStore.containerErrorsByClientId
             containerErrorsSoc = $jsonElasticDataStore.containerErrorsSoc
             minDate = $jsonElasticDataStore.minDate
@@ -55,7 +57,8 @@
         let elasticStoreCloned:elasticStore = {
             minDate: minDate,
             maxDate: maxDate,
-            containerClientId: containerClientId,
+            containerClientId: containerRequestHits,
+            containerRequestUsers: containerRequestUsers,
             containerErrorsByClientId: containerErrorByClientID,
             containerErrorsSoc: containerErrorsSoc
         }
@@ -69,7 +72,7 @@
     function csvToContainer(csvContent:string , type:CSV_TYPE, delimiter:string = COMMA): void{
 
         //Fix for files habilitations & strongbox
-        let mustAddInstance = type === CSV_TYPE.REQUESTS && !csvContent.startsWith('Instance')
+        let mustAddInstance = (type === CSV_TYPE.REQUESTS || type === CSV_TYPE.USERS) && !csvContent.startsWith('Instance')
         if(mustAddInstance){
             csvContent = 'Instance,' + csvContent
         }
@@ -90,10 +93,8 @@
             tmp_date = headers[1]
             runner = runnerErrorsSocHits
         } else if(type === CSV_TYPE.USERS){
-            /*tmp_date = headers[1]
-            runner = runnerErrorsHits*/
-            //TODO
-            return
+            tmp_date = headers[3]
+            runner = runnerKeyCloackHitsUsers
         } else {
             throw new Error('case not implemented for type', type);
         }
@@ -186,8 +187,8 @@
 
         let clientId:clientIdElastic = emptyClientIdElastic(clientIdLabel, instance)
 
-        if(containerClientId.has(clientIdLabel)){
-            clientId = containerClientId.get(clientIdLabel) as clientIdElastic
+        if(containerRequestHits.has(clientIdLabel)){
+            clientId = containerRequestHits.get(clientIdLabel) as clientIdElastic
             clientId.instance = instance //Update for security
         } 
 
@@ -199,7 +200,36 @@
             clientId[requestType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
         }
 
-        containerClientId.set(clientIdLabel, clientId)
+        containerRequestHits.set(clientIdLabel, clientId)
+    }
+    function runnerKeyCloackHitsUsers(headers:string[], line:string):void{
+        let elts:string[] = line.split(COMMA)
+        let instance=elts[0].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let clientIdLabel=elts[1].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim()
+        let requestType=elts[2].replaceAll(DOUBLE_QUOTE,EMPTY_STRING).trim().toUpperCase()
+
+        //Strict control to avoid unwanted data inside our container
+        if(!(requestType in REQUEST_TYPE)){
+            console.error("requestType is unknown and will be ignore", requestType)
+            return 
+        }
+
+        let requestUsers:clientIdRequestUsers = emptyClientRequestUsers(clientIdLabel, instance)
+
+        if(containerRequestUsers.has(clientIdLabel)){
+            requestUsers = containerRequestUsers.get(clientIdLabel) as clientIdElastic
+            requestUsers.instance = instance //Update for security
+        } 
+
+        for(let i=3; i<elts.length; i++){
+            if(elts[i].trim() === EMPTY_STRING){
+                continue
+            }
+        
+            requestUsers[requestType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
+        }
+
+        containerRequestUsers.set(clientIdLabel, requestUsers)
     }
 </script>
 

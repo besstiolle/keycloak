@@ -4,7 +4,7 @@
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
     import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
-    import { getEmptyElasticStore } from './elasticStoreFactory';
+    import { getEmptyElasticStore, type clientIdElastic } from './elasticStoreFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
@@ -14,6 +14,7 @@
     import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionEngine';
     import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocEngine';
     import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
+    import type { clientId } from '$lib/gitStruct';
 /*
 	import { page } from '$app/stores'
     import { goto } from '$app/navigation';
@@ -22,6 +23,7 @@
     	const isBeta = $page.url.searchParams.has('beta')
 		goto("?foo=bar&foo2=bar2",{keepFocus:true})
 	}*/
+	const SUFFIX_FOR_REQUEST_USERS = 'REQ_US_'
 	let addAnother = false
 	
 	let datasetAndLimits:DatasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
@@ -37,7 +39,7 @@
 	let instanceToClientId = new Map<string,string[]>()
 	let clientIdToInstance = new Map<string,string>()
 
-	let globalMap = new Map<string, Map<number, number>>()
+	let allRawData = new Map<string, Map<number, number>>()
 
 
 	let idTimeout:NodeJS.Timeout|number = 0
@@ -62,11 +64,11 @@
 
 		addAnother = false
 
-		globalMap = getAllRawData()
+		allRawData = getAllRawData()
 		console.debug("getAllRawData ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
 
-		initiateFilters()
-		console.debug("initiateFilters ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
+		fInstances.sort()
+		fClientIds.sort()
 
 		console.debug("initiatePage ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
 	}
@@ -103,7 +105,19 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
 										instanceToClientId)
-			labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
+
+		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_USERS) {
+			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+										$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
+										$stateOfsideStore.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
+										selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
+										$stateOfsideStore.isAgregate,
+										instanceToClientId,
+										SUFFIX_FOR_REQUEST_USERS)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
 
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_BY_CLIENTID){
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -114,12 +128,12 @@
 											selectedAndVisibleItemsFromMap($stateOfsideStore.errorsByClientId),
 											$stateOfsideStore.isAgregate,
 											instanceToClientId)
-			labelsAndDatasets = runGroupByCollectionEngine(engine, globalMap)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_SOC){
 			engine = new GroupByErrorsSocEngine($stateOfsideStore.isSumOrDistinctByErrorsSoc == ACTION_VAL.SUM_BY_ERRORSSOC, 
 												selectedAndVisibleItemsFromMap($stateOfsideStore.errorsSoc),
 												$stateOfsideStore.isAgregate)
-			labelsAndDatasets = runGroupByErrorsSocEngine(engine, globalMap)
+			labelsAndDatasets = runGroupByErrorsSocEngine(engine, allRawData)
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR){
 			//Nothing to do
 		} else {
@@ -128,7 +142,7 @@
 		}
 
 		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, globalMap)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, allRawData)
 		} else if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()
@@ -162,7 +176,6 @@
 	function getAllRawData():Map<string, Map<number,number>>{
 		let allRequestTypes = Object.values(REQUEST_TYPE).sort()
 		let allErrorsByClientid = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
-		//let allErrors = getK
 		let rawData:rawData
 		let map = new Map<string, Map<number,number>>()
 		let start = new Date($jsonElasticDataStore.minDate)
@@ -172,12 +185,21 @@
 		end.setHours(0)
 
 		$jsonElasticDataStore.containerClientId.forEach(clientId => {
+			addClientIdToFilter(clientId)
 			for(const requestType of allRequestTypes){
 				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
 			}
 		})
+		$jsonElasticDataStore.containerRequestUsers.forEach(clientId => {
+			addClientIdToFilter(clientId)
+			for(const requestType of allRequestTypes){
+				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
+				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, SUFFIX_FOR_REQUEST_USERS + requestType)
+			}
+		})
 		$jsonElasticDataStore.containerErrorsByClientId.forEach(clientId => {
+			addClientIdToFilter(clientId)
 			for(const errorByClientId of allErrorsByClientid){
 				rawData = getRawData(clientId[errorByClientId] as number[], $timelineStore)
 				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, errorByClientId)
@@ -191,31 +213,25 @@
 		
 	}
 
-
-	function initiateFilters(){
+	function addClientIdToFilter(clientId:clientIdElastic){
 		let listOfClientIdForInstance:string[] = []
-		$jsonElasticDataStore.containerClientId.forEach(clientId => {
-			if(!fClientIds.includes(clientId.clientId)){
-				fClientIds.push(clientId.clientId)
-			}
-			if(!fInstances.includes(clientId.instance)){
-				fInstances.push(clientId.instance)
-			}
+		if(!fClientIds.includes(clientId.clientId)){
+			fClientIds.push(clientId.clientId)
+		}
+		if(!fInstances.includes(clientId.instance)){
+			fInstances.push(clientId.instance)
+		}
 
-			if(!instanceToClientId.has(clientId.instance)){
-				instanceToClientId.set(clientId.instance, [])
-			}
+		if(!instanceToClientId.has(clientId.instance)){
+			instanceToClientId.set(clientId.instance, [])
+		}
 
-			listOfClientIdForInstance = instanceToClientId.get(clientId.instance) as string[]
-			if(!listOfClientIdForInstance.includes(clientId.clientId)){
-				listOfClientIdForInstance.push(clientId.clientId)
-			}
-			instanceToClientId.set(clientId.instance, listOfClientIdForInstance)
-			clientIdToInstance.set(clientId.clientId, clientId.instance)
-		});
-
-		fInstances.sort()
-		fClientIds.sort()
+		listOfClientIdForInstance = instanceToClientId.get(clientId.instance) as string[]
+		if(!listOfClientIdForInstance.includes(clientId.clientId)){
+			listOfClientIdForInstance.push(clientId.clientId)
+		}
+		instanceToClientId.set(clientId.instance, listOfClientIdForInstance)
+		clientIdToInstance.set(clientId.clientId, clientId.instance)
 	}
 
 	// start scripting
@@ -258,6 +274,8 @@
 		<div class="chart-container">
 			{#if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.HITS}
 			<h2>Evolution des requetes dans le temps</h2>
+			{:else if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_USERS}
+			<h2>Evolution des utilisateurs dans le temps</h2>
 			{:else}
 			<h2>Evolution des erreurs par ClientId dans le temps</h2>
 			{/if}

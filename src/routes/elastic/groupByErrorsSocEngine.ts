@@ -17,19 +17,19 @@ export class GroupByErrorsSocEngine{
 }
 
 const MAX_VALUES = 10
-export function runGroupByErrorsSocEngine(engine:GroupByErrorsSocEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+export function runGroupByErrorsSocEngine(engine:GroupByErrorsSocEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
 
     /*
      * Can be : 
-     *   0 : distinct errorsSoc
-     *   1 : group all errorsSoc
+    *   0 : group all errorsSoc
+    *   1 : distinct errorsSoc
     */
-    let dumb = (engine.isGroupClientId?1:0) 
+    let dumb = (engine.isGroupClientId?1:0)
     let values:LabelAndDataset[] = []
 
     switch (dumb){
-        case 0: values = _run0(engine, globalMap);break 
-        case 1: values = _run1(engine, globalMap);break
+        case 0: values = _run0(engine, allRawData);break 
+        case 1: values = _run1(engine, allRawData);break
         default:console.error("cas d'usage non définit. dumb was ", dumb)
     }
 
@@ -65,16 +65,16 @@ export function runGroupByErrorsSocEngine(engine:GroupByErrorsSocEngine, globalM
 /**
  *   0 : distinct errorsSoc
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run0(engine:GroupByErrorsSocEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run0(engine:GroupByErrorsSocEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     for(let element of engine.selectedClientsId){  
         allLabelsAndDatasets.push({
             label: element,
-            data: globalMap.get(getHashKey(null,null ,element,engine.dataTypeSelected)) as Map<number,number>,
-            weight : (globalMap.get(getHashKey(null,null,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+            data: _getDataFromAllRawData(allRawData, element, engine.dataTypeSelected),
+            weight : _getDataAbsoluteSumFromAllRawData(allRawData, element)
         })   
     }
     
@@ -82,18 +82,18 @@ function _run0(engine:GroupByErrorsSocEngine, globalMap:Map<string, Map<number, 
 }
 
 /**
- *   2 : group errorsSoc
+ *   1 : group errorsSoc
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run1(engine:GroupByErrorsSocEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run1(engine:GroupByErrorsSocEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
     let weight = 0
     for(let element of engine.selectedClientsId){
-        tmp_maps.push(globalMap.get(getHashKey(null,null,element,engine.dataTypeSelected)) as Map<number,number>)
-        weight += (globalMap.get(getHashKey(null,null,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+        tmp_maps.push(_getDataFromAllRawData(allRawData, element, engine.dataTypeSelected))
+        weight += _getDataAbsoluteSumFromAllRawData(allRawData, element)
     }
     allLabelsAndDatasets.push({
         label: "all informations selected",
@@ -103,4 +103,20 @@ function _run1(engine:GroupByErrorsSocEngine, globalMap:Map<string, Map<number, 
     
     
     return allLabelsAndDatasets
+}
+
+
+function _getDataFromAllRawData(allRawData:Map<string, Map<number, number>>, element:string, dataType:DATA_TYPE):Map<number,number>{
+    let key = getHashKey(null,null, element, dataType)
+    if(allRawData.has(key)){
+        return (allRawData.get(key) as Map<number,number>)
+    }
+    return new Map<number,number>()
+}
+function _getDataAbsoluteSumFromAllRawData(allRawData:Map<string, Map<number, number>>, element:string):number{
+    let keyAbsoluteSum = getHashKey(null, null, element, DATA_TYPE.ABSOLUTE_SUM)
+    if(allRawData.has(keyAbsoluteSum)){
+        return (allRawData.get(keyAbsoluteSum) as Map<number,number>).get(0) as number
+    } 
+    return 0
 }

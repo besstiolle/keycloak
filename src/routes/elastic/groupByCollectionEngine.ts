@@ -19,7 +19,9 @@ export class GroupByCollectionEngine{
 
     dataTypeSelected:DATA_TYPE = DATA_TYPE.SUM_BY_DAY
 
-    constructor(isGroupAllInstance:boolean, isGroupClientId:boolean, isGroupCollection:boolean, selectedInstances:string[], selectedClientsId:string[], selectedCollection:string[], dataTypeSelected:DATA_TYPE, instanceToClientId:Map<string,string[]>){
+    suffixCollection:string = ''
+
+    constructor(isGroupAllInstance:boolean, isGroupClientId:boolean, isGroupCollection:boolean, selectedInstances:string[], selectedClientsId:string[], selectedCollection:string[], dataTypeSelected:DATA_TYPE, instanceToClientId:Map<string,string[]>, suffixCollection:string=''){
         this.isGroupAllInstance = isGroupAllInstance
         this.isGroupClientId = isGroupClientId
         this.isGroupCollection = isGroupCollection
@@ -28,11 +30,12 @@ export class GroupByCollectionEngine{
         this.selectedCollection  = selectedCollection
         this.dataTypeSelected = dataTypeSelected
         this.instanceToClientId = instanceToClientId
+        this.suffixCollection = suffixCollection
     }
 }
 
 const MAX_VALUES = 10
-export function runGroupByCollectionEngine(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+export function runGroupByCollectionEngine(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
 
     /*
      * Can be : 
@@ -49,14 +52,14 @@ export function runGroupByCollectionEngine(engine:GroupByCollectionEngine, globa
     let values:LabelAndDataset[] = []
 
     switch (dumb){
-        case 0: values = _run0(engine, globalMap);break
+        case 0: values = _run0(engine, allRawData);break
         //case 1: 
-        case 2: values =  _run2(engine, globalMap);break
-        case 3: values =  _run3(engine, globalMap);break
-        case 4: values =  _run4(engine, globalMap);break
+        case 2: values =  _run2(engine, allRawData);break
+        case 3: values =  _run3(engine, allRawData);break
+        case 4: values =  _run4(engine, allRawData);break
         //case 5: 
-        case 6: values =  _run6(engine, globalMap);break
-        case 7: values =  _run7(engine, globalMap);break
+        case 6: values =  _run6(engine, allRawData);break
+        case 7: values =  _run7(engine, allRawData);break
         default:console.error("cas d'usage non définit. dumb was ", dumb)
     }
 
@@ -92,10 +95,10 @@ export function runGroupByCollectionEngine(engine:GroupByCollectionEngine, globa
 /**
  *   0 : distinct instance,     distinct client ,   distinct elt of Collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run0(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run0(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     for(let instance of engine.selectedInstances){
         for(let clientId of engine.selectedClientsId){
@@ -103,8 +106,8 @@ function _run0(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
                 for(let element of engine.selectedCollection){
                     allLabelsAndDatasets.push({
                         label: instance + VERTICAL_TWO_DOT + clientId + VERTICAL_TWO_DOT + element,
-                        data: globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>,
-                        weight : (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                        data: _getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected),
+                        weight : _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                     })
                 }
             }
@@ -116,10 +119,10 @@ function _run0(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
 /**
  *   2 : distinct instance,     group all client,   distinct elt of collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run2(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run2(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -130,8 +133,8 @@ function _run2(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
             weight = 0
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
-                    tmp_maps.push(globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>)
-                    weight += (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                    tmp_maps.push(_getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected))
+                    weight += _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                 }
             }
             allLabelsAndDatasets.push({
@@ -147,10 +150,10 @@ function _run2(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
 /**
  *   3 : group all instances,   group all client,   distinct elt of collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run3(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run3(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -161,8 +164,8 @@ function _run3(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
         for(let instance of engine.selectedInstances){
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
-                    tmp_maps.push(globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>)
-                    weight += (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                    tmp_maps.push(_getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected))
+                    weight += _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                 }
             }
         }
@@ -181,10 +184,10 @@ function _run3(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
 /**
  *   4 : distinct instance,     distinct client ,   group all elt of collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run4(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run4(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[]
     let weight = 0
@@ -195,8 +198,8 @@ function _run4(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
                 tmp_maps = []
                 weight = 0
                 for(let element of engine.selectedCollection){
-                    tmp_maps.push(globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>)
-                    weight += (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                    tmp_maps.push(_getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected))
+                    weight += _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                 }
 
                 allLabelsAndDatasets.push({
@@ -214,10 +217,10 @@ function _run4(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
 /**
  *   6 : distinct instance,     group all client,   group all elt of collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run6(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run6(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
     let weight = 0
@@ -228,8 +231,8 @@ function _run6(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
         for(let clientId of engine.selectedClientsId){
             if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                 for(let element of engine.selectedCollection){
-                    tmp_maps.push(globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>)
-                    weight += (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                    tmp_maps.push(_getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected))
+                    weight += _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                 }
             }
         }
@@ -247,10 +250,10 @@ function _run6(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
 /**
  *   7 : group all instances,   group all client,   group all elt of collection
  * @param engine 
- * @param globalMap 
+ * @param allRawData 
  * @returns 
  */
-function _run7(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number, number>>):LabelAndDataset[]{
+function _run7(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
     let allLabelsAndDatasets:LabelAndDataset[] = []
     let tmp_maps:Map<number,number>[] = []
     let weight = 0
@@ -259,8 +262,8 @@ function _run7(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
         for(let instance of engine.selectedInstances){
             for(let clientId of engine.selectedClientsId){
                 if(engine.instanceToClientId.get(instance)?.includes(clientId)){
-                    tmp_maps.push(globalMap.get(getHashKey(null,clientId,element,engine.dataTypeSelected)) as Map<number,number>)
-                    weight += (globalMap.get(getHashKey(null,clientId,element,DATA_TYPE.ABSOLUTE_SUM)) as Map<number,number>).get(0) as number
+                    tmp_maps.push(_getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected))
+                    weight += _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                 }
             }
         }
@@ -272,4 +275,20 @@ function _run7(engine:GroupByCollectionEngine, globalMap:Map<string, Map<number,
     })
     
     return allLabelsAndDatasets
+}
+
+
+function _getDataFromAllRawData(allRawData:Map<string, Map<number, number>>, clientId:string,suffixCollection:string='',element:string, dataType:DATA_TYPE):Map<number,number>{
+    let key = getHashKey(null,clientId,suffixCollection + element, dataType)
+    if(allRawData.has(key)){
+        return (allRawData.get(key) as Map<number,number>)
+    }
+    return new Map<number,number>()
+}
+function _getDataAbsoluteSumFromAllRawData(allRawData:Map<string, Map<number, number>>, clientId:string,suffixCollection:string='',element:string):number{
+    let keyAbsoluteSum = getHashKey(null, clientId, suffixCollection + element, DATA_TYPE.ABSOLUTE_SUM)
+    if(allRawData.has(keyAbsoluteSum)){
+        return (allRawData.get(keyAbsoluteSum) as Map<number,number>).get(0) as number
+    } 
+    return 0
 }

@@ -96,19 +96,22 @@
 </script>
 
 <div>
-  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits By ClientId</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits by Request</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.REQUEST_USERS}>Users by Requests</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_BY_CLIENTID}>Errors By ClientId</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_SOC} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_SOC}>Errors Societaire</button>
-  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.TABLEUR} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.TABLEUR}>Table</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.TABLEUR} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.TABLEUR}>Rapport</button>
   <hr/>
 </div>
 
+{#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
 <div>
   <button class:button-on={$stateOfsideStore.graphType === GRAPH_TYPE.LINE} on:click={() => $stateOfsideStore.graphType = GRAPH_TYPE.LINE}>Lines</button>
   <button class:button-on={$stateOfsideStore.graphType === GRAPH_TYPE.PIE} on:click={() => $stateOfsideStore.graphType = GRAPH_TYPE.PIE}>Charts</button>
   
   <hr/>
 </div>
+{/if}
 {#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR}
 <div>
   <button class:button-on={$stateOfsideStore.isAgregate === DATA_TYPE.SUM_BY_DAY} on:click={() => $stateOfsideStore.isAgregate = DATA_TYPE.SUM_BY_DAY}>By Day</button>
@@ -145,7 +148,7 @@
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.DISTINCT_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.DISTINCT_BY_CLIENTID} 
       disabled={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE}
       >Distinct</button>
-  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS}
+  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS}
     <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsType} />
   
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.SUM_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
