@@ -15,6 +15,7 @@
     import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocEngine';
     import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
     import type { clientId } from '$lib/gitStruct';
+    import { groupByCollectionAndAvgByUsersEngine, runGroupByCollectionAndAvgByUsersEngine } from './groupByCollectionAndAvgByUsersEngine';
 /*
 	import { page } from '$app/stores'
     import { goto } from '$app/navigation';
@@ -118,6 +119,18 @@
 										instanceToClientId,
 										SUFFIX_FOR_REQUEST_USERS)
 			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
+
+		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_HITS_BY_USERS) {
+			engine = new groupByCollectionAndAvgByUsersEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
+										$stateOfsideStore.isSumOrDistinctByClientId == ACTION_VAL.SUM_BY_CLIENTID, 
+										$stateOfsideStore.isSumOrDistinctByRequestType == ACTION_VAL.SUM_BY_REQUESTTYPE, 
+										selectedAndVisibleItemsFromMap($stateOfsideStore.instances),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
+										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
+										$stateOfsideStore.isAgregate,
+										instanceToClientId,
+										SUFFIX_FOR_REQUEST_USERS)
+			labelsAndDatasets = runGroupByCollectionAndAvgByUsersEngine(engine, allRawData)
 
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_BY_CLIENTID){
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -276,6 +289,8 @@
 			<h2>Evolution des requetes dans le temps</h2>
 			{:else if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_USERS}
 			<h2>Evolution des utilisateurs dans le temps</h2>
+			{:else if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_HITS_BY_USERS}
+			<h2>Evolution du ratio hits par utilisateurs dans le temps</h2>
 			{:else}
 			<h2>Evolution des erreurs par ClientId dans le temps</h2>
 			{/if}

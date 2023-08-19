@@ -96,8 +96,9 @@
 </script>
 
 <div>
-  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits by Request</button>
-  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.REQUEST_USERS}>Users by Requests</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.HITS}>Hits</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.REQUEST_USERS}>Users</button>
+  <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_HITS_BY_USERS} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.REQUEST_HITS_BY_USERS}>x̄ Hits by Users</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_BY_CLIENTID}>Errors By ClientId</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_SOC} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.ERRORS_SOC}>Errors Societaire</button>
   <button class:button-on={$stateOfsideStore.sourceContainer === SOURCE_CONTAINER.TABLEUR} on:click={() => $stateOfsideStore.sourceContainer = SOURCE_CONTAINER.TABLEUR}>Rapport</button>
@@ -148,7 +149,7 @@
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.DISTINCT_BY_CLIENTID} on:click={() => $stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.DISTINCT_BY_CLIENTID} 
       disabled={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE}
       >Distinct</button>
-  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS}
+  {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_HITS_BY_USERS}
     <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsType} />
   
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.SUM_BY_REQUESTTYPE} on:click={() => $stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE}>Sum</button>
