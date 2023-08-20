@@ -23,7 +23,7 @@
 
 	
     function customInitiator(fileName:string, contentFile:string){
-
+        let start = new Date()
         if($jsonElasticDataStore.containerClientId.size > 0 || $jsonElasticDataStore.containerErrorsSoc.size > 0){
             containerRequestHits = $jsonElasticDataStore.containerClientId
             containerRequestUsers = $jsonElasticDataStore.containerRequestUsers            
@@ -64,9 +64,7 @@
         }
 
         $jsonElasticDataStore = elasticStoreCloned
-
-        initiateBinder()
-
+        console.debug("customInitiator ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms")
 	}
 
     function csvToContainer(csvContent:string , type:CSV_TYPE, delimiter:string = COMMA): void{
@@ -233,4 +231,4 @@
     }
 </script>
 
-<UploadGeneric initiateBinder={customInitiator} invite={invite} type={extensionAccepted} />
+<UploadGeneric initiateBinder={customInitiator} invite={invite} type={extensionAccepted} endingBinder={initiateBinder}/>

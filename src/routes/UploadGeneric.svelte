@@ -4,21 +4,34 @@
 
 	let fileinput:HTMLInputElement
     export let initiateBinder:Function
+    export let endingBinder:Function = function(){}
 	export let invite:string = ''
     export let type:string = ''
 	
-    function readFile(filePassed:File){
-        let reader = new FileReader()
-		reader.readAsText(filePassed)
-		reader.onload = eRead => {
-            initiateBinder(filePassed.name, eRead.target?.result as string)
-		};
+    function readFile(filePassed:File):Promise<boolean>{
+        return new Promise((resolve, reject) => {
+            let reader = new FileReader()
+            reader.readAsText(filePassed)
+            reader.onload = eRead => {
+                initiateBinder(filePassed.name, eRead.target?.result as string)
+                resolve(true)
+            }
+            reader.onerror = function(e: any) {
+                reject(e);
+            }
+        })
     }
 
-    function readFiles(filesPassed:FileList){
-        for(let i = 0; i < filesPassed.length; i++){
-            readFile(filesPassed[i])
+    function readFiles(filesPassed:FileList, i:number=0){
+        if(i >= filesPassed.length){
+            endingBinder()
+            return
         }
+        readFile(filesPassed[i]).then(()=>{
+            i++
+            readFiles(filesPassed, i)
+        })
+        
     }
 
     onMount(async () => {
