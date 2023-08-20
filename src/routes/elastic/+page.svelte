@@ -14,7 +14,6 @@
     import { GroupByCollectionEngine, runGroupByCollectionEngine } from './groupByCollectionEngine';
     import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocEngine';
     import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
-    import type { clientId } from '$lib/gitStruct';
     import { groupByCollectionAndAvgByUsersEngine, runGroupByCollectionAndAvgByUsersEngine } from './groupByCollectionAndAvgByUsersEngine';
 /*
 	import { page } from '$app/stores'
@@ -43,10 +42,6 @@
 	let allRawData = new Map<string, Map<number, number>>()
 
 
-	let idTimeout:NodeJS.Timeout|number = 0
-    stateOfsideStore.subscribe(value => {idTimeout = prepareForDrawing(idTimeout)})
-
-	
 	function emptyDatasetAndLimitsForLine():DatasetAndLimitsForLine{
 		let datasetAndLimits:DatasetAndLimitsForLine = {
 			labelsAndDatasets:[],
@@ -72,13 +67,6 @@
 		fClientIds.sort()
 
 		console.debug("initiatePage ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
-	}
-	
-	function prepareForDrawing(id:NodeJS.Timeout|number){
-		console.debug("prepareForDrawing with id :", id)
-		if(id){clearTimeout(id)}
-		id = setTimeout(() => {drawGraph()}, 100)
-		return id
 	}
 
 	function selectedAndVisibleItemsFromMap(map:Map<string,DisplaybleItems>):string[]{
@@ -183,7 +171,7 @@
 			console.error("Type of graph not available : ", $stateOfsideStore.graphType)	
 		}
  
-		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms since start")
+		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms")
 	}
 
 	function getAllRawData():Map<string, Map<number,number>>{
@@ -266,7 +254,8 @@
 <UploadElastic initiateBinder={initiatePage}/>
 {:else}
 <side>
-	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} fErrorsByClientId={fErrorsByClientId} fErrorsSoc={fErrorsSoc}/>
+	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} 
+		fErrorsByClientId={fErrorsByClientId} fErrorsSoc={fErrorsSoc} draw={drawGraph}/>
 	
 	<h2>Options</h2>
 	<button class='myButton' on:click="{() => {addAnother = true}}">add Data</button>
