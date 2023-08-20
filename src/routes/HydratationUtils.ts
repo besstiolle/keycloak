@@ -1,5 +1,4 @@
-import type { config } from "$lib/gitStruct";
-
+import type { config } from "$lib/configStruct"
 
 export function parseLog(log:string[]){
 
