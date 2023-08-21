@@ -1,6 +1,6 @@
-import type { LabelAndDataset } from "$lib/elasticStruct"
+ 
 import { VERTICAL_TWO_DOT } from "./const"
-import { fusionMap, getHashKey } from "./datasetFactory"
+import { fusionMap, getHashKey, type LabelAndDataset } from "./datasetFactory"
 import { DATA_TYPE } from "./sideStateFactory"
 
 
@@ -36,6 +36,8 @@ export class GroupByCollectionEngine{
 
 const MAX_VALUES = 10
 export function runGroupByCollectionEngine(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number, number>>):LabelAndDataset[]{
+
+    console.debug("runGroupByCollectionEngine")
 
     /*
      * Can be : 

@@ -74,47 +74,7 @@ export enum ERROR_SOC_TYPE{
     BANQUE_ERR_UNKNOWN='Banque ??'
 }
 
-
-export interface rawData{
-    sumByDay : Map<number,number>,
-    sumByWeek : Map<number,number>,
-    sumByMonth : Map<number,number>,
-    sumByDayOfWeek : Map<number,number>,
-    cptByDayOfWeek : Map<number,number>,
-    avgByDayOfWeek : Map<number,number>,
-    sumAbsolute : number
-} 
-
 export interface minMax{
     min:number,
     max:number
-}
-
-export interface DatasetAndLimitsForLine{
-    min:number,
-    max:number,
-    labelsAndDatasets:LabelAndDataset[]
-}
-
-export interface LabelAndDataset{
-    label:string,
-    data:Map<number, number>,
-    weight:number
-}
-export interface LabelAndDatasetString{
-    label:string,
-    data:Map<string, number>
-}
-export interface datasetTableurHit{
-    clientId:string,
-    instance: string,
-    firstSeen:Date,
-    lastSeen:Date,
-    duration:number,
-    avgAll:number,
-    avgHit30d:number,
-    maxhit:number,
-    maxDate:Date
-    sumHits:number,
-    isKnown:boolean
 }

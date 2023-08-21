@@ -1,10 +1,9 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { type DatasetAndLimitsForLine, type datasetTableurHit, type rawData, type minMax, type LabelAndDatasetString, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE, type LabelAndDataset, ERROR_SOC_TYPE } from '$lib/elasticStruct';
+    import { type minMax, REQUEST_TYPE, ERROR_BY_CLIENTID_TYPE, ERROR_SOC_TYPE } from '$lib/elasticStruct';
     import { jsonElasticDataStore, jsonGitDataStore,  jsonConfigDataStore, timelineStore, stateOfsideStore } from '$lib/store';
     import UploadElastic from './UploadElastic.svelte';
-    import { getRawData, initTableur, processRawDataIntoMap, getMinMax } from './datasetFactory';
-    import { getEmptyElasticStore, type clientIdElastic } from './elasticStoreFactory';
+    import { initTableur, getMinMax, type DatasetAndLimitsForLine, type datasetTableurHit, type LabelAndDatasetString, type LabelAndDataset } from './datasetFactory';
     import KeyResume from './KeyResume.svelte';
     import TableClientIdBy from './TableClientIdBy.svelte';
     import LineHitsAll from './LineHitsAll.svelte';
@@ -15,6 +14,7 @@
     import { GroupByErrorsSocEngine, runGroupByErrorsSocEngine } from './groupByErrorsSocEngine';
     import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
     import { groupByCollectionAndAvgByUsersEngine, runGroupByCollectionAndAvgByUsersEngine } from './groupByCollectionAndAvgByUsersEngine';
+    import { EnrichedDataWrapper, SUFFIX_FOR_REQUEST_USERS, getEnrichedData, refreshEnrichedData } from './enrichedDataFactory';
 /*
 	import { page } from '$app/stores'
     import { goto } from '$app/navigation';
@@ -23,25 +23,15 @@
     	const isBeta = $page.url.searchParams.has('beta')
 		goto("?foo=bar&foo2=bar2",{keepFocus:true})
 	}*/
-	const SUFFIX_FOR_REQUEST_USERS = 'REQ_US_'
 	let addAnother = false
-	
+	let startAbsolute:Date = new Date()
 	let datasetAndLimits:DatasetAndLimitsForLine = emptyDatasetAndLimitsForLine()
 	let datasetsForPie:LabelAndDatasetString[]
 	let datasetTableurByHits:datasetTableurHit[] = []
-
-	//Filters on left
-	let fInstances:string[] = []
-	let fClientIds:string[] = []
-	let fRequestTypes:string[] = Object.values(REQUEST_TYPE).sort()
-	let fErrorsByClientId:string[] = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
-	let fErrorsSoc:string[] = Object.values(ERROR_SOC_TYPE).sort()
-	let instanceToClientId = new Map<string,string[]>()
-	let clientIdToInstance = new Map<string,string>()
-
-	let allRawData = new Map<string, Map<number, number>>()
+	let enrichedData:EnrichedDataWrapper
 
 
+	//TODO MOVE inTO ITS OWN FACTORY
 	function emptyDatasetAndLimitsForLine():DatasetAndLimitsForLine{
 		let datasetAndLimits:DatasetAndLimitsForLine = {
 			labelsAndDatasets:[],
@@ -56,17 +46,15 @@
 		if(!browser){
 			return
 		}
-		let start = new Date()
-
+		startAbsolute = new Date()
 		addAnother = false
+		try{
+			enrichedData = getEnrichedData()
+		} catch(e){
+			forceRefreshCache()
+		}
 
-		allRawData = getAllRawData()
-		console.debug("getAllRawData ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
-
-		fInstances.sort()
-		fClientIds.sort()
-
-		console.debug("initiatePage ended in " + ((new Date()).valueOf() - start.valueOf()) + "ms since start")
+		console.debug("initiatePage ended in " + ((new Date()).valueOf() - startAbsolute.valueOf()) + "ms since start")
 	}
 
 	function selectedAndVisibleItemsFromMap(map:Map<string,DisplaybleItems>):string[]{
@@ -93,8 +81,8 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
-										instanceToClientId)
-			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
+										enrichedData.instanceToClientId)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, enrichedData.rawData)
 
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_USERS) {
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -104,9 +92,9 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
-										instanceToClientId,
+										enrichedData.instanceToClientId,
 										SUFFIX_FOR_REQUEST_USERS)
-			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, enrichedData.rawData)
 
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.REQUEST_HITS_BY_USERS) {
 			engine = new groupByCollectionAndAvgByUsersEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -116,9 +104,9 @@
 										selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
 										selectedAndVisibleItemsFromMap($stateOfsideStore.requestsType),
 										$stateOfsideStore.isAgregate,
-										instanceToClientId,
+										enrichedData.instanceToClientId,
 										SUFFIX_FOR_REQUEST_USERS)
-			labelsAndDatasets = runGroupByCollectionAndAvgByUsersEngine(engine, allRawData)
+			labelsAndDatasets = runGroupByCollectionAndAvgByUsersEngine(engine, enrichedData.rawData)
 
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_BY_CLIENTID){
 			engine = new GroupByCollectionEngine($stateOfsideStore.isSumOrDistinctByInstance == ACTION_VAL.SUM_BY_INSTANCE, 
@@ -128,13 +116,13 @@
 											selectedAndVisibleItemsFromMap($stateOfsideStore.clientIds),
 											selectedAndVisibleItemsFromMap($stateOfsideStore.errorsByClientId),
 											$stateOfsideStore.isAgregate,
-											instanceToClientId)
-			labelsAndDatasets = runGroupByCollectionEngine(engine, allRawData)
+											enrichedData.instanceToClientId)
+			labelsAndDatasets = runGroupByCollectionEngine(engine, enrichedData.rawData)
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.ERRORS_SOC){
 			engine = new GroupByErrorsSocEngine($stateOfsideStore.isSumOrDistinctByErrorsSoc == ACTION_VAL.SUM_BY_ERRORSSOC, 
 												selectedAndVisibleItemsFromMap($stateOfsideStore.errorsSoc),
 												$stateOfsideStore.isAgregate)
-			labelsAndDatasets = runGroupByErrorsSocEngine(engine, allRawData)
+			labelsAndDatasets = runGroupByErrorsSocEngine(engine, enrichedData.rawData)
 		} else if($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR){
 			//Nothing to do
 		} else {
@@ -143,7 +131,7 @@
 		}
 
 		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, allRawData)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, enrichedData.rawData)
 		} else if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()
@@ -172,67 +160,12 @@
 		}
  
 		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - start.getTime()) + "ms")
+		console.debug(" > drawGraph ended in " + ((new Date()).getTime() - startAbsolute.getTime()) + "ms since beginning")
 	}
 
-	function getAllRawData():Map<string, Map<number,number>>{
-		let allRequestTypes = Object.values(REQUEST_TYPE).sort()
-		let allErrorsByClientid = Object.values(ERROR_BY_CLIENTID_TYPE).sort()
-		let rawData:rawData
-		let map = new Map<string, Map<number,number>>()
-		let start = new Date($jsonElasticDataStore.minDate)
-		let end = new Date($jsonElasticDataStore.maxDate)
 
-		start.setHours(0)
-		end.setHours(0)
-
-		$jsonElasticDataStore.containerClientId.forEach(clientId => {
-			addClientIdToFilter(clientId)
-			for(const requestType of allRequestTypes){
-				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
-				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, requestType)
-			}
-		})
-		$jsonElasticDataStore.containerRequestUsers.forEach(clientId => {
-			addClientIdToFilter(clientId)
-			for(const requestType of allRequestTypes){
-				rawData = getRawData(clientId[requestType] as number[], $timelineStore)
-				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, SUFFIX_FOR_REQUEST_USERS + requestType)
-			}
-		})
-		$jsonElasticDataStore.containerErrorsByClientId.forEach(clientId => {
-			addClientIdToFilter(clientId)
-			for(const errorByClientId of allErrorsByClientid){
-				rawData = getRawData(clientId[errorByClientId] as number[], $timelineStore)
-				map = processRawDataIntoMap(map, rawData, clientId.instance, clientId.clientId, errorByClientId)
-			}
-		})
-		$jsonElasticDataStore.containerErrorsSoc.forEach((value, key) => {
-			rawData = getRawData(value, $timelineStore)
-			map = processRawDataIntoMap(map, rawData, "", "", key)
-		})
-		return map
-		
-	}
-
-	function addClientIdToFilter(clientId:clientIdElastic){
-		let listOfClientIdForInstance:string[] = []
-		if(!fClientIds.includes(clientId.clientId)){
-			fClientIds.push(clientId.clientId)
-		}
-		if(!fInstances.includes(clientId.instance)){
-			fInstances.push(clientId.instance)
-		}
-
-		if(!instanceToClientId.has(clientId.instance)){
-			instanceToClientId.set(clientId.instance, [])
-		}
-
-		listOfClientIdForInstance = instanceToClientId.get(clientId.instance) as string[]
-		if(!listOfClientIdForInstance.includes(clientId.clientId)){
-			listOfClientIdForInstance.push(clientId.clientId)
-		}
-		instanceToClientId.set(clientId.instance, listOfClientIdForInstance)
-		clientIdToInstance.set(clientId.clientId, clientId.instance)
+	function forceRefreshCache(){
+		enrichedData = refreshEnrichedData($jsonElasticDataStore, $timelineStore)
 	}
 
 	// start scripting
@@ -254,12 +187,15 @@
 <UploadElastic initiateBinder={initiatePage}/>
 {:else}
 <side>
-	<Side fClientIds={fClientIds} fInstances={fInstances} fRequestTypes={fRequestTypes} clientIdToInstance={clientIdToInstance} 
-		fErrorsByClientId={fErrorsByClientId} fErrorsSoc={fErrorsSoc} draw={drawGraph}/>
-	
+	{#if enrichedData}
+	<Side fClientIds={enrichedData.allClientIds} fInstances={enrichedData.allInstances} fRequestTypes={Object.values(REQUEST_TYPE).sort()} 
+		fErrorsByClientId={Object.values(ERROR_BY_CLIENTID_TYPE).sort()} fErrorsSoc={Object.values(ERROR_SOC_TYPE).sort()} 
+		clientIdToInstance={enrichedData.clientIdToInstance} draw={drawGraph}/>
+	{/if}
 	<h2>Options</h2>
 	<button class='myButton' on:click="{() => {addAnother = true}}">add Data</button>
-	<button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button>
+	<!-- <button class='myButton' on:click="{() => {$jsonElasticDataStore = getEmptyElasticStore(); addAnother=true }}">clear localStorage</button> -->
+	<button class='myButton' on:click={forceRefreshCache}>Forcer le refresh du cache applicatif</button>
 </side>
 <data>
 	{#if $stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR}{#key datasetTableurByHits}

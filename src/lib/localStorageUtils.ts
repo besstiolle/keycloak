@@ -1,12 +1,14 @@
 
-import type { elasticStore } from "./elasticStruct"
+
 import pako from 'pako';
 import * as base64 from "byte-base64";
 import { fromElasticStoretoJson, fromJsonToElasticStore } from "../routes/elastic/jsonParser";
+import type { elasticStore } from '../routes/elastic/elasticStoreFactory';
 
 export const JSON_GIT_DATA = "jsonGitData"
 export const JSON_CONFIG_DATA = "jsonConfigData"
 export const JSON_ELASTIC_DATA = "jsonElasticData"
+export const CACHE = "CACHE1"
 
 export function fromElasticStoreToB64deflatedString(elasticStore:elasticStore):string{
     const json = fromElasticStoretoJson(elasticStore)

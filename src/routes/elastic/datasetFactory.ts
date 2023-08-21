@@ -1,108 +1,49 @@
 
 import type { Timeline } from '$lib/Timeline.class';
-import type { datasetTableurHit, minMax, rawData } from '$lib/elasticStruct';
+import type { minMax } from '$lib/elasticStruct';
 import type { instance } from '$lib/gitStruct';
 import type { elasticStore } from './elasticStoreFactory';
 import { DATA_TYPE } from './sideStateFactory';
 import { SmellEngine } from './smellEngine';
 
 
-export function getRawData(arr:number[], timeline:Timeline):rawData{
-    let value = 0
-    let sumByDay = new Map<number,number>()  // eg : today 0:00
-    let sumByWeek = new Map<number,number>() // eg : monday 0:00
-    let sumByMonth = new Map<number,number>() // eg : first day of month 0:00
-    let sumByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
-    let cptByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
-    let avgByDayOfWeek = new Map<number,number>() // 1 -> 7, 7 indexes
-    let sumAbsolute = 0
-
-    let currentDayOfWeek = -1
-    timeline.getTimestampsOfDay().forEach((timestamp:number, index) => {
-        value = arr[index]
-        if(value != null){
-            sumByDay = addToMap(sumByDay, timestamp, value)
-            sumByWeek = addToMap(sumByWeek, timeline.getTimestampOfWeekByIndex(index), value)
-            sumByMonth = addToMap(sumByMonth, timeline.getTimestampOfMonthByIndex(index), value)
-            sumByDayOfWeek = addToMap(sumByDayOfWeek, timeline.getDayOfWeekByIndex(index), value)
-            sumAbsolute += value
-
-            if(currentDayOfWeek == -1 || currentDayOfWeek !== timeline.getDayOfWeekByIndex(index)){
-                cptByDayOfWeek = addToMap(cptByDayOfWeek, timeline.getDayOfWeekByIndex(index), 1)
-                currentDayOfWeek = timeline.getDayOfWeekByIndex(index)
-            }
-        }
-    })
-
-    //Post traitement pour AVG
-    sumByDayOfWeek.forEach((value, key) => {
-        if(cptByDayOfWeek.has(key)){
-            avgByDayOfWeek.set(key, value / (cptByDayOfWeek.get(key) as number))
-        }
-    });
-
-    return {
-        sumByDay:sumByDay,
-        sumByWeek:sumByWeek,
-        sumByMonth:sumByMonth,
-        sumByDayOfWeek:sumByDayOfWeek,
-        cptByDayOfWeek:cptByDayOfWeek,
-        avgByDayOfWeek:avgByDayOfWeek,
-        sumAbsolute:sumAbsolute
-    }
+export interface DatasetAndLimitsForLine{
+    min:number,
+    max:number,
+    labelsAndDatasets:LabelAndDataset[]
 }
 
-function addToMap(map:Map<number, number>, key:number, value:number){
+export interface LabelAndDataset{
+    label:string,
+    data:Map<number, number>,
+    weight:number
+}
+export interface LabelAndDatasetString{
+    label:string,
+    data:Map<string, number>
+}
+export interface datasetTableurHit{
+    clientId:string,
+    instance: string,
+    firstSeen:Date,
+    lastSeen:Date,
+    duration:number,
+    avgAll:number,
+    avgHit30d:number,
+    maxhit:number,
+    maxDate:Date
+    sumHits:number,
+    isKnown:boolean
+}
+
+
+export function addToMap(map:Map<number, number>, key:number, value:number){
     let val = 0
     if(map.has(key)){
         val = map.get(key) as number
     }
     val += value
     map.set(key, val)
-    return map
-}
-
-export function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawData:rawData, instance:string, clientId:string, requestType:string):Map<string, Map<number,number>>{
-    
-    if(rawData.sumAbsolute == 0){
-        return map
-    }
-
-    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDay, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY)
-    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_WEEK)
-    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByMonth, instance, clientId, requestType, DATA_TYPE.SUM_BY_MONTH)
-    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_WEEK)
-    map = processRawDataAndDataTypeIntoMap(map, rawData.avgByDayOfWeek, instance, clientId, requestType, DATA_TYPE.AVG_BY_DAY_OF_WEEK)
-
-
-    let tmp_map = new Map<number, number>()
-    tmp_map.set(0,rawData.sumAbsolute)
-    map = processRawDataAndDataTypeIntoMap(map, tmp_map, instance, clientId, requestType, DATA_TYPE.ABSOLUTE_SUM)
-
-    return map
-}
-
-function processRawDataAndDataTypeIntoMap(map:Map<string, Map<number,number>>,  mapValue:Map<number,number>, instance:string, clientId:string, requestType:string, dataType:string):Map<string, Map<number,number>>{
-
-    let key1 = getHashKey(null, clientId, requestType, dataType)
-    map = updateMapWithKey(map, key1, mapValue)
-
-    let key2 = getHashKey(null, clientId, null, dataType)
-    map = updateMapWithKey(map, key2, mapValue)
-
-    return map
-}
-
-function updateMapWithKey(map:Map<string, Map<number,number>>, key:string, mapValue:Map<number,number>):Map<string, Map<number,number>>{
-    
-    let existingMapValue = new Map<number,number>()
-    if(map.has(key)){
-        existingMapValue = map.get(key) as Map<number,number>
-    }
-
-    existingMapValue = fusionMap([existingMapValue, mapValue])
-    map.set(key, existingMapValue)
-
     return map
 }
 

@@ -5,6 +5,7 @@
     import UploadGeneric from '../UploadGeneric.svelte';
     import { COMMA, DOUBLE_QUOTE, EMPTY_STRING, LN, RCLN } from './const';
     import { emptyClientIdError, type clientIdElastic, type clientIdError, type elasticStore, emptyClientIdElastic, emptyClientRequestUsers, type clientIdRequestUsers } from './elasticStoreFactory';
+    import { refreshEnrichedData } from './enrichedDataFactory';
     import { cleanUnformatedNumbers, headerToDate, isLN } from './utils';
 
     export let initiateBinder:Function
@@ -229,6 +230,19 @@
 
         containerRequestUsers.set(clientIdLabel, requestUsers)
     }
+
+    /**
+     * Regenerate a new "second level cache"
+     */
+    function endingBinder(){
+        
+        //Generate cache & save it inside localhost
+        refreshEnrichedData($jsonElasticDataStore, $timelineStore)
+
+
+        //Finally calling for a redraw
+        initiateBinder()
+    }
 </script>
 
-<UploadGeneric initiateBinder={customInitiator} invite={invite} type={extensionAccepted} endingBinder={initiateBinder}/>
+<UploadGeneric initiateBinder={customInitiator} invite={invite} type={extensionAccepted} endingBinder={endingBinder}/>
