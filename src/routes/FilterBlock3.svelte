@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { DisplaybleItems as DisplaybleItem } from "$lib/elasticStruct";
+    import type { DisplaybleItems } from "./elastic/sideStateFactory";
 
-    
+       
 	
 	export let title:string
 	export let callback:Function
-	export let items:Map<string, DisplaybleItem>
+	export let items:Map<string, DisplaybleItems>
 
 
 	const _doAllAction = function(event: Event, bool:boolean){
@@ -40,14 +40,14 @@
 		let start = new Date()
 		let checkbox = (event.target) as HTMLInputElement
 
-		let displaybleItem = items.get(checkbox.value) as DisplaybleItem
+		let displaybleItem = items.get(checkbox.value) as DisplaybleItems
 		displaybleItem.isChecked = checkbox.checked
 		items.set(checkbox.value, displaybleItem)	
 		callback(items)
 		console.debug("checkboxAction ended in " + ((new Date()).getMilliseconds() - start.getMilliseconds()) + "ms")
 	}
 
-	let displaybleItemsArray: DisplaybleItem[] = Array.from(items.values())
+	let displaybleItemsArray: DisplaybleItems[] = Array.from(items.values())
 	
 </script>
 

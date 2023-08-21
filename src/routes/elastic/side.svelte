@@ -72,6 +72,27 @@
   $stateOfsideStore.errorsByClientId = fromStringArrayToMapStringDisplaybleItems(fErrorsByClientId)
   $stateOfsideStore.errorsSoc = fromStringArrayToMapStringDisplaybleItems(fErrorsSoc)
 
+  function callbackInstancesAndDraw(map:Map<string, DisplaybleItems>){
+    callbackInstances(map)
+    draw()
+  }
+  function callbackRequetsTypeAndDraw(map:Map<string, DisplaybleItems>){
+    callbackRequetsType(map)
+    draw()
+  }
+  function callbackClientsIdAndDraw(map:Map<string, DisplaybleItems>){
+    callbackClientsId(map)
+    draw()
+  }
+  function callbackErrorsByClientIdAndDraw(map:Map<string, DisplaybleItems>){
+    callbackErrorsByClientId(map)
+    draw()
+  }
+  function callbackErrorsSocAndDraw(map:Map<string, DisplaybleItems>){
+    callbackErrorsSoc(map)
+    draw()
+  }
+
   function callbackInstances(map:Map<string, DisplaybleItems>){
     let disp:DisplaybleItems
     $stateOfsideStore.clientIds.forEach((displaybleItem, key) => {
@@ -142,27 +163,27 @@
 {#if $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.TABLEUR && $stateOfsideStore.sourceContainer !== SOURCE_CONTAINER.ERRORS_SOC}
   <div>
     {#key $stateOfsideStore.instances}
-      <FilterBlock3 title='Instances' items={$stateOfsideStore.instances} callback={callbackInstances} />
+      <FilterBlock3 title='Instances' items={$stateOfsideStore.instances} callback={callbackInstancesAndDraw} />
     {/key}
     
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE} on:click={() => {updateStatusOfSumOrDistinctClient(ACTION_VAL.SUM_BY_INSTANCE);draw()}}>Sum</button>
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.DISTINCT_BY_INSTANCE} on:click={() => {updateStatusOfSumOrDistinctClient(ACTION_VAL.DISTINCT_BY_INSTANCE);draw()}}>Distinct</button>
 
     {#key $stateOfsideStore.clientIds}
-      <FilterBlock3 title='ClientIds' items={$stateOfsideStore.clientIds}  callback={callbackClientsId} />
+      <FilterBlock3 title='ClientIds' items={$stateOfsideStore.clientIds} callback={callbackClientsIdAndDraw} />
     {/key}
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.SUM_BY_CLIENTID} on:click={() => {$stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.SUM_BY_CLIENTID;draw()}}>Sum</button>
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByClientId === ACTION_VAL.DISTINCT_BY_CLIENTID} on:click={() => {$stateOfsideStore.isSumOrDistinctByClientId = ACTION_VAL.DISTINCT_BY_CLIENTID;draw()}} 
       disabled={$stateOfsideStore.isSumOrDistinctByInstance === ACTION_VAL.SUM_BY_INSTANCE}
       >Distinct</button>
   {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.HITS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_USERS || $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.REQUEST_HITS_BY_USERS}
-    <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsType} />
+    <FilterBlock3 title='Request Types' items={$stateOfsideStore.requestsType} callback={callbackRequetsTypeAndDraw} />
   
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.SUM_BY_REQUESTTYPE} on:click={() => {$stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.SUM_BY_REQUESTTYPE;draw()}}>Sum</button>
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByRequestType === ACTION_VAL.DISTINCT_BY_REQUESTTYPE} on:click={() => {$stateOfsideStore.isSumOrDistinctByRequestType = ACTION_VAL.DISTINCT_BY_REQUESTTYPE;draw()}}>Distinct</button>
   {/if}
   {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_BY_CLIENTID}
-    <FilterBlock3 title='Errors' items={$stateOfsideStore.errorsByClientId} callback={callbackErrorsByClientId} />
+    <FilterBlock3 title='Errors' items={$stateOfsideStore.errorsByClientId} callback={callbackErrorsByClientIdAndDraw} />
     
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.SUM_BY_ERRORSBYCLIENTID} on:click={() => {$stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.SUM_BY_ERRORSBYCLIENTID;draw()}}>Sum</button>
     <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsByClientId === ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID} on:click={() => {$stateOfsideStore.isSumOrDistinctByErrorsByClientId = ACTION_VAL.DISTINCT_BY_ERRORSBYCLIENTID;draw()}}>Distinct</button>
@@ -172,7 +193,7 @@
 
 {#if $stateOfsideStore.sourceContainer === SOURCE_CONTAINER.ERRORS_SOC}
 <div>
-  <FilterBlock3 title='Errors Societaire' items={$stateOfsideStore.errorsSoc} callback={callbackErrorsSoc} />
+  <FilterBlock3 title='Errors Societaire' items={$stateOfsideStore.errorsSoc} callback={callbackErrorsSocAndDraw} />
 
   <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsSoc === ACTION_VAL.SUM_BY_ERRORSSOC} on:click={() => {$stateOfsideStore.isSumOrDistinctByErrorsSoc = ACTION_VAL.SUM_BY_ERRORSSOC;draw()}}>Sum</button>
   <button class:button-on={$stateOfsideStore.isSumOrDistinctByErrorsSoc === ACTION_VAL.DISTINCT_BY_ERRORSSOC} on:click={() => {$stateOfsideStore.isSumOrDistinctByErrorsSoc = ACTION_VAL.DISTINCT_BY_ERRORSSOC;draw()}}>Distinct</button>
