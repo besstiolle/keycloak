@@ -1,12 +1,24 @@
-export interface MasterExport {
-    version:number
-    gitData:string
-    configData:string
-    elasticData:string
+export class MasterExport {
+    version:number=2
+    gitData:string=''
+    configData:string=''
+    elasticData:string=''
+
+    constructor(gitData:string='',configData:string='',elasticData:string=''){
+        this.gitData = gitData
+        this.configData = configData
+        this.elasticData = elasticData
+    }
 }
 
-export interface config{
-    gitUrl1:string
-    gitUrl2:string
-    mapClientId:string
+export class Config{
+    gitUrl_interne:string=''
+    gitUrl_admin:string=''
+    gitUrl_societaire:string=''
+    mapClientId:string=''
+    whitelist:string=''
+
+    constructor(){
+        
+    }
 }

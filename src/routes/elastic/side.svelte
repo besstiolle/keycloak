@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { browser } from "$app/environment";
     import { jsonGitDataStore, jsonConfigDataStore, stateOfsideStore } from "$lib/store";
     import { onMount } from "svelte";
     import FilterBlock3 from "../FilterBlock3.svelte";
@@ -15,7 +14,7 @@
     export let fErrorsSoc:string[]
     export let draw:Function
     
-    let smellEngine = new SmellEngine().initWithGitInstances($jsonGitDataStore, $jsonConfigDataStore)
+    let smellEngine = new SmellEngine($jsonGitDataStore, $jsonConfigDataStore)
     let previousStateSmells = TRINAIRE_VAL.UNDEF
     let listOfClientidToHideBecauseOfSmellCondifuration:string[] = []
     function updateShowSmell(value:TRINAIRE_VAL){

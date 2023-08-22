@@ -5,8 +5,6 @@
     import { SearchEngine } from './searchEngine';
     import Upload from './Upload.svelte';
 	import {StateOfFilters} from './StateOfFilters'
-
-    import { getConfigValue } from './HydratationUtils';
     import type { clientId, env, instance, royaume } from '$lib/gitStruct';
 
 	//Filters
@@ -143,15 +141,19 @@
 	}
 
 	function url(i:instance, r:royaume, c:clientId, e:env):string{
-        let config = getConfigValue($jsonConfigDataStore)
-		if(config.gitUrl2 === ''){
-            return ''
-        }
+        let valueOfUrl = ''
+		if(i.label == 'interne'){
+			valueOfUrl=$jsonConfigDataStore.gitUrl_interne || ''
+		} else if(i.label == 'admin'){
+			valueOfUrl=$jsonConfigDataStore.gitUrl_admin || ''
+		} else if(i.label == 'societaire'){
+			valueOfUrl=$jsonConfigDataStore.gitUrl_societaire || ''
+		} else {
+			console.error("Instance was not expected : ", i.label)	
+		}
 		
 		let path = i.label + '/clients/' + r.label + '/' + c.label + '/' + e.label + '.json' 
-		let url = config.gitUrl2.replace('%hash%',i.commit.hash as string) 
-		url = url.replace('%path%', path)
-
+		let url = valueOfUrl.replace('%hash%',i.commit.hash as string).replace('%path%', path)
         return url
 
 	}

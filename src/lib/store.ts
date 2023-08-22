@@ -6,20 +6,25 @@ import type { instance } from "./gitStruct";
 import { JSON_CONFIG_DATA, JSON_ELASTIC_DATA, JSON_GIT_DATA } from "./localStorageUtils";
 import { Timeline } from "./Timeline.class";
 import { initGlobalState } from "../routes/elastic/sideStateFactory";
+import { Config } from "./configStruct";
 
 const isBrowser = typeof window !== 'undefined'
 
 let storedGitJsonData:instance[] = []
-let storedConfigJsonData:string = ''
+let storedConfigJsonData:Config = new Config()
 let storedElasticJsonData:elasticStore = getEmptyElasticStore()
 let storedTimeline:Timeline = new Timeline(new Date("2000-01-01 00:00:00"),new Date("2000-01-02 00:00:00"))
 
 if(isBrowser){
 
     storedGitJsonData = JSON.parse(localStorage.getItem(JSON_GIT_DATA) || '[]');
-    storedConfigJsonData = localStorage.getItem(JSON_CONFIG_DATA) || '';
 
-    let valueFromLocalStorage = localStorage.getItem(JSON_ELASTIC_DATA)
+    let valueFromLocalStorage = localStorage.getItem(JSON_CONFIG_DATA)
+    if(valueFromLocalStorage){
+        storedConfigJsonData = JSON.parse(valueFromLocalStorage)
+    } 
+    
+    valueFromLocalStorage = localStorage.getItem(JSON_ELASTIC_DATA)
     if(valueFromLocalStorage){
         let start = new Date()
         storedElasticJsonData = fromJsonToElasticStore(JSON.parse(valueFromLocalStorage))
@@ -36,6 +41,6 @@ export const stateOfsideStore = writable( initGlobalState() )
 
 if(isBrowser){
     jsonGitDataStore.subscribe(value => {localStorage.setItem(JSON_GIT_DATA, JSON.stringify(value))})
-    jsonConfigDataStore.subscribe(value => {localStorage.setItem(JSON_CONFIG_DATA, value)})
+    jsonConfigDataStore.subscribe(value => {localStorage.setItem(JSON_CONFIG_DATA, JSON.stringify(value))})
     jsonElasticDataStore.subscribe(value => {localStorage.setItem(JSON_ELASTIC_DATA, fromElasticStoretoJson(value))})
 }

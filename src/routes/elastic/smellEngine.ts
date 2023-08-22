@@ -1,23 +1,18 @@
+import type { Config } from "$lib/configStruct";
 import type { instance } from "$lib/gitStruct";
-import { getConfigValue } from "../HydratationUtils";
-import { getWhitelist, type clientIdElastic } from "./elasticStoreFactory";
+import type { clientIdElastic } from "./elasticStoreFactory";
 
 
 export class SmellEngine{
 
-    private whitelist:string[] = []
     private knownClientId:string[] = []
 
-    contructor(){}
-
-    initWithGitInstances(instances:instance[], configValueJson:string):SmellEngine{
-        this.whitelist = getWhitelist(getConfigValue(configValueJson).mapClientId)
-        this.knownClientId = this._getListOfClientId(instances)
+    constructor(instances:instance[], config:Config){
+        let allClientIdFromGit = this._getListOfClientId(instances)
+        let allClientIdwhitelisted = config.whitelist.split('\n')
         
         //Add whitelist
-        this.knownClientId = this.knownClientId.concat(this.whitelist)
-        
-        return this
+        this.knownClientId = allClientIdFromGit.concat(allClientIdwhitelisted)
     }
 
     //TODO : lowercase vs gaareq & Gaareq ?

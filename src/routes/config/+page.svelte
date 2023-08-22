@@ -1,16 +1,12 @@
 <script lang="ts">
     import { browser } from '$app/environment';
+    import { MasterExport } from '$lib/configStruct';
     import { JSON_CONFIG_DATA, JSON_ELASTIC_DATA, JSON_GIT_DATA } from '$lib/localStorageUtils';
     import { jsonConfigDataStore } from '$lib/store';
-    import { getConfigValue } from '../HydratationUtils';
     import UploadConfiguration from './UploadConfiguration.svelte';
-    import type { MasterExport } from '$lib/configStruct';
 	
 	let addAnother = false
 
-    let gitUrl1:string = ''
-    let gitUrl2:string = ''
-    let mapClientId:string = ''
     let mapClientId_tmp:string = ''
     let isSafe:boolean = true
     const REGEX = /^([\w\-\_\:\/\-\.]+=[\w\-\_:\/\-\.]+\n)*[\w\-\_:\/\-\.]+=[\w\-\_:\/\-\.]+$/ 
@@ -19,12 +15,7 @@
         if(!browser){return}
         
         addAnother = false
-        const CONFIG = getConfigValue($jsonConfigDataStore)
-        
-        gitUrl1 = CONFIG.gitUrl1
-        gitUrl2 = CONFIG.gitUrl2
-        mapClientId = CONFIG.mapClientId
-        mapClientId_tmp = CONFIG.mapClientId
+        mapClientId_tmp = $jsonConfigDataStore.mapClientId
     }
 
     /**
@@ -43,23 +34,12 @@
         isSafe = testIsSafe(mapClientId_tmp.trim())
 
         if(isSafe){
-            mapClientId = mapClientId_tmp.trim()
+            $jsonConfigDataStore.mapClientId = mapClientId_tmp.trim()
         }
-
-        jsonConfigDataStore.set(JSON.stringify({
-            gitUrl1:gitUrl1,
-            gitUrl2:gitUrl2,
-            mapClientId:mapClientId
-        }))
     }
 
     function download(){
-        let master:MasterExport = {
-            version:2,
-            gitData:localStorage.getItem(JSON_GIT_DATA) || '',
-            configData:localStorage.getItem(JSON_CONFIG_DATA) || '',
-            elasticData:localStorage.getItem(JSON_ELASTIC_DATA) || '',
-        }
+        let master = new MasterExport(localStorage.getItem(JSON_GIT_DATA) || '',localStorage.getItem(JSON_CONFIG_DATA) || '',localStorage.getItem(JSON_ELASTIC_DATA) || '')
         let blob = new Blob([JSON.stringify(master)], {
             type: 'text/plain'
         });
@@ -102,17 +82,27 @@
 <UploadConfiguration initiateBinder={init}/>
 {:else}
 <content>
-<!--    <label for='gitUrl1'>link to custom commit -using %hash%-</label>
-    <input id='gitUrl1' disabled type='text' class='form' bind:value={gitUrl1} placeholder="https://myUrl/foo/bar/-/commit/%hash%" on:change={save} on:keyup={save}/>
-    <label for='gitUrl2'>link to custom path for a commit  -using %hash% & %path%-</label>
-    <input id='gitUrl2' disabled type='text' class='form' bind:value={gitUrl2} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
--->
-{#key mapClientId_tmp}
+    <h2>Urls gitlab par Instance</h2>
+    <label for='gitUrl_interne'>Instance Interne : link to custom path for a commit  -using %hash% & %path%-</label>
+    <input id='gitUrl_interne' type='text' class='form' bind:value={$jsonConfigDataStore.gitUrl_interne} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
+
+    <label for='gitUrl_admin'>Instance Admin : link to custom path for a commit  -using %hash% & %path%-</label>
+    <input id='gitUrl_admin' type='text' class='form' bind:value={$jsonConfigDataStore.gitUrl_admin} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
+
+    <label for='gitUrl_societaire'>Instance Societaire : link to custom path for a commit  -using %hash% & %path%-</label>
+    <input id='gitUrl_societaire' type='text' class='form' bind:value={$jsonConfigDataStore.gitUrl_societaire} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
+
+    <h2>Whitelist & Gestion des clientsId douteux</h2>
     <label for='mapClientId'>Mapping clientId (referentialKey=logValue per line){#key isSafe}{#if !isSafe}&nbsp;-&nbsp;<span class='err'>Not saved</span>{/if}{/key}</label>
     <textarea id='mapClientId' class='form' bind:value={mapClientId_tmp} on:change={save} on:keyup={save}></textarea>
+
+    <label for='whitelist'>Whitelist clientId (1 per line)</label>
+    <textarea id='whitelist' class='form' bind:value={$jsonConfigDataStore.whitelist} on:change={save} on:keyup={save}></textarea>
+    
+    <h2>Backup & Upload</h2>
     <button class='myButton' on:click="{download}">Download backup</button>
     <button class='myButton' on:click="{() => {addAnother = true}}">Upload a localStorage backup</button>
-{/key}
+
 </content>
 {/if}
 <style>

@@ -63,7 +63,7 @@ export function emptyClientIdError(label:string, instance:string = "unknown"):cl
     }
 }
 
-
+/*
 export function getWhitelist(map:string):string[]{
     if(map == undefined || map.trim() === ''){
         return []
@@ -78,3 +78,4 @@ export function getWhitelist(map:string):string[]{
     //console.info(keys)
     return keys
 }
+*/

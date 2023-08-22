@@ -1,5 +1,6 @@
 
 import type { Timeline } from '$lib/Timeline.class';
+import type { Config } from '$lib/configStruct';
 import type { minMax } from '$lib/elasticStruct';
 import type { instance } from '$lib/gitStruct';
 import type { elasticStore } from './elasticStoreFactory';
@@ -115,7 +116,7 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
 
 const DATE_1900:number = new Date("1900-01-01").valueOf()
 const DATE_2900:number = new Date("2900-01-01").valueOf()
-export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], jsonConfigDataStore:string, globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
+export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], config:Config, globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     
@@ -124,7 +125,7 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
     let maxDate:number
     let firstSeenTS:number
     let lastSeenTS:number
-    let smellEngine = new SmellEngine().initWithGitInstances(instances, jsonConfigDataStore)
+    let smellEngine = new SmellEngine(instances, config)
     let sum30:number = 0
     let cpt30 = 0
     let avgHit30d = 0

@@ -1,17 +1,25 @@
 <script lang="ts">
     import type { commit } from "$lib/gitStruct";
     import { jsonConfigDataStore } from "$lib/store";
-    import { getConfigValue } from "./HydratationUtils";
-
+    
+    export let instance:string
     export let commit:commit
 
     function url():string{
-        let config = getConfigValue($jsonConfigDataStore)
-        if(config.gitUrl1 === ''){
-            return ''
+        if(instance == 'interne'){
+            return $jsonConfigDataStore.gitUrl_interne.replace('%hash%',commit?.hash as string)
         }
-        return config.gitUrl1.replace('%hash%',commit?.hash as string)
+        if(instance == 'admin'){
+            return $jsonConfigDataStore.gitUrl_admin.replace('%hash%',commit?.hash as string)
+        }
+        if(instance == 'societaire'){
+            return $jsonConfigDataStore.gitUrl_societaire.replace('%hash%',commit?.hash as string)
+        }
+        
+        return ''
     }
+
+
 </script>
 
 {#if commit}

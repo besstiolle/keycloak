@@ -28,7 +28,7 @@
             $jsonElasticDataStore = fromJsonToElasticStore(JSON.parse(master.elasticData))
             $timelineStore = new Timeline($jsonElasticDataStore.minDate, $jsonElasticDataStore.maxDate)
             $jsonGitDataStore = JSON.parse(master.gitData)
-            $jsonConfigDataStore = master.configData
+            $jsonConfigDataStore = JSON.parse(master.configData)
 
             refreshEnrichedData($jsonElasticDataStore, $timelineStore)
         }
