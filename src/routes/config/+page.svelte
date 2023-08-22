@@ -17,13 +17,14 @@
 
     function init(){
         if(!browser){return}
-
-        let config = getConfigValue($jsonConfigDataStore)
         
-        gitUrl1 = config.gitUrl1
-        gitUrl2 = config.gitUrl2
-        mapClientId = config.mapClientId
-        mapClientId_tmp = config.mapClientId
+        addAnother = false
+        const CONFIG = getConfigValue($jsonConfigDataStore)
+        
+        gitUrl1 = CONFIG.gitUrl1
+        gitUrl2 = CONFIG.gitUrl2
+        mapClientId = CONFIG.mapClientId
+        mapClientId_tmp = CONFIG.mapClientId
     }
 
     /**
@@ -72,7 +73,6 @@
         document.body.appendChild(downloadLink)
         downloadLink.click()
         document.body.removeChild(downloadLink)
-        //console.info(master) 
     }
 
     /**
@@ -89,10 +89,6 @@
             + date.getMinutes().toString().padStart(2, '0')
     }
     
-    function initiateVoid(){
-        addAnother = false
-    }
-    
     init()
 </script>
 
@@ -103,17 +99,20 @@
 
 <section><h1>Config</h1></section>
 {#if addAnother}
-<UploadConfiguration initiateBinder={initiateVoid}/>
+<UploadConfiguration initiateBinder={init}/>
 {:else}
 <content>
-    <label for='gitUrl1'>link to custom commit -using %hash%-</label>
-    <input id='gitUrl1' type='text' class='form' bind:value={gitUrl1} placeholder="https://myUrl/foo/bar/-/commit/%hash%" on:change={save} on:keyup={save}/>
+<!--    <label for='gitUrl1'>link to custom commit -using %hash%-</label>
+    <input id='gitUrl1' disabled type='text' class='form' bind:value={gitUrl1} placeholder="https://myUrl/foo/bar/-/commit/%hash%" on:change={save} on:keyup={save}/>
     <label for='gitUrl2'>link to custom path for a commit  -using %hash% & %path%-</label>
-    <input id='gitUrl2' type='text' class='form' bind:value={gitUrl2} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
+    <input id='gitUrl2' disabled type='text' class='form' bind:value={gitUrl2} placeholder="https://myUrl/foo/bar/-/blob/%hash%/%path%" on:change={save} on:keyup={save}/>
+-->
+{#key mapClientId_tmp}
     <label for='mapClientId'>Mapping clientId (referentialKey=logValue per line){#key isSafe}{#if !isSafe}&nbsp;-&nbsp;<span class='err'>Not saved</span>{/if}{/key}</label>
     <textarea id='mapClientId' class='form' bind:value={mapClientId_tmp} on:change={save} on:keyup={save}></textarea>
     <button class='myButton' on:click="{download}">Download backup</button>
     <button class='myButton' on:click="{() => {addAnother = true}}">Upload a localStorage backup</button>
+{/key}
 </content>
 {/if}
 <style>
