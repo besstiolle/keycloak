@@ -1,9 +1,9 @@
 
 <script lang="ts">
-    import type { DatasetAndLimitsForLine, LabelAndDataset } from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
+    import type { DatasetAndLimitsForLine } from './datasetFactory';
 	
 	export let datasetAndLimits:DatasetAndLimitsForLine
 

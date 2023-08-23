@@ -1,7 +1,8 @@
 <script lang="ts">
     import { browser } from '$app/environment';
-    import { ERROR_BY_CLIENTID_TYPE, ERROR_SOC_TYPE, REQUEST_TYPE, type clientIdElastic, type clientIdError } from '$lib/elasticStruct';
+    import { ERROR_BY_CLIENTID_TYPE, ERROR_SOC_TYPE, REQUEST_TYPE} from '$lib/elasticStruct';
     import { jsonElasticDataStore, timelineStore } from '$lib/store';
+    import type { clientIdElastic, clientIdError } from '../elastic/elasticStoreFactory';
     import Subpage from './Subpage.svelte';
     const clientIdLabel = 'isi'
 	const clientIdWithRequestType = $jsonElasticDataStore.containerClientId.get(clientIdLabel) as clientIdElastic

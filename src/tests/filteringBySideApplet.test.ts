@@ -174,7 +174,7 @@ describe('test Filtering By Side Applet', () => {
                 //Test show value 
                 expect(r.show).toBeUndefined();
     
-                (r.clientIds as typeof clientId[]).forEach(c => {
+                (r.clientIds as clientId[]).forEach(c => {
                     //Test show value
                     expect(i.show).toBeUndefined()     
 
@@ -216,7 +216,7 @@ describe('test Filtering By Side Applet', () => {
                 //Test show value 
                 expect(r.show).toBeUndefined();
     
-                (r.clientIds as typeof clientId[]).forEach(c => {
+                (r.clientIds as clientId[]).forEach(c => {
                     //Test show value
                     expect(i.show).toBeUndefined()     
 

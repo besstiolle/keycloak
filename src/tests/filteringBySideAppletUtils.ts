@@ -13,7 +13,7 @@ export function testResult(instancesToTest:instance[], shouldBeFalse: string[], 
             //Test show value vs the label
             itShouldBe(r.label, r.show, shouldBeFalse, shouldbeTrue);
 
-            (r.clientIds as typeof clientId[]).forEach(c => {
+            (r.clientIds as clientId[]).forEach(c => {
                 
                 //Test show value vs the label
                 itShouldBe(c.label, c.show, shouldBeFalse, shouldbeTrue)        

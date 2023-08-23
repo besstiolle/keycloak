@@ -1,8 +1,8 @@
 
 <script lang="ts">
-    import type { LabelAndDatasetString } from '$lib/elasticStruct';
 	import Chart from 'chart.js/auto';
 	import { onMount } from 'svelte';
+    import type { LabelAndDatasetString } from './datasetFactory';
     
 	export let datasets:LabelAndDatasetString[]	
     let countersBySetOfElements:Map<string, number> = datasets[0].data

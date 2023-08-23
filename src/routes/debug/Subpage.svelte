@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { Timeline } from "$lib/Timeline.class";
-    import type { clientIdElastic } from "$lib/elasticStruct";
 
     export let arr:Record<string, any>
     export let keys:string[]

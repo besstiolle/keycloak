@@ -4,7 +4,7 @@
 	import 'chartjs-adapter-luxon';
 	import { onMount } from 'svelte';
     import { DATA_TYPE } from './sideStateFactory';
-    import type { DatasetAndLimitsForLine } from '$lib/elasticStruct';
+    import type { DatasetAndLimitsForLine } from './datasetFactory';
 	const DAY_OF_WEEK = ["Dimanche","Lundi","Mardi","Mercredi", "Jeudi", "Vendredi", "Samedi"]
 
 	export let datasetAndLimits:DatasetAndLimitsForLine

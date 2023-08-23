@@ -1,5 +1,4 @@
-import type { LabelAndDataset } from "$lib/elasticStruct"
-import { fusionMap, getHashKey } from "./datasetFactory"
+import { fusionMap, getHashKey, type LabelAndDataset } from "./datasetFactory"
 import { DATA_TYPE } from "./sideStateFactory"
 
 

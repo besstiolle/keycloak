@@ -10,8 +10,8 @@ import { StateOfFilters } from '../routes/StateOfFilters';
 describe('testJSONLoading', () => {
     it('basic test of loading fake JSON', () => {
         let instances:instance[] = getFakeDate()
-        expect((instances[0].royaumes[0].clientIds as typeof clientId[])[1].envs[0].label).toEqual('recette')
-        expect((instances[0].royaumes[0].clientIds as typeof clientId[])[1].envs[0].show).toEqual(undefined)
+        expect((instances[0].royaumes[0].clientIds as clientId[])[1].envs[0].label).toEqual('recette')
+        expect((instances[0].royaumes[0].clientIds as clientId[])[1].envs[0].show).toEqual(undefined)
     });
 })
 
@@ -78,8 +78,8 @@ function deepComparatorRoyaume(o1:royaume,o2:royaume){
     if(o1.show !== o2.show){return false}
     if(o1.clientIds?.length !== o2.clientIds?.length){return false}
     
-    for(let i = 0; i < (o1.clientIds as typeof clientId[]).length; i++){
-        if(deepComparatorClientId((o1.clientIds as typeof clientId[])[i], (o2.clientIds as typeof clientId[])[i]) == false){
+    for(let i = 0; i < (o1.clientIds as clientId[]).length; i++){
+        if(deepComparatorClientId((o1.clientIds as clientId[])[i], (o2.clientIds as clientId[])[i]) == false){
             return false
         }
     }

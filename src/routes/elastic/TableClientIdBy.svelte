@@ -1,7 +1,8 @@
 
 <script lang="ts">
-    import type { datasetTableurHit } from '$lib/elasticStruct';
-    
+    import type { datasetTableurHit } from "./datasetFactory";
+
+
 	export let datasets:datasetTableurHit[]	
     let displayArray:datasetTableurHit[] = []
    

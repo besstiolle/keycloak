@@ -1,6 +1,7 @@
 
 <script lang="ts">
-    import type { datasetTableurHit } from '$lib/elasticStruct';
+    import type { datasetTableurHit } from "./datasetFactory";
+
     
 	export let datasets:datasetTableurHit[]	
     export let borneMin:Date
