@@ -220,10 +220,12 @@ function processRawDataIntoMap(map:Map<string, Map<number,number>>, rawData:rawD
     map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDayOfWeek, instance, clientId, requestType, DATA_TYPE.SUM_BY_DAY_OF_WEEK)
     map = processRawDataAndDataTypeIntoMap(map, rawData.avgByDayOfWeek, instance, clientId, requestType, DATA_TYPE.AVG_BY_DAY_OF_WEEK)
 
+    map = processRawDataAndDataTypeIntoMap(map, rawData.sumByDay, instance, clientId, '', DATA_TYPE.SUM_BY_DAY) //For Tableur
 
     let tmp_map = new Map<number, number>()
     tmp_map.set(0,rawData.sumAbsolute)
     map = processRawDataAndDataTypeIntoMap(map, tmp_map, instance, clientId, requestType, DATA_TYPE.ABSOLUTE_SUM)
+    map = processRawDataAndDataTypeIntoMap(map, tmp_map, instance, clientId, '', DATA_TYPE.ABSOLUTE_SUM) //For Tableur
 
     return map
 }

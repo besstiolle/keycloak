@@ -2,11 +2,11 @@
 import type { Timeline } from '$lib/Timeline.class';
 import type { Config } from '$lib/configStruct';
 import type { minMax } from '$lib/elasticStruct';
-import type { instance } from '$lib/gitStruct';
 import type { elasticStore } from './elasticStoreFactory';
+import type { EnrichedDataWrapper } from './enrichedDataFactory';
 import { DATA_TYPE } from './sideStateFactory';
 import { SmellEngine } from './smellEngine';
-
+import type { instance } from "$lib/gitStruct";
 
 export interface DatasetAndLimitsForLine{
     min:number,
@@ -116,7 +116,7 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
 
 const DATE_1900:number = new Date("1900-01-01").valueOf()
 const DATE_2900:number = new Date("2900-01-01").valueOf()
-export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], config:Config, globalMap:Map<string, Map<number, number>>):datasetTableurHit[]{
+export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], config:Config, enrichedData:EnrichedDataWrapper):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     
@@ -129,8 +129,9 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
     let sum30:number = 0
     let cpt30 = 0
     let avgHit30d = 0
+    let globalMap:Map<string, Map<number, number>> = enrichedData.rawData
 
-    store.containerClientId.forEach(clientId => {
+    enrichedData.allClientIds.forEach(clientId => {
         maxDate = DATE_1900
         firstSeenTS = DATE_2900
         lastSeenTS = DATE_1900
@@ -140,8 +141,8 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
         cpt30 = 0
         avgHit30d = 0
 
-        let mapDays = globalMap.get(getHashKey(null, clientId.clientId, null, DATA_TYPE.SUM_BY_DAY)) as Map<number, number>
-        let mapAbsolute = globalMap.get(getHashKey(null, clientId.clientId, null, DATA_TYPE.ABSOLUTE_SUM)) as Map<number, number>
+        let mapDays = globalMap.get(getHashKey(null, clientId, null, DATA_TYPE.SUM_BY_DAY)) as Map<number, number>
+        let mapAbsolute = globalMap.get(getHashKey(null, clientId, null, DATA_TYPE.ABSOLUTE_SUM)) as Map<number, number>
 
         //Find rolling avg J-30
         // 1 : Get index of "30 day before the end"
@@ -178,11 +179,11 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
         let duration =  Math.round((lastSeenTS - firstSeenTS) / 86400000) + 1
         
         //Find if the current clientId is a well-known and recognized clientId
-        let isKnown = !smellEngine.isSmellByClientIdElastic(clientId)
+        let isKnown = !smellEngine.isSmellByLabel(clientId)
 
         datasetByHit.push({
-            clientId: clientId.clientId.trim(),
-            instance: clientId.instance,
+            clientId: clientId.trim(),
+            instance: enrichedData.clientIdToInstance.get(clientId) as string,
             firstSeen: new Date(firstSeenTS),
             lastSeen: new Date(lastSeenTS),
             duration:duration,

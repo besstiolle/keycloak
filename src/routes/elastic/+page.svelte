@@ -131,7 +131,7 @@
 		}
 
 		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, enrichedData.rawData)
+			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, enrichedData)
 		} else if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()
