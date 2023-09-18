@@ -1,11 +1,10 @@
 <script lang="ts">
     import type { DisplaybleItems } from "./elastic/sideStateFactory";
-
-       
 	
 	export let title:string
 	export let callback:Function
 	export let items:Map<string, DisplaybleItems>
+	export let rewrite:Function
 
 
 	const _doAllAction = function(event: Event, bool:boolean){
@@ -57,9 +56,9 @@
 	<div class='filter'>{#each displaybleItemsArray as displaybleItem}
 		{#if displaybleItem.isVisible}
 			{#if displaybleItem.isChecked}
-				<label><input type="checkbox" checked value={displaybleItem.value} on:change="{checkboxAction}"/>{displaybleItem.value}</label>
+				<label title={displaybleItem.value}><input type="checkbox" checked value={displaybleItem.value} on:change="{checkboxAction}"/>{rewrite(displaybleItem.value)}</label>
 			{:else}
-				<label><input type="checkbox"  value={displaybleItem.value} on:change="{checkboxAction}"/>{displaybleItem.value}</label>
+				<label title={displaybleItem.value}><input type="checkbox"  value={displaybleItem.value} on:change="{checkboxAction}"/>{rewrite(displaybleItem.value)}</label>
 			{/if}
 		{/if}
 	{/each}</div>

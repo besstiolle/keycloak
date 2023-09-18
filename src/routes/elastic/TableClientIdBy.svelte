@@ -169,7 +169,7 @@
     <tbody>
         {#each  displayArray as data}
         <tr class:hide="{(!data.isKnown && rotate==1) || (data.isKnown && rotate==2)}">
-            <td class='tl w'>{data.clientId}{data.isKnown?'':' ☣️'}</td>
+            <td class='tl w'><div title={data.rawClientId}>{data.clientId}{data.isKnown?'':' ☣️'}</div></td>
             <td class='tl'>{data.instance}</td>
             <td>{dateToInternalDate(data.firstSeen)}</td>
             <td>{dateToInternalDate(data.lastSeen)}</td>
@@ -208,6 +208,7 @@
         width: 250px;
         display: block;
         word-wrap: break-word;
+        cursor: help;
     }
     .w2{
         width: 90px;

@@ -15,6 +15,7 @@
     import { ACTION_VAL, SOURCE_CONTAINER, type DisplaybleItems, GRAPH_TYPE, DATA_TYPE } from './sideStateFactory';
     import { groupByCollectionAndAvgByUsersEngine, runGroupByCollectionAndAvgByUsersEngine } from './groupByCollectionAndAvgByUsersEngine';
     import { EnrichedDataWrapper, SUFFIX_FOR_REQUEST_USERS, getEnrichedData, refreshEnrichedData } from './enrichedDataFactory';
+    import { FriendlyName } from './friendlyName';
 /*
 	import { page } from '$app/stores'
     import { goto } from '$app/navigation';
@@ -29,6 +30,9 @@
 	let datasetsForPie:LabelAndDatasetString[]
 	let datasetTableurByHits:datasetTableurHit[] = []
 	let enrichedData:EnrichedDataWrapper
+	
+	//Initiate singleton
+	FriendlyName.initiate($jsonConfigDataStore)
 
 
 	//TODO MOVE inTO ITS OWN FACTORY
@@ -131,7 +135,7 @@
 		}
 
 		if ($stateOfsideStore.sourceContainer == SOURCE_CONTAINER.TABLEUR) {
-			datasetTableurByHits = initTableur($jsonElasticDataStore, $timelineStore, $jsonGitDataStore, $jsonConfigDataStore, enrichedData)
+			datasetTableurByHits = initTableur($timelineStore, $jsonGitDataStore, $jsonConfigDataStore, enrichedData)
 		} else if($stateOfsideStore.graphType == GRAPH_TYPE.LINE){
 			//reset dataset wrapper
 			datasetAndLimits = emptyDatasetAndLimitsForLine()

@@ -7,6 +7,7 @@ import type { EnrichedDataWrapper } from './enrichedDataFactory';
 import { DATA_TYPE } from './sideStateFactory';
 import { SmellEngine } from './smellEngine';
 import type { instance } from "$lib/gitStruct";
+import { FriendlyName } from './friendlyName';
 
 export interface DatasetAndLimitsForLine{
     min:number,
@@ -25,6 +26,7 @@ export interface LabelAndDatasetString{
 }
 export interface datasetTableurHit{
     clientId:string,
+    rawClientId:string
     instance: string,
     firstSeen:Date,
     lastSeen:Date,
@@ -116,7 +118,7 @@ export function getMinMax(allMap:Map<number,number>[], ob:minMax|null = null):mi
 
 const DATE_1900:number = new Date("1900-01-01").valueOf()
 const DATE_2900:number = new Date("2900-01-01").valueOf()
-export function initTableur(store:elasticStore, timeline:Timeline, instances:instance[], config:Config, enrichedData:EnrichedDataWrapper):datasetTableurHit[]{
+export function initTableur(timeline:Timeline, instances:instance[], config:Config, enrichedData:EnrichedDataWrapper):datasetTableurHit[]{
     
     let datasetByHit : datasetTableurHit[] = []
     
@@ -182,7 +184,8 @@ export function initTableur(store:elasticStore, timeline:Timeline, instances:ins
         let isKnown = !smellEngine.isSmellByLabel(clientId)
 
         datasetByHit.push({
-            clientId: clientId.trim(),
+            clientId: FriendlyName.getFriendlyName(clientId.trim()),
+            rawClientId:clientId.trim(),
             instance: enrichedData.clientIdToInstance.get(clientId) as string,
             firstSeen: new Date(firstSeenTS),
             lastSeen: new Date(lastSeenTS),

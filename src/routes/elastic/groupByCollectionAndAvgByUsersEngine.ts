@@ -1,5 +1,6 @@
 import { VERTICAL_TWO_DOT } from "./const"
 import { fusionMap, getHashKey, type LabelAndDataset } from "./datasetFactory"
+import { FriendlyName } from "./friendlyName"
 import { DATA_TYPE } from "./sideStateFactory"
 
 
@@ -114,7 +115,7 @@ function _run0(engine:groupByCollectionAndAvgByUsersEngine, allRawData:Map<strin
                     tmp_map_forUsers = _getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected)
                     tmp_map_combined = avgOfMap(tmp_map_forHits, tmp_map_forUsers)
                     allLabelsAndDatasets.push({
-                        label: MACRON + instance + VERTICAL_TWO_DOT + clientId + VERTICAL_TWO_DOT + element + BY_USERS,
+                        label: MACRON + instance + VERTICAL_TWO_DOT + FriendlyName.getFriendlyName(clientId) + VERTICAL_TWO_DOT + element + BY_USERS,
                         data: tmp_map_combined,
                         weight : getWeightOfMapCombined(tmp_map_combined)
                     })
@@ -225,7 +226,7 @@ function _run4(engine:groupByCollectionAndAvgByUsersEngine, allRawData:Map<strin
                 weight = getWeightOfMapCombined(tmp_map_combined)
 
                 allLabelsAndDatasets.push({
-                    label: MACRON + instance + VERTICAL_TWO_DOT + clientId + BY_USERS,
+                    label: MACRON + instance + VERTICAL_TWO_DOT + FriendlyName.getFriendlyName(clientId) + BY_USERS,
                     data: tmp_map_combined,
                     weight : weight
                 })

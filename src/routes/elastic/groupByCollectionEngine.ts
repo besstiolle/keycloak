@@ -1,6 +1,7 @@
  
 import { VERTICAL_TWO_DOT } from "./const"
 import { fusionMap, getHashKey, type LabelAndDataset } from "./datasetFactory"
+import { FriendlyName } from "./friendlyName"
 import { DATA_TYPE } from "./sideStateFactory"
 
 
@@ -107,7 +108,7 @@ function _run0(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number
             if(engine.instanceToClientId.get(instance)?.includes(clientId)){
                 for(let element of engine.selectedCollection){
                     allLabelsAndDatasets.push({
-                        label: instance + VERTICAL_TWO_DOT + clientId + VERTICAL_TWO_DOT + element,
+                        label: instance + VERTICAL_TWO_DOT + FriendlyName.getFriendlyName(clientId) + VERTICAL_TWO_DOT + element,
                         data: _getDataFromAllRawData(allRawData, clientId, engine.suffixCollection, element, engine.dataTypeSelected),
                         weight : _getDataAbsoluteSumFromAllRawData(allRawData, clientId, engine.suffixCollection, element)
                     })
@@ -205,7 +206,7 @@ function _run4(engine:GroupByCollectionEngine, allRawData:Map<string, Map<number
                 }
 
                 allLabelsAndDatasets.push({
-                    label: instance + VERTICAL_TWO_DOT + clientId,
+                    label: instance + VERTICAL_TWO_DOT + FriendlyName.getFriendlyName(clientId),
                     data: fusionMap(tmp_maps),
                     weight : weight
                 })
