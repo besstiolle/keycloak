@@ -30,6 +30,9 @@ export function fromElasticStoretoJson(store:elasticStore):string{
         }
 
         for(const requestType in REQUEST_TYPE){
+            if(clientIdElastic[requestType] == undefined){
+                clientIdElastic[requestType] = []
+            }
             tmp_str = clientIdElastic[requestType].join('|')
             if(tmp_str !== ''){
                 lsValue[requestType] = tmp_str
@@ -48,6 +51,9 @@ export function fromElasticStoretoJson(store:elasticStore):string{
         }
 
         for(const requestType in REQUEST_TYPE){
+            if(clientIdRequestUsers[requestType] == undefined){
+                clientIdRequestUsers[requestType] = []
+            }
             tmp_str = clientIdRequestUsers[requestType].join('|')
             if(tmp_str !== ''){
                 lsValue[requestType] = tmp_str
@@ -65,6 +71,9 @@ export function fromElasticStoretoJson(store:elasticStore):string{
             instance:clientIError.instance
         }
         for(const errorType in ERROR_BY_CLIENTID_TYPE){
+            if(clientIError[errorType] == undefined){
+                clientIError[errorType] = []
+            }
             tmp_str = clientIError[errorType].join('|')
             if(tmp_str !== ''){
                 lsValue[errorType] = tmp_str

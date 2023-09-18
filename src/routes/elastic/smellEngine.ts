@@ -8,8 +8,9 @@ export class SmellEngine{
     private knownClientId:string[] = []
 
     constructor(instances:instance[], config:Config){
+        let whitelist = config.whitelist?config.whitelist:""
         let allClientIdFromGit = this._getListOfClientId(instances)
-        let allClientIdwhitelisted = config.whitelist.split('\n')
+        let allClientIdwhitelisted = whitelist.split('\n')
         
         //Add whitelist
         this.knownClientId = allClientIdFromGit.concat(allClientIdwhitelisted)

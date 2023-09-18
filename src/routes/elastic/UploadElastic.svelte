@@ -158,7 +158,12 @@
         if(containerErrorByClientID.has(clientIdLabel)){
             clientId = containerErrorByClientID.get(clientIdLabel) as clientIdError
             clientId.instance = instance //Update for security
-        } 
+        }
+
+        //Fix potential undefined access
+        if(clientId[errorType] === undefined){
+            clientId[errorType] = []
+        }
 
         for(let i=3; i<elts.length; i++){
             //Fixme :  le parseInt(elts[i]) == 0 ne semble pas fonctionner ?
@@ -191,11 +196,16 @@
             clientId.instance = instance //Update for security
         } 
 
+        //Fix potential undefined access
+        if(clientId[requestType] === undefined){
+            clientId[requestType] = []
+        }
+
         for(let i=3; i<elts.length; i++){
             if(elts[i].trim() === EMPTY_STRING){
                 continue
             }
-        
+            
             clientId[requestType][$timelineStore.getIndexByDate(headerToDate(headers[i]))] = parseInt(elts[i])
         }
 
@@ -218,7 +228,12 @@
         if(containerRequestUsers.has(clientIdLabel)){
             requestUsers = containerRequestUsers.get(clientIdLabel) as clientIdElastic
             requestUsers.instance = instance //Update for security
-        } 
+        }
+        
+        //Fix potential undefined access
+        if(requestUsers[requestType] === undefined){
+            requestUsers[requestType] = []
+        }
 
         for(let i=3; i<elts.length; i++){
             if(elts[i].trim() === EMPTY_STRING){
